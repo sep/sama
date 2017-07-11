@@ -1,0 +1,14 @@
+﻿[Unit]
+Description=Service Availability Monitoring and Alerting
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/sama/publish
+ExecStart=/opt/sama/publish/sama
+Restart=always
+RestartSec=10
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+Environment="HOME=/opt/sama"
+
+[Install]
+WantedBy=multi-user.target
