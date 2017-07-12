@@ -77,7 +77,7 @@ namespace sama
                 loggerFactory.CreateLogger(typeof(FluentScheduler.JobManager)).LogError(0, info.Exception, $"Job '{info.Name}' failed");
             };
             var interval = Configuration.GetSection("SAMA").GetValue<int>("MonitorIntervalSeconds");
-            FluentScheduler.JobManager.AddJob(monitorJob, s => s.ToRunNow().AndEvery(interval).Seconds());
+            FluentScheduler.JobManager.AddJob(monitorJob, s => s.NonReentrant().ToRunNow().AndEvery(interval).Seconds());
         }
     }
 }
