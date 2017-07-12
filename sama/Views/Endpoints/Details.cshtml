@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Details";
+    var state = (sama.Services.StateService.EndpointState)ViewData["State"] ?? new sama.Services.StateService.EndpointState();
 }
 
 <h2>Details</h2>
@@ -33,6 +34,26 @@
         </dt>
         <dd>
             @Html.DisplayFor(model => model.ResponseMatch)
+        </dd>
+        <dt>
+            Last State
+        </dt>
+        <dd>
+            @{ 
+                if (state.IsUp == null)
+                {
+                    <div>N/A</div>
+                }
+                else if (state.IsUp == true)
+                {
+                    <div>Up as of @state.LastUpdated.ToLocalTime().ToString("g")</div>
+                }
+                else
+                {
+                    <div>Down as of @state.LastUpdated.ToLocalTime().ToString("g")</div>
+                    <div>Reason: @(state.Exception?.Message ?? "Unknown")</div>
+                }
+            }
         </dd>
     </dl>
 </div>

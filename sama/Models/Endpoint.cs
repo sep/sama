@@ -19,7 +19,7 @@ namespace sama.Models
         [RegularExpression(@"^http[s]?://.+$", ErrorMessage = "The Location field must start with http:// or https:// and contain a host.")]
         public string Location { get; set; }
 
-        [Display(Name = "Response Keyword Match")]
+        [Display(Name = "Keyword Match")]
         public string ResponseMatch { get; set; }
     }
 }

@@ -2,9 +2,10 @@
 
 @{
     ViewData["Title"] = "Endpoints";
+    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Services.StateService.EndpointState>)ViewData["CurrentStates"];
 }
 
-<h2>Index</h2>
+<h2>Endpoints</h2>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -12,24 +13,43 @@
 <table class="table">
     <thead>
         <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.Enabled)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Name)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Location)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.ResponseMatch)
-                </th>
-            <th></th>
+            <th>Status</th>
+            <th>
+                @Html.DisplayNameFor(model => model.Enabled)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Location)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ResponseMatch)
+            </th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
+            <td>
+                @{ 
+                    var state = states.FirstOrDefault(kvp => kvp.Key.Id == item.Id).Value ?? new sama.Services.StateService.EndpointState();
+
+                    if (state.IsUp == true)
+                    {
+                        <span class="label label-success" title="as of @state.LastUpdated.ToLocalTime().ToString("g")">Up</span>
+                    }
+                    else if (state.IsUp == false)
+                    {
+                        <span class="label label-danger" title="as of @state.LastUpdated.ToLocalTime().ToString("g")">Down</span>
+                    }
+                    else
+                    {
+                        <span class="label label-default">N/A</span>
+                    }
+                }
+            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Enabled)
             </td>

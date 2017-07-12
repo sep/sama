@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using sama.Services;
 
 namespace sama
 {
@@ -37,10 +38,13 @@ namespace sama
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddSingleton(Configuration);
+
+            services.AddSingleton<StateService>();
+            services.AddSingleton<MonitorJob>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext dbContext, DbContextOptions<ApplicationDbContext> dbContextOptions)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext dbContext, MonitorJob monitorJob)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -72,7 +76,6 @@ namespace sama
             {
                 loggerFactory.CreateLogger(typeof(FluentScheduler.JobManager)).LogError(0, info.Exception, $"Job '{info.Name}' failed");
             };
-            var monitorJob = new Services.MonitorJob(dbContextOptions, Configuration);
             var interval = Configuration.GetSection("SAMA").GetValue<int>("MonitorIntervalSeconds");
             FluentScheduler.JobManager.AddJob(monitorJob, s => s.ToRunNow().AndEvery(interval).Seconds());
         }

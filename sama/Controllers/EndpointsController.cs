@@ -1,27 +1,27 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using sama;
 using sama.Models;
+using sama.Services;
 
 namespace sama.Controllers
 {
     public class EndpointsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly StateService _stateService;
 
-        public EndpointsController(ApplicationDbContext context)
+        public EndpointsController(ApplicationDbContext context, StateService stateService)
         {
-            _context = context;    
+            _context = context;
+            _stateService = stateService;
         }
 
         // GET: Endpoints
         public async Task<IActionResult> Index()
         {
+            ViewData.Add("CurrentStates", _stateService.GetAllStates());
             return View(await _context.Endpoints.ToListAsync());
         }
 
@@ -39,6 +39,8 @@ namespace sama.Controllers
             {
                 return NotFound();
             }
+
+            ViewData.Add("State", _stateService.GetState(endpoint.Id));
 
             return View(endpoint);
         }
@@ -99,6 +101,7 @@ namespace sama.Controllers
                 {
                     _context.Update(endpoint);
                     await _context.SaveChangesAsync();
+                    _stateService.SetState(endpoint, null, null);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -142,6 +145,7 @@ namespace sama.Controllers
             var endpoint = await _context.Endpoints.SingleOrDefaultAsync(m => m.Id == id);
             _context.Endpoints.Remove(endpoint);
             await _context.SaveChangesAsync();
+            _stateService.RemoveState(id);
             return RedirectToAction("Index");
         }
 
