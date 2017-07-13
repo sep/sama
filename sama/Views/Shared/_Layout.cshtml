@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.Reflection
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -41,7 +42,8 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; 2017 - sama</p>
+            @{ var version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; }
+            <p>Service Availability Monitoring and Alerting v@(version.ToString())</p>
         </footer>
     </div>
 

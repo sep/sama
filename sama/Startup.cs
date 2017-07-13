@@ -40,6 +40,7 @@ namespace sama
             services.AddSingleton(Configuration);
 
             services.AddSingleton<StateService>();
+            services.AddSingleton<EndpointCheckService>();
             services.AddSingleton<MonitorJob>();
         }
 
