@@ -40,8 +40,18 @@ namespace sama
             services.AddSingleton(Configuration);
 
             services.AddSingleton<StateService>();
+            services.AddSingleton<SlackNotificationService>();
             services.AddSingleton<EndpointCheckService>();
             services.AddSingleton<MonitorJob>();
+
+            services.AddTransient<System.Net.Http.HttpMessageHandler, System.Net.Http.HttpClientHandler>(provider => new System.Net.Http.HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    // Ignore SSL/TLS errors (for now)
+                    return true;
+                }
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
