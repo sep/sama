@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using sama.Models;
 using System;
 using System.Net.Http;
@@ -13,19 +12,19 @@ namespace sama.Services
         private readonly IConfigurationRoot _config;
         private readonly StateService _stateService;
         private readonly SlackNotificationService _notifyService;
-        private readonly IServiceProvider _provider;
+        private readonly HttpMessageHandler _httpHandler;
 
-        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, IServiceProvider provider)
+        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, HttpMessageHandler httpHandler)
         {
             _config = config;
             _stateService = stateService;
             _notifyService = notifyService;
-            _provider = provider;
+            _httpHandler = httpHandler;
         }
 
-        public void ProcessEndpoint(Endpoint endpoint, int retryCount)
+        public virtual void ProcessEndpoint(Endpoint endpoint, int retryCount)
         {
-            using (var client = new HttpClient(_provider.GetRequiredService<HttpMessageHandler>(), true))
+            using (var client = new HttpClient(_httpHandler, false))
             using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.Location))
             {
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko");
@@ -131,7 +130,7 @@ namespace sama.Services
             get
             {
                 var seconds = _config.GetSection("SAMA").GetValue("SecondsBetweenTries", 1);
-                return TimeSpan.FromSeconds(1);
+                return TimeSpan.FromSeconds(seconds);
             }
         }
 

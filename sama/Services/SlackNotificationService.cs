@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using sama.Models;
@@ -12,16 +11,16 @@ namespace sama.Services
     {
         private readonly ILogger<SlackNotificationService> _logger;
         private readonly IConfigurationRoot _config;
-        private readonly IServiceProvider _provider;
+        private readonly HttpMessageHandler _httpHandler;
 
-        public SlackNotificationService(ILogger<SlackNotificationService> logger, IConfigurationRoot config, IServiceProvider provider)
+        public SlackNotificationService(ILogger<SlackNotificationService> logger, IConfigurationRoot config, HttpMessageHandler httpHandler)
         {
             _logger = logger;
             _config = config;
-            _provider = provider;
+            _httpHandler = httpHandler;
         }
 
-        public void Notify(Endpoint endpoint, bool isUp, Exception exception)
+        public virtual void Notify(Endpoint endpoint, bool isUp, Exception exception)
         {
             if (isUp)
             {
@@ -35,11 +34,18 @@ namespace sama.Services
 
         private void SendNotification(string message)
         {
-            using (var client = new HttpClient(_provider.GetRequiredService<HttpMessageHandler>(), true))
+            try
             {
-                var data = JsonConvert.SerializeObject(new { text = message });
-                var url = _config.GetSection("SAMA").GetValue<string>("SlackWebHook");
-                client.PostAsync(url, new StringContent(data)).Wait();
+                using (var client = new HttpClient(_httpHandler, false))
+                {
+                    var data = JsonConvert.SerializeObject(new { text = message });
+                    var url = _config.GetSection("SAMA").GetValue<string>("SlackWebHook");
+                    client.PostAsync(url, new StringContent(data)).Wait();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(0, "Unable to send Slack notification", ex);
             }
         }
     }

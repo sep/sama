@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace sama.Services
 {
@@ -18,7 +17,7 @@ namespace sama.Services
 
         private readonly Dictionary<Endpoint, EndpointState> _endpointStates = new Dictionary<Endpoint, EndpointState>();
 
-        public void SetState(Endpoint endpoint, bool? isUp, Exception exception)
+        public virtual void SetState(Endpoint endpoint, bool? isUp, Exception exception)
         {
             lock (this)
             {
@@ -27,7 +26,7 @@ namespace sama.Services
             }
         }
 
-        public IReadOnlyDictionary<Endpoint, EndpointState> GetAllStates()
+        public virtual IReadOnlyDictionary<Endpoint, EndpointState> GetAllStates()
         {
             lock (this)
             {
@@ -35,7 +34,7 @@ namespace sama.Services
             }
         }
 
-        public EndpointState GetState(int id)
+        public virtual EndpointState GetState(int id)
         {
             lock (this)
             {
@@ -44,7 +43,7 @@ namespace sama.Services
             }
         }
 
-        internal void RemoveState(int id)
+        public virtual void RemoveState(int id)
         {
             lock (this)
             {

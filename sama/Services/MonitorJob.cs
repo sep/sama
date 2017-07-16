@@ -22,7 +22,7 @@ namespace sama.Services
             _checkService = checkService;
         }
 
-        public void Execute()
+        public virtual void Execute()
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
