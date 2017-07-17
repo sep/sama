@@ -28,6 +28,10 @@
         padding: 6px;
     }
 
+    .endpoint-child span a {
+        color: #fff;
+    }
+
     .endpoint-child span i {
         font-weight: normal;
     }
@@ -55,9 +59,9 @@
     @foreach(var item in downEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-down">
-            <div class="endpoint-child" data-toggle="tooltip" data-placement="bottom" title="@item.Location">
+            <div class="endpoint-child">
                 <span>
-                    @item.Name
+                    <a href="@item.Location">@item.Name</a>
                     <br />
                     <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Exception?.Message</i>
                 </span>
@@ -67,15 +71,17 @@
     @foreach (var item in upEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-up">
-            <div class="endpoint-child" data-toggle="tooltip" data-placement="bottom" title="@item.Location"><span>@item.Name</span></div>
+            <div class="endpoint-child">
+                <span><a href="@item.Location">@item.Name</a></span>
+            </div>
         </div>
     }
     @foreach (var item in indeterminateEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-indeterminate">
-            <div class="endpoint-child" data-toggle="tooltip" data-placement="bottom" title="@item.Location">
+            <div class="endpoint-child">
                 <span>
-                    @item.Name
+                    <a href="@item.Location">@item.Name</a>
                     @if(!item.Enabled)
                     {
                         <br /><i>(Disabled)</i>
@@ -92,8 +98,6 @@
 @section Scripts {
 <script type="text/javascript">
     $(function () {
-        $('[data-toggle="tooltip"]').tooltip();
-
         setTimeout('document.location.reload();', 60000);
     });
 </script>
