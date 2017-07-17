@@ -86,7 +86,7 @@ namespace TestSama.Controllers
             var result = await _controller.Create(new Endpoint { Name = "Q", Location = "W" }) as RedirectToActionResult;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("Index", result.ActionName);
+            Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q").Count());
         }
 
@@ -110,7 +110,7 @@ namespace TestSama.Controllers
 
             var result = await _controller.Edit(1, endpoint) as RedirectToActionResult;
             Assert.IsNotNull(result);
-            Assert.AreEqual("Index", result.ActionName);
+            Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
             _stateService.Received().SetState(endpoint, null, null);
@@ -124,7 +124,7 @@ namespace TestSama.Controllers
             var result = await _controller.DeleteConfirmed(1) as RedirectToActionResult;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("Index", result.ActionName);
+            Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
             _stateService.Received().RemoveState(1);
         }

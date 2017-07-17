@@ -12,7 +12,7 @@
     .overview-blocks .endpoint-state .endpoint-child {
         color: #fff;
         font-weight: bold;
-        min-height: 4em;
+        min-height: 6em;
         text-align: center;
 
         display: flex;
@@ -28,6 +28,10 @@
         padding: 6px;
     }
 
+    .endpoint-child span i {
+        font-weight: normal;
+    }
+
     .endpoint-down .endpoint-child {
         background-color: #d9534f;
     }
@@ -39,27 +43,58 @@
     .endpoint-indeterminate .endpoint-child {
         background-color: #777;
     }
+
+    .refreshed-on {
+        text-align: right;
+    }
 </style>
 
 <h2>Overview (@downEndpoints.Count() down)</h2>
-
+<hr />
 <div class="row overview-blocks">
     @foreach(var item in downEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-down">
-            <div class="endpoint-child"><span>@item.Name</span></div>
+            <div class="endpoint-child" data-toggle="tooltip" data-placement="bottom" title="@item.Location">
+                <span>
+                    @item.Name
+                    <br />
+                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Exception?.Message</i>
+                </span>
+            </div>
         </div>
     }
     @foreach (var item in upEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-up">
-            <div class="endpoint-child"><span>@item.Name</span></div>
+            <div class="endpoint-child" data-toggle="tooltip" data-placement="bottom" title="@item.Location"><span>@item.Name</span></div>
         </div>
     }
     @foreach (var item in indeterminateEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-indeterminate">
-            <div class="endpoint-child"><span>@item.Name</span></div>
+            <div class="endpoint-child" data-toggle="tooltip" data-placement="bottom" title="@item.Location">
+                <span>
+                    @item.Name
+                    @if(!item.Enabled)
+                    {
+                        <br /><i>(Disabled)</i>
+                    }
+                </span>
+            </div>
         </div>
     }
 </div>
+<p class="refreshed-on">
+    Last updated on <script type="text/javascript">document.write(new Date().toLocaleString());</script>
+</p>
+
+@section Scripts {
+<script type="text/javascript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+
+        setTimeout('document.location.reload();', 60000);
+    });
+</script>
+}

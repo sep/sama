@@ -77,7 +77,7 @@ namespace sama
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Endpoints}/{action=Index}/{id?}");
+                    template: "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
             });
 
             dbContext.Database.Migrate();

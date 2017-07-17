@@ -18,7 +18,12 @@ namespace sama.Controllers
             _stateService = stateService;
         }
 
-        // GET: Endpoints
+        public IActionResult IndexRedirect()
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Endpoints/Index
         public async Task<IActionResult> Index()
         {
             ViewData.Add("CurrentStates", _stateService.GetAllStates());
@@ -69,7 +74,7 @@ namespace sama.Controllers
             {
                 _context.Add(endpoint);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(List));
             }
             return View(endpoint);
         }
@@ -121,7 +126,7 @@ namespace sama.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(List));
             }
             return View(endpoint);
         }
@@ -153,7 +158,7 @@ namespace sama.Controllers
             _context.Endpoints.Remove(endpoint);
             await _context.SaveChangesAsync();
             _stateService.RemoveState(id);
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(List));
         }
 
         private bool EndpointExists(int id)
