@@ -48,6 +48,19 @@ namespace TestSama.Controllers
         }
 
         [TestMethod]
+        public async Task ListShouldDisplayAllEndpoints()
+        {
+            var states = new ReadOnlyDictionary<Endpoint, StateService.EndpointState>(new Dictionary<Endpoint, StateService.EndpointState>());
+            _stateService.GetAllStates().Returns(states);
+
+            var result = await _controller.List() as ViewResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreSame(states, result.ViewData["CurrentStates"]);
+            Assert.AreEqual(2, (result.Model as List<Endpoint>).Count);
+        }
+
+        [TestMethod]
         public async Task DetailsShouldDisplayEndpointInfo()
         {
             var state = new StateService.EndpointState();

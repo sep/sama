@@ -1,73 +1,65 @@
 @model IEnumerable<sama.Models.Endpoint>
 
 @{
-    ViewData["Title"] = "Endpoints";
+    ViewData["Title"] = "Overview";
     var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Services.StateService.EndpointState>)ViewData["CurrentStates"];
+    var upEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == true).OrderBy(e => e.Name.ToLowerInvariant());
+    var downEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == false).OrderBy(e => e.Name.ToLowerInvariant());
+    var indeterminateEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == null).OrderBy(e => e.Name.ToLowerInvariant());
 }
 
-<h2>Endpoints</h2>
+<style type="text/css">
+    .overview-blocks .endpoint-state .endpoint-child {
+        color: #fff;
+        font-weight: bold;
+        min-height: 4em;
+        text-align: center;
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Status</th>
-            <th>
-                @Html.DisplayNameFor(model => model.Enabled)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ResponseMatch)
-            </th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @{ 
-                    var state = states.FirstOrDefault(kvp => kvp.Key.Id == item.Id).Value ?? new sama.Services.StateService.EndpointState();
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-                    if (state.IsUp == true)
-                    {
-                        <span class="label label-success" title="as of @state.LastUpdated.ToLocalTime().ToString("g")">Up</span>
-                    }
-                    else if (state.IsUp == false)
-                    {
-                        <span class="label label-danger" title="as of @state.LastUpdated.ToLocalTime().ToString("g")">Down</span>
-                    }
-                    else
-                    {
-                        <span class="label label-default">N/A</span>
-                    }
-                }
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Enabled)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Location)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ResponseMatch)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+        border-radius: 8px;
+
+        margin-bottom: 2em;
+    }
+
+    .endpoint-child span {
+        padding: 6px;
+    }
+
+    .endpoint-down .endpoint-child {
+        background-color: #d9534f;
+    }
+
+    .endpoint-up .endpoint-child {
+        background-color: #5cb85c;
+    }
+
+    .endpoint-indeterminate .endpoint-child {
+        background-color: #777;
+    }
+</style>
+
+<h2>Overview (@downEndpoints.Count() down)</h2>
+
+<div class="row overview-blocks">
+    @foreach(var item in downEndpoints)
+    {
+        <div class="col-sm-4 endpoint-state endpoint-down">
+            <div class="endpoint-child"><span>@item.Name</span></div>
+        </div>
+    }
+    @foreach (var item in upEndpoints)
+    {
+        <div class="col-sm-4 endpoint-state endpoint-up">
+            <div class="endpoint-child"><span>@item.Name</span></div>
+        </div>
+    }
+    @foreach (var item in indeterminateEndpoints)
+    {
+        <div class="col-sm-4 endpoint-state endpoint-indeterminate">
+            <div class="endpoint-child"><span>@item.Name</span></div>
+        </div>
+    }
+</div>

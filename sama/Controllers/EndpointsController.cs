@@ -25,6 +25,13 @@ namespace sama.Controllers
             return View(await _context.Endpoints.ToListAsync());
         }
 
+        // GET: Endpoints/List
+        public async Task<IActionResult> List()
+        {
+            ViewData.Add("CurrentStates", _stateService.GetAllStates());
+            return View(await _context.Endpoints.ToListAsync());
+        }
+
         // GET: Endpoints/Details/5
         public async Task<IActionResult> Details(int? id)
         {
