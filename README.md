@@ -27,7 +27,7 @@ Once up and running, accessing the service will redirect the browser to the Over
 
 The `appsettings.json` file has default settings for SAMA. They should be modified to fit your needs - including the addition of a Slack web hook (see the [Slack API docs](https://api.slack.com/custom-integrations/incoming-webhooks) for more info).
 
-## Future planned/wished-for features
+## Future planned/wished-for features (PRs are welcome!)
 
 - Per-endpoint overrides for timeout, interval, retry settings
 - Moving global configuration into database for web-based modification
@@ -36,6 +36,9 @@ The `appsettings.json` file has default settings for SAMA. They should be modifi
 - TLS checks for certificate expiration, validity
 - Saving of up/down events in database, historical trending
 - Saving of response times for more in-depth historical trending
+- HTTP/HTTPS authentication option
+- HTTP/HTTPS multi-step checks (e.g., log in and then verify keyword presence)
+- Ability to accept HTTP/HTTPS non-200 responses as success
 
 ## License
 
