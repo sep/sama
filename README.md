@@ -34,6 +34,8 @@ The `appsettings.json` file has default settings for SAMA. They should be modifi
 - Expanded notification options beyond Slack (email, IFTTT?)
 - Checks beyond HTTP/HTTPS (ping, TCP, more?)
 - TLS checks for certificate expiration, validity
+- Saving of up/down events in database, historical trending
+- Saving of response times for more in-depth historical trending
 
 ## License
 
