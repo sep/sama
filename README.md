@@ -36,9 +36,10 @@ The `appsettings.json` file has default settings for SAMA. They should be modifi
 - TLS checks for certificate expiration, validity
 - Saving of up/down events in database, historical trending
 - Saving of response times for more in-depth historical trending
-- HTTP/HTTPS authentication option
-- HTTP/HTTPS multi-step checks (e.g., log in and then verify keyword presence)
 - Ability to accept HTTP/HTTPS non-200 responses as success
+- User access control for modifying configuration
+- HTTP/HTTPS authentication option (after access control is implemented)
+- HTTP/HTTPS multi-step checks (e.g., log in and then verify keyword presence)
 
 ## License
 
