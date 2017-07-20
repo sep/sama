@@ -9,22 +9,28 @@
 }
 
 <style type="text/css">
-    .overview-blocks .endpoint-state .state-container {
-        display: table;
+    .overview-blocks .endpoint-state {
+        display: flex;
+        flex-direction: column;
         height: 100%;
-        margin-bottom: 2em;
-        width: 100%;
     }
 
-    .overview-blocks .endpoint-state .state-container .endpoint-child {
+    .overview-blocks .endpoint-state .endpoint-child {
+        align-items: center;
         border-radius: 8px;
         color: #fff;
-        display: table-cell;
+        display: flex;
+        flex-direction: column;
         font-weight: bold;
+        justify-content: center;
+        margin-bottom: 2em;
         min-height: 6em;
         padding: 6px;
         text-align: center;
-        vertical-align: middle;
+    }
+
+    .overview-blocks .endpoint-state .endpoint-child > span {
+        max-width: 100%;
     }
 
     .endpoint-child span a {
@@ -58,40 +64,34 @@
     @foreach(var item in downEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-down">
-            <div class="state-container">
-                <div class="endpoint-child">
-                    <span>
-                        <a href="@item.Location">@item.Name</a>
-                        <br />
-                        <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Exception?.Message</i>
-                    </span>
-                </div>
+            <div class="endpoint-child">
+                <span>
+                    <a href="@item.Location">@item.Name</a>
+                    <br />
+                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Exception?.Message</i>
+                </span>
             </div>
         </div>
     }
     @foreach (var item in upEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-up">
-            <div class="state-container">
-                <div class="endpoint-child">
-                    <span><a href="@item.Location">@item.Name</a></span>
-                </div>
+            <div class="endpoint-child">
+                <span><a href="@item.Location">@item.Name</a></span>
             </div>
         </div>
     }
     @foreach (var item in indeterminateEndpoints)
     {
         <div class="col-sm-4 endpoint-state endpoint-indeterminate">
-            <div class="state-container">
-                <div class="endpoint-child">
-                    <span>
-                        <a href="@item.Location">@item.Name</a>
-                        @if (!item.Enabled)
-                        {
-                            <br /><i>(Disabled)</i>
-                        }
-                    </span>
-                </div>
+            <div class="endpoint-child">
+                <span>
+                    <a href="@item.Location">@item.Name</a>
+                    @if (!item.Enabled)
+                    {
+                        <br /><i>(Disabled)</i>
+                    }
+                </span>
             </div>
         </div>
     }
