@@ -28,7 +28,7 @@ namespace sama.Services
             using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.Location))
             {
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko");
-                message.Headers.Add("Accept", "text/html");
+                message.Headers.Add("Accept", "text/html, application/xhtml+xml, */*");
                 client.Timeout = ClientTimeout;
 
                 var task = client.SendAsync(message);
