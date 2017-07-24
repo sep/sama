@@ -11,5 +11,6 @@ namespace sama
         }
 
         public DbSet<Endpoint> Endpoints { get; set; }
+        public DbSet<ApplicationUser> Users { get; set; }
     }
 }

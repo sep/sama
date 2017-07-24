@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sama.Services;
+using sama.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace sama
 {
@@ -37,6 +39,11 @@ namespace sama
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddDefaultTokenProviders();
+            services.AddTransient<IUserStore<ApplicationUser>, ApplicationUserStore>();
+            services.AddTransient<IRoleStore<IdentityRole>, ApplicationUserStore>();
+
             services.AddSingleton(Configuration);
 
             services.AddSingleton<StateService>();
@@ -55,7 +62,7 @@ namespace sama
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, ApplicationDbContext dbContext, MonitorJob monitorJob)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, DbContextOptions<ApplicationDbContext> dbContextOptions, MonitorJob monitorJob)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -73,6 +80,8 @@ namespace sama
 
             app.UseSession();
 
+            app.UseAuthentication();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -80,7 +89,10 @@ namespace sama
                     template: "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
             });
 
-            dbContext.Database.Migrate();
+            using (var dbContext = new ApplicationDbContext(dbContextOptions))
+            {
+                dbContext.Database.Migrate();
+            }
 
             FluentScheduler.JobManager.Initialize(new FluentScheduler.Registry());
             FluentScheduler.JobManager.JobException += (info) =>
