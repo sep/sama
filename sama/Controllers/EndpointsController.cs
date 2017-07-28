@@ -4,26 +4,39 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sama.Models;
 using sama.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace sama.Controllers
 {
+    [Authorize]
     public class EndpointsController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly StateService _stateService;
+        private readonly UserManagementService _userService;
 
-        public EndpointsController(ApplicationDbContext context, StateService stateService)
+        public EndpointsController(ApplicationDbContext context, StateService stateService, UserManagementService userService)
         {
             _context = context;
             _stateService = stateService;
+            _userService = userService;
         }
 
-        public IActionResult IndexRedirect()
+        [AllowAnonymous]
+        public async Task<IActionResult> IndexRedirect()
         {
-            return RedirectToAction(nameof(Index));
+            if (await _userService.HasAccounts())
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                return RedirectToAction(nameof(AccountController.CreateInitial), "Account");
+            }
         }
 
         // GET: Endpoints/Index
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             ViewData.Add("CurrentStates", _stateService.GetAllStates());

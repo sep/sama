@@ -11,8 +11,8 @@ using System;
 namespace sama.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20170724002428_AddBasicIdentity")]
-    partial class AddBasicIdentity
+    [Migration("20170728154430_AddIdentity")]
+    partial class AddIdentity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,42 +22,17 @@ namespace sama.Migrations
 
             modelBuilder.Entity("sama.Models.ApplicationUser", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int>("AccessFailedCount");
+                    b.Property<string>("PasswordHash")
+                        .IsRequired();
 
-                    b.Property<string>("ConcurrencyStamp");
+                    b.Property<string>("PasswordHashMetadata")
+                        .IsRequired();
 
-                    b.Property<DateTimeOffset?>("CreateDate");
-
-                    b.Property<string>("Email");
-
-                    b.Property<bool>("EmailConfirmed");
-
-                    b.Property<DateTimeOffset?>("LastPasswordChangeDate");
-
-                    b.Property<DateTimeOffset?>("LastSignInDate");
-
-                    b.Property<bool>("LockoutEnabled");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd");
-
-                    b.Property<string>("NormalizedEmail");
-
-                    b.Property<string>("NormalizedUserName");
-
-                    b.Property<string>("PasswordHash");
-
-                    b.Property<string>("PhoneNumber");
-
-                    b.Property<bool>("PhoneNumberConfirmed");
-
-                    b.Property<string>("SecurityStamp");
-
-                    b.Property<bool>("TwoFactorEnabled");
-
-                    b.Property<string>("UserName");
+                    b.Property<string>("UserName")
+                        .IsRequired();
 
                     b.HasKey("Id");
 

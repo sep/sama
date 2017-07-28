@@ -41,8 +41,9 @@ namespace sama
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddDefaultTokenProviders();
-            services.AddTransient<IUserStore<ApplicationUser>, ApplicationUserStore>();
-            services.AddTransient<IRoleStore<IdentityRole>, ApplicationUserStore>();
+            services.AddTransient<IUserStore<ApplicationUser>, UserManagementService>();
+            services.AddTransient<IRoleStore<IdentityRole>, UserManagementService>();
+            services.AddTransient<UserManagementService>();
 
             services.AddSingleton(Configuration);
 

@@ -1,4 +1,5 @@
 ﻿@using System.Reflection
+@inject Microsoft.AspNetCore.Identity.SignInManager<sama.Models.ApplicationUser> SignInManager
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,13 +31,17 @@
                 </button>
                 <a asp-area="" asp-controller="Endpoints" asp-action="Index" class="navbar-brand">SAMA</a>
             </div>
-            @*<div class="navbar-collapse collapse">
+            <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a></li>
+                    <li><a asp-area="" asp-controller="Endpoints" asp-action="IndexRedirect">Home</a></li>
+
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li><a asp-area="" asp-controller="Endpoints" asp-action="List">Manage</a></li>
+                    }
                 </ul>
-            </div>*@
+                @await Html.PartialAsync("_UserPartial")
+            </div>
         </div>
     </nav>
     <div class="container body-content">

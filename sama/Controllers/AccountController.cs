@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using sama.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using sama.Services;
 using System.Threading.Tasks;
 
 namespace sama.Controllers
@@ -13,13 +11,13 @@ namespace sama.Controllers
     [Authorize]
     public class AccountController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManagementService _userService;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManagementService userService)
         {
-            _userManager = userManager;
             _signInManager = signInManager;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -41,17 +39,55 @@ namespace sama.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = await _signInManager.UserManager.FindByNameAsync(vm.Username);
-                if (user != null)
+                var user = await _userService.FindUserByUsername(vm.Username);
+                if (user != null && _userService.ValidateCredentials(user, vm.Password))
                 {
                     await _signInManager.SignInAsync(user, false);
-                    return RedirectToLocal(returnUrl);
+                    return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
                 }
             }
 
             // If we got this far, something failed, redisplay form
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(EndpointsController.IndexRedirect), "Endpoints");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult CreateInitial()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateInitial(RegisterViewModel vm)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userService.CreateInitial(vm.Username, vm.Password);
+                if (user != null)
+                {
+                    await _signInManager.SignInAsync(user, false);
+                    return RedirectToAction(nameof(EndpointsController.List), "Endpoints");
+                }
+                else
+                {
+                    return RedirectToLocal(null);
+                }
+            }
+            else
+            {
+                return View(vm);
+            }
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

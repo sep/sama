@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26711.1
+VisualStudioVersion = 15.0.26724.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sama", "sama\sama.csproj", "{9C8DB8E1-A57E-4BBE-9F78-E60A195C0AC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unit-tests", "unit-tests\unit-tests.csproj", "{F5C1905A-ECD8-4E0A-9EB0-61D70C999100}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unit-tests", "unit-tests\unit-tests.csproj", "{F5C1905A-ECD8-4E0A-9EB0-61D70C999100}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
