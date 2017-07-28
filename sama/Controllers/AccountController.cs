@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using sama.Models;
 using sama.Services;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace sama.Controllers
@@ -88,6 +90,23 @@ namespace sama.Controllers
             {
                 return View(vm);
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> List()
+        {
+            return View(await _userService.ListUsers());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid? id)
+        {
+            if (id == null || await _userService.FindByIdAsync(id.Value.ToString("B"), CancellationToken.None) == null)
+            {
+                return NotFound();
+            }
+
+            return View(new ResetPasswordViewModel { UserId = id.Value });
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

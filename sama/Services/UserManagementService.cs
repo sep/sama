@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using Konscious.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace sama.Services
 {
@@ -74,6 +75,22 @@ namespace sama.Services
                 }
 
                 return null;
+            }
+        }
+
+        public async Task<List<ApplicationUser>> ListUsers()
+        {
+            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            {
+                return await dbContext.Users.ToListAsync();
+            }
+        }
+
+        public async Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        {
+            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            {
+                return await dbContext.Users.FirstOrDefaultAsync(u => u.Id.ToString("B") == userId);
             }
         }
 
@@ -170,11 +187,6 @@ namespace sama.Services
         }
 
         public Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
