@@ -19,6 +19,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="1.1.7" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="1.1.7" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0-preview2-final" />
+    <PackageReference Include="Microsoft.Composition" Version="1.0.31" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.0-preview2-final" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0-preview2-final" PrivateAssets="All" />
   </ItemGroup>

@@ -22,6 +22,7 @@ namespace TestSama.Controllers
         private IServiceProvider _provider;
         private ApplicationDbContext _testDbContext;
         private StateService _stateService;
+        private UserManagementService _userService;
 
         [TestInitialize]
         public void Setup()
@@ -29,7 +30,8 @@ namespace TestSama.Controllers
             _provider = TestUtility.InitDI();
             _testDbContext = new ApplicationDbContext(_provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
             _stateService = Substitute.For<StateService>();
-            _controller = new EndpointsController(_provider.GetRequiredService<ApplicationDbContext>(), _stateService);
+            _userService = Substitute.For<UserManagementService>(null, null);
+            _controller = new EndpointsController(_provider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService);
 
             SeedEndpoints();
         }
