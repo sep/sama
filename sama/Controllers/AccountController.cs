@@ -11,15 +11,18 @@ using System.Threading.Tasks;
 namespace sama.Controllers
 {
     [Authorize]
+    [ResponseCache(NoStore = true)]
     public class AccountController : Controller
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManagementService _userService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, UserManagementService userService)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManagementService userService, UserManager<ApplicationUser> userManager)
         {
             _signInManager = signInManager;
             _userService = userService;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -101,12 +104,33 @@ namespace sama.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null || await _userService.FindByIdAsync(id.Value.ToString("B"), CancellationToken.None) == null)
+            if (id == null)
+            {
+                return RedirectToAction(nameof(Edit), new { id = _userManager.GetUserId(User) });
+            }
+
+            if (await _userService.FindByIdAsync(id.Value.ToString("D"), CancellationToken.None) == null)
             {
                 return NotFound();
             }
 
             return View(new ResetPasswordViewModel { UserId = id.Value });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(Guid id, [Bind("UserId,Password,ConfirmPassword")] ResetPasswordViewModel vm)
+        {
+            if (id != vm.UserId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                await _userService.ResetUserPassword(id, vm.Password);
+                return RedirectToAction(nameof(List));
+            }
+            return View(vm);
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

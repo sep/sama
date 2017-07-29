@@ -46,7 +46,7 @@ namespace sama.Services
 
         public Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(":LOCAL:" + user.Id.ToString("B"));
+            return Task.FromResult(user.Id.ToString("D"));
         }
 
         public Task<string> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
@@ -90,7 +90,22 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.FirstOrDefaultAsync(u => u.Id.ToString("B") == userId);
+                return await dbContext.Users.FirstOrDefaultAsync(u => u.Id.ToString("D") == userId);
+            }
+        }
+
+        public async Task ResetUserPassword(Guid id, string password)
+        {
+            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            {
+                var user = await dbContext.Users.FirstAsync(u => u.Id == id);
+                if (CreatePasswordHash(password, out string hash, out string metadata))
+                {
+                    user.PasswordHash = hash;
+                    user.PasswordHashMetadata = metadata;
+                    dbContext.Update(user);
+                    await dbContext.SaveChangesAsync();
+                }
             }
         }
 
