@@ -109,6 +109,17 @@ namespace sama.Services
             }
         }
 
+        public async Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            {
+                dbContext.Users.Remove(user);
+                await dbContext.SaveChangesAsync();
+
+                return IdentityResult.Success;
+            }
+        }
+
         private bool VerifyPasswordHash(string password, string storedHash, string metadata)
         {
             try
@@ -197,11 +208,6 @@ namespace sama.Services
         }
 
         public Task<IdentityResult> CreateAsync(ApplicationUser user, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

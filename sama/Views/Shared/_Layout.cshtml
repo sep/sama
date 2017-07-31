@@ -29,15 +29,16 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a asp-area="" asp-controller="Endpoints" asp-action="Index" class="navbar-brand">SAMA</a>
+                <a asp-area="" asp-controller="Endpoints" asp-action="IndexRedirect" class="navbar-brand">SAMA</a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Endpoints" asp-action="IndexRedirect">Home</a></li>
+                    <li><a asp-area="" asp-controller="Endpoints" asp-action="IndexRedirect">Overview</a></li>
 
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <li><a asp-area="" asp-controller="Endpoints" asp-action="List">Manage</a></li>
+                        <li><a asp-area="" asp-controller="Endpoints" asp-action="List">Endpoints</a></li>
+                        <li><a asp-area="" asp-controller="Account" asp-action="List">Users</a></li>
                     }
                 </ul>
                 @await Html.PartialAsync("_UserPartial")

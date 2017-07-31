@@ -74,6 +74,7 @@ namespace sama.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateInitial(RegisterViewModel vm)
         {
             if (ModelState.IsValid)
@@ -109,15 +110,17 @@ namespace sama.Controllers
                 return RedirectToAction(nameof(Edit), new { id = _userManager.GetUserId(User) });
             }
 
-            if (await _userService.FindByIdAsync(id.Value.ToString("D"), CancellationToken.None) == null)
+            var user = await _userService.FindByIdAsync(id.Value.ToString("D"), CancellationToken.None);
+            if (user == null)
             {
                 return NotFound();
             }
 
-            return View(new ResetPasswordViewModel { UserId = id.Value });
+            return View(new ResetPasswordViewModel { UserId = id.Value, UserName = user.UserName });
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("UserId,Password,ConfirmPassword")] ResetPasswordViewModel vm)
         {
             if (id != vm.UserId)
@@ -131,6 +134,36 @@ namespace sama.Controllers
                 return RedirectToAction(nameof(List));
             }
             return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid? id)
+        {
+            if (id == null) return NotFound();
+
+            var user = await _userService.FindByIdAsync(id.Value.ToString("D"), CancellationToken.None);
+            if (user == null) return NotFound();
+
+            return View(user);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            var user = await _userService.FindByIdAsync(id.ToString("D"), CancellationToken.None);
+            if (user == null) return NotFound();
+
+            var allUsers = await _userService.ListUsers();
+            if (allUsers == null || allUsers.Count < 2)
+            {
+                ModelState.AddModelError(string.Empty, "The last system user cannot be deleted.");
+                return View(user);
+            }
+
+            await _userService.DeleteAsync(user, CancellationToken.None);
+
+            return RedirectToAction(nameof(List));
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

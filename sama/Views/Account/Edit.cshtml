@@ -1,5 +1,5 @@
 ﻿@model sama.Models.ResetPasswordViewModel
-@inject Microsoft.AspNetCore.Identity.UserManager<sama.Models.ApplicationUser> UserManager
+
 @{
     ViewData["Title"] = "Edit User";
 }
@@ -8,10 +8,16 @@
 
 <form asp-action="Edit">
     <div class="form-horizontal">
-        <h4>Reset password for <em>@UserManager.GetUserName(User)</em></h4>
+        <h4>Reset password for user</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <input type="hidden" asp-for="UserId" />
+        <div class="form-group">
+            <label asp-for="UserName" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="UserName" class="form-control" disabled="disabled" />
+            </div>
+        </div>
         <div class="form-group">
             <label asp-for="Password" class="col-md-2 control-label"></label>
             <div class="col-md-10">
@@ -38,3 +44,6 @@
     <a asp-action="List">Back to List</a>
 </div>
 
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

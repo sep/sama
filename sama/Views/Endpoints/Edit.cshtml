@@ -4,14 +4,14 @@
     ViewData["Title"] = "Edit";
 }
 
-<h2>Edit</h2>
+<h2>@ViewData["Title"]</h2>
 
 <form asp-action="Edit">
     <div class="form-horizontal">
         <h4>Endpoint</h4>
         <hr />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Id" />
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
                 <div class="checkbox">

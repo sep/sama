@@ -25,8 +25,8 @@
                 @Html.DisplayFor(modelItem => item.UserName)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-xs">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-xs">Delete</a>
             </td>
         </tr>
 }
