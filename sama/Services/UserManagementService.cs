@@ -28,7 +28,7 @@ namespace sama.Services
         {
         }
 
-        public async Task<bool> HasAccounts()
+        public virtual async Task<bool> HasAccounts()
         {
             using(var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -36,7 +36,7 @@ namespace sama.Services
             }
         }
 
-        public async Task<ApplicationUser> FindUserByUsername(string username)
+        public virtual async Task<ApplicationUser> FindUserByUsername(string username)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -44,22 +44,22 @@ namespace sama.Services
             }
         }
 
-        public Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
+        public virtual Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.Id.ToString("D"));
         }
 
-        public Task<string> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
+        public virtual Task<string> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.UserName);
         }
 
-        public bool ValidateCredentials(ApplicationUser user, string password)
+        public virtual bool ValidateCredentials(ApplicationUser user, string password)
         {
             return VerifyPasswordHash(password, user.PasswordHash, user.PasswordHashMetadata);
         }
 
-        public async Task<ApplicationUser> CreateInitial(string username, string password)
+        public virtual async Task<ApplicationUser> CreateInitial(string username, string password)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -78,7 +78,7 @@ namespace sama.Services
             }
         }
 
-        public async Task<ApplicationUser> Create(string username, string password)
+        public virtual async Task<ApplicationUser> Create(string username, string password)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -94,7 +94,7 @@ namespace sama.Services
             }
         }
 
-        public async Task<List<ApplicationUser>> ListUsers()
+        public virtual async Task<List<ApplicationUser>> ListUsers()
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -102,7 +102,7 @@ namespace sama.Services
             }
         }
 
-        public async Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public virtual async Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -110,7 +110,7 @@ namespace sama.Services
             }
         }
 
-        public async Task ResetUserPassword(Guid id, string password)
+        public virtual async Task ResetUserPassword(Guid id, string password)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
@@ -125,7 +125,7 @@ namespace sama.Services
             }
         }
 
-        public async Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
+        public virtual async Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {

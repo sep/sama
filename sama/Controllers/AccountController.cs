@@ -111,8 +111,7 @@ namespace sama.Controllers
                 var user = await _userService.Create(vm.Username, vm.Password);
                 if (user != null)
                 {
-                    await _signInManager.SignInAsync(user, false);
-                    return RedirectToAction(nameof(EndpointsController.List), "Endpoints");
+                    return RedirectToAction(nameof(AccountController.List), "Account");
                 }
                 else
                 {
