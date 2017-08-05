@@ -97,6 +97,35 @@ namespace sama.Controllers
         }
 
         [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(RegisterViewModel vm)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userService.Create(vm.Username, vm.Password);
+                if (user != null)
+                {
+                    await _signInManager.SignInAsync(user, false);
+                    return RedirectToAction(nameof(EndpointsController.List), "Endpoints");
+                }
+                else
+                {
+                    return RedirectToLocal(null);
+                }
+            }
+            else
+            {
+                return View(vm);
+            }
+        }
+
+        [HttpGet]
         public async Task<IActionResult> List()
         {
             return View(await _userService.ListUsers());

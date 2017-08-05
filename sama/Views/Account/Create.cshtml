@@ -1,7 +1,7 @@
-﻿@model sama.Models.LoginViewModel
+﻿@model sama.Models.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Log In";
+    ViewData["Title"] = "Create User";
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -9,7 +9,7 @@
 <div class="row">
     <div class="col-xs-12">
         <section>
-            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
+            <form asp-controller="Account" asp-action="Create" method="post" class="form-horizontal">
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="form-group">
                     <label asp-for="Username" class="col-md-2 control-label"></label>
@@ -26,11 +26,22 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label asp-for="ConfirmPassword" class="col-md-2 control-label"></label>
+                    <div class="col-md-10">
+                        <input asp-for="ConfirmPassword" class="form-control" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-primary">Log in</button>
+                        <button type="submit" class="btn btn-success">Create</button>
                     </div>
                 </div>
             </form>
         </section>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -78,6 +78,22 @@ namespace sama.Services
             }
         }
 
+        public async Task<ApplicationUser> Create(string username, string password)
+        {
+            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            {
+                if (CreatePasswordHash(password, out string hash, out string metadata))
+                {
+                    var user = new ApplicationUser { UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
+                    dbContext.Users.Add(user);
+                    await dbContext.SaveChangesAsync();
+                    return user;
+                }
+
+                return null;
+            }
+        }
+
         public async Task<List<ApplicationUser>> ListUsers()
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
