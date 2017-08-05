@@ -4,6 +4,9 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace sama.Services
 {
@@ -12,9 +15,9 @@ namespace sama.Services
         private readonly IConfigurationRoot _config;
         private readonly StateService _stateService;
         private readonly SlackNotificationService _notifyService;
-        private readonly HttpMessageHandler _httpHandler;
+        private readonly HttpClientHandler _httpHandler;
 
-        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, HttpMessageHandler httpHandler)
+        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, HttpClientHandler httpHandler)
         {
             _config = config;
             _stateService = stateService;
@@ -43,7 +46,7 @@ namespace sama.Services
                 }
 
                 var response = task.Result;
-                if (!response.IsSuccessStatusCode)
+                if (!IsSuccessfulStatusCode(endpoint, response))
                 {
                     SetEndpointFailure(endpoint, new Exception($"HTTP status code is {(int)response.StatusCode}."), retryCount);
                     return;
@@ -140,6 +143,20 @@ namespace sama.Services
             {
                 var seconds = _config.GetSection("SAMA").GetValue("HttpRequestTimeoutSeconds", 15);
                 return TimeSpan.FromSeconds(seconds);
+            }
+        }
+
+        private bool IsSuccessfulStatusCode(Endpoint endpoint, HttpResponseMessage response)
+        {
+            if (string.IsNullOrEmpty(endpoint.StatusCodes))
+            {
+                return response.IsSuccessStatusCode;
+            }
+            else
+            {
+                var statusCodes = endpoint.StatusCodes.Split(',').ToList();
+                var statusCode = (int)response.StatusCode;
+                return statusCodes.Contains(statusCode.ToString());
             }
         }
     }

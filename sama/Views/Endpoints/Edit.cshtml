@@ -37,8 +37,16 @@
         <div class="form-group">
             <label asp-for="ResponseMatch" class="col-md-2 control-label"></label>
             <div class="col-md-10">
-                <input asp-for="ResponseMatch" class="form-control" />
+                <input asp-for="ResponseMatch" class="form-control" placeholder="Optional" />
                 <span asp-validation-for="ResponseMatch" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="StatusCodes" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="StatusCodes" class="form-control" placeholder="Optional" />
+                <span asp-validation-for="StatusCodes" class="text-danger"></span>
+                <p class="text-info">Default is to accept 2xx status codes and follow redirects.</p>
             </div>
         </div>
         <div class="form-group">

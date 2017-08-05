@@ -115,6 +115,19 @@ namespace TestSama.Services
             await _httpHandler.Received(5).RealSendAsync(Arg.Is<HttpRequestMessage>(m => m.RequestUri.ToString() == "http://asdf.example.com/fdsa"), Arg.Any<CancellationToken>());
         }
 
+        [TestMethod]
+        public void CheckShouldSucceedWhenCustomStatusCodesSet()
+        {
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
+            response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(""));
+            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
+            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
+
+            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "403" }, 0);
+
+            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
+        }
+
         private IConfigurationSection GetSamaConfig(string maxRetryCount = "1", string secondsBetweenTries = "0", string timeoutSeconds = "15")
         {
             return new ConfigurationBuilder()

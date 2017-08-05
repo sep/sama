@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace TestSama
 {
-    public abstract class TestHttpHandler : HttpMessageHandler
+    public abstract class TestHttpHandler : HttpClientHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

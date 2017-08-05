@@ -11,9 +11,9 @@ namespace sama.Services
     {
         private readonly ILogger<SlackNotificationService> _logger;
         private readonly IConfigurationRoot _config;
-        private readonly HttpMessageHandler _httpHandler;
+        private readonly HttpClientHandler _httpHandler;
 
-        public SlackNotificationService(ILogger<SlackNotificationService> logger, IConfigurationRoot config, HttpMessageHandler httpHandler)
+        public SlackNotificationService(ILogger<SlackNotificationService> logger, IConfigurationRoot config, HttpClientHandler httpHandler)
         {
             _logger = logger;
             _config = config;

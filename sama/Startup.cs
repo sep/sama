@@ -52,7 +52,7 @@ namespace sama
             services.AddSingleton<EndpointCheckService>();
             services.AddSingleton<MonitorJob>();
 
-            services.AddTransient<System.Net.Http.HttpMessageHandler, System.Net.Http.HttpClientHandler>(provider => new System.Net.Http.HttpClientHandler
+            services.AddTransient(provider => new System.Net.Http.HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
                 {
