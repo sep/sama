@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using sama;
 using System;
+using System.Net.Http;
 
 namespace TestSama
 {
@@ -14,6 +16,8 @@ namespace TestSama
             {
                 options.UseSqlite($"Data Source=testdb_{Guid.NewGuid().ToString("N")}; Cache=Shared; Mode=Memory");
             });
+
+            collection.AddSingleton<HttpClientHandler>(Substitute.ForPartsOf<TestHttpHandler>());
 
             var provider = collection.BuildServiceProvider();
 

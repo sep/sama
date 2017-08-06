@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Models;
@@ -20,6 +21,7 @@ namespace TestSama.Services
         private StateService _stateService;
         private SlackNotificationService _slackService;
         private TestHttpHandler _httpHandler;
+        private IServiceProvider _serviceProvider;
 
         [TestInitialize]
         public void Setup()
@@ -27,9 +29,10 @@ namespace TestSama.Services
             _stateService = Substitute.For<StateService>();
             _configRoot = Substitute.For<IConfigurationRoot>();
             _slackService = Substitute.For<SlackNotificationService>(null, null, null);
-            _httpHandler = Substitute.ForPartsOf<TestHttpHandler>();
+            _serviceProvider = TestUtility.InitDI();
+            _httpHandler = (TestHttpHandler)_serviceProvider.GetRequiredService<HttpClientHandler>();
 
-            _service = new EndpointCheckService(_configRoot, _stateService, _slackService, _httpHandler);
+            _service = new EndpointCheckService(_configRoot, _stateService, _slackService, _serviceProvider);
             
             _configRoot.GetSection("SAMA").Returns(GetSamaConfig());
         }
@@ -126,6 +129,26 @@ namespace TestSama.Services
             _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = " 403" }, 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
+        }
+
+        [TestMethod]
+        public void CheckShouldSetAllowAutoRedirectForDefaultStatusCodes()
+        {
+            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
+
+            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "" }, 0);
+
+            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
+        }
+
+        [TestMethod]
+        public void CheckShouldDisableAllowAutoRedirectForSpecifiedStatusCodes()
+        {
+            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
+
+            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "403" }, 0);
+
+            Assert.IsFalse(_httpHandler.AllowAutoRedirect);
         }
 
         private IConfigurationSection GetSamaConfig(string maxRetryCount = "1", string secondsBetweenTries = "0", string timeoutSeconds = "15")

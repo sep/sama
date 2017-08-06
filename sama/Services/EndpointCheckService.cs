@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace sama.Services
 {
@@ -15,21 +16,25 @@ namespace sama.Services
         private readonly IConfigurationRoot _config;
         private readonly StateService _stateService;
         private readonly SlackNotificationService _notifyService;
-        private readonly HttpClientHandler _httpHandler;
+        private readonly IServiceProvider _serviceProvider;
 
-        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, HttpClientHandler httpHandler)
+        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, IServiceProvider serviceProvider)
         {
             _config = config;
             _stateService = stateService;
             _notifyService = notifyService;
-            _httpHandler = httpHandler;
+            _serviceProvider = serviceProvider;
         }
 
         public virtual void ProcessEndpoint(Endpoint endpoint, int retryCount)
         {
-            using (var client = new HttpClient(_httpHandler, false))
+            using (var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>())
+            using (var client = new HttpClient(httpHandler, false))
             using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.Location))
             {
+                if (!string.IsNullOrWhiteSpace(endpoint.StatusCodes))
+                    httpHandler.AllowAutoRedirect = false;
+
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko");
                 message.Headers.Add("Accept", "text/html, application/xhtml+xml, */*");
                 client.Timeout = ClientTimeout;
