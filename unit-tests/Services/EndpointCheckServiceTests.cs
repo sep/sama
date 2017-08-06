@@ -123,7 +123,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "403" }, 0);
+            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = " 403" }, 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
         }

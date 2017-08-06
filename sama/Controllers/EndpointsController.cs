@@ -81,7 +81,7 @@ namespace sama.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Enabled,Name,Location,ResponseMatch")] Endpoint endpoint)
+        public async Task<IActionResult> Create([Bind("Id,Enabled,Name,Location,ResponseMatch,StatusCodes")] Endpoint endpoint)
         {
             if (ModelState.IsValid)
             {
@@ -113,7 +113,7 @@ namespace sama.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Enabled,Name,Location,ResponseMatch")] Endpoint endpoint)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Enabled,Name,Location,ResponseMatch,StatusCodes")] Endpoint endpoint)
         {
             if (id != endpoint.Id)
             {

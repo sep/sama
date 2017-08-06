@@ -154,7 +154,7 @@ namespace sama.Services
             }
             else
             {
-                var statusCodes = endpoint.StatusCodes.Split(',').ToList();
+                var statusCodes = endpoint.StatusCodes.Replace(" ", "").Split(',').ToList();
                 var statusCode = (int)response.StatusCode;
                 return statusCodes.Contains(statusCode.ToString());
             }
