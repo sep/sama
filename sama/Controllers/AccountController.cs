@@ -17,12 +17,14 @@ namespace sama.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManagementService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly LdapService _ldapService;
 
-        public AccountController(SignInManager<ApplicationUser> signInManager, UserManagementService userService, UserManager<ApplicationUser> userManager)
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManagementService userService, UserManager<ApplicationUser> userManager, LdapService ldapService)
         {
             _signInManager = signInManager;
             _userService = userService;
             _userManager = userManager;
+            _ldapService = ldapService;
         }
 
         [HttpGet]
@@ -44,11 +46,23 @@ namespace sama.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = await _userService.FindUserByUsername(vm.Username);
-                if (user != null && _userService.ValidateCredentials(user, vm.Password))
+                if (vm.IsLocal)
                 {
-                    await _signInManager.SignInAsync(user, false);
-                    return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
+                    var user = await _userService.FindUserByUsername(vm.Username);
+                    if (user != null && _userService.ValidateCredentials(user, vm.Password))
+                    {
+                        await _signInManager.SignInAsync(user, false);
+                        return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
+                    }
+                }
+                else
+                {
+                    var user = _ldapService.Authenticate(vm.Username, vm.Password);
+                    if (user != null)
+                    {
+                        await _signInManager.SignInAsync(user, false);
+                        return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
+                    }
                 }
             }
 

@@ -10,5 +10,9 @@ namespace sama.Models
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+
+        [Required]
+        [Display(Name = "Login Type")]
+        public bool IsLocal { get; set; }
     }
 }

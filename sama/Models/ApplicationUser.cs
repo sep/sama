@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace sama.Models
 {
@@ -17,5 +18,8 @@ namespace sama.Models
 
         [Required]
         public string PasswordHashMetadata { get; set; }
+
+        [NotMapped]
+        public bool IsRemote { get; set; }
     }
 }

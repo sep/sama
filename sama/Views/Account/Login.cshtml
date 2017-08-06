@@ -10,7 +10,19 @@
     <div class="col-xs-12">
         <section>
             <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
-                <div asp-validation-summary="All" class="text-danger"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group">
+                    <label asp-for="IsLocal" class="col-md-2 control-label"></label>
+                    <div class="col-md-10">
+                        <div>
+                            <label class="radio-inline"><input asp-for="IsLocal" value="true" type="radio" checked="checked" /> Local</label>
+                            <label class="radio-inline"><input asp-for="IsLocal" value="false" type="radio" /> LDAP</label>
+                        </div>
+                        <span asp-validation-for="IsLocal" class="text-danger"></span>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label asp-for="Username" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
@@ -34,3 +46,7 @@
         </section>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
