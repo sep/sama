@@ -11,18 +11,23 @@
         <section>
             <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                
-                <div class="form-group">
-                    <label asp-for="IsLocal" class="col-md-2 control-label"></label>
-                    <div class="col-md-10">
-                        <div>
-                            <label class="radio-inline"><input asp-for="IsLocal" value="true" type="radio" checked="checked" /> Local</label>
-                            <label class="radio-inline"><input asp-for="IsLocal" value="false" type="radio" /> LDAP</label>
+                @if (ViewBag.LdapEnabled)
+                {
+                    <div class="form-group">
+                        <label asp-for="IsLocal" class="col-md-2 control-label"></label>
+                        <div class="col-md-10">
+                            <div>
+                                <label class="radio-inline"><input asp-for="IsLocal" value="false" type="radio" checked="checked" /> LDAP</label>
+                                <label class="radio-inline"><input asp-for="IsLocal" value="true" type="radio" /> Local</label>
+                            </div>
+                            <span asp-validation-for="IsLocal" class="text-danger"></span>
                         </div>
-                        <span asp-validation-for="IsLocal" class="text-danger"></span>
                     </div>
-                </div>
-
+                }
+                else
+                {
+                    <input asp-for="IsLocal" type="hidden" value="true" />
+                }
                 <div class="form-group">
                     <label asp-for="Username" class="col-md-2 control-label"></label>
                     <div class="col-md-10">

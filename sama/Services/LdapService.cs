@@ -49,6 +49,11 @@ namespace sama.Services
             }
         }
 
+        public bool IsLdapEnabled()
+        {
+            return _config.GetSection("SAMA").GetSection("LDAP").GetValue<bool>("Enabled");
+        }
+
         private bool Ldap_UserDefinedServerCertValidationDelegate(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
         {
             return true;

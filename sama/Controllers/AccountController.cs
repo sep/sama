@@ -35,6 +35,7 @@ namespace sama.Controllers
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ViewData["ReturnUrl"] = returnUrl;
+            ViewData["LdapEnabled"] = _ldapService.IsLdapEnabled();
             return View();
         }
 
@@ -44,6 +45,7 @@ namespace sama.Controllers
         public async Task<IActionResult> Login(LoginViewModel vm, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            ViewData["LdapEnabled"] = _ldapService.IsLdapEnabled();
             if (ModelState.IsValid)
             {
                 if (vm.IsLocal)
