@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Controllers;
@@ -22,6 +23,7 @@ namespace TestSama.Controllers
         UserManager<ApplicationUser> _userManager;
         SignInManager<ApplicationUser> _signInManager;
         UserManagementService _userService;
+        LdapService _ldapService;
         IServiceProvider _provider;
         IAuthenticationService _authService;
 
@@ -31,7 +33,8 @@ namespace TestSama.Controllers
             _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
             _signInManager = Substitute.For<SignInManager<ApplicationUser>>(_userManager, Substitute.For<IHttpContextAccessor>(), Substitute.For<IUserClaimsPrincipalFactory<ApplicationUser>>(), null, null, null);
             _userService = Substitute.For<UserManagementService>(null, null);
-            _controller = new AccountController(_signInManager, _userService, _userManager);
+            _ldapService = Substitute.For<LdapService>((IConfigurationRoot)null);
+            _controller = new AccountController(_signInManager, _userService, _userManager, _ldapService);
 
             _provider = Substitute.For<IServiceProvider>();
             _authService = Substitute.For<IAuthenticationService>();
@@ -62,7 +65,7 @@ namespace TestSama.Controllers
             _userService.FindUserByUsername("user").Returns(user);
             _userService.ValidateCredentials(user, "pass").Returns(true);
 
-            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass" });
+            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = true });
 
             Assert.IsInstanceOfType(result, typeof(RedirectToActionResult));
             await _signInManager.Received().SignInAsync(user, false, null, true);

@@ -14,7 +14,7 @@ namespace sama.Services
             _config = config;
         }
 
-        public ApplicationUser Authenticate(string username, string password)
+        public virtual ApplicationUser Authenticate(string username, string password)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace sama.Services
             }
         }
 
-        public bool IsLdapEnabled()
+        public virtual bool IsLdapEnabled()
         {
             return _config.GetSection("SAMA").GetSection("LDAP").GetValue<bool>("Enabled");
         }
