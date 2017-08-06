@@ -46,7 +46,7 @@ namespace sama.Services
                 }
 
                 var response = task.Result;
-                if (!IsSuccessfulStatusCode(endpoint, response))
+                if (!IsExpectedStatusCode(endpoint, response))
                 {
                     SetEndpointFailure(endpoint, new Exception($"HTTP status code is {(int)response.StatusCode}."), retryCount);
                     return;
@@ -146,7 +146,7 @@ namespace sama.Services
             }
         }
 
-        private bool IsSuccessfulStatusCode(Endpoint endpoint, HttpResponseMessage response)
+        private bool IsExpectedStatusCode(Endpoint endpoint, HttpResponseMessage response)
         {
             if (string.IsNullOrEmpty(endpoint.StatusCodes))
             {
