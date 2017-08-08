@@ -1,47 +1,46 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Novell.Directory.Ldap;
 using sama.Models;
 using System;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace sama.Services
 {
-    public class LdapService
+    public class LdapService : IDisposable
     {
         private readonly IConfigurationRoot _config;
+        private readonly LdapAuthWrapper _ldapWrapper;
 
-        public LdapService(IConfigurationRoot config)
+        public LdapService(IConfigurationRoot config, LdapAuthWrapper ldapWrapper)
         {
             _config = config;
+            _ldapWrapper = ldapWrapper;
         }
 
         public virtual ApplicationUser Authenticate(string username, string password)
         {
             try
             {
-                using (var ldap = new LdapConnection())
-                {
-                    var ldapSettings = _config.GetSection("SAMA").GetSection("LDAP");
+                var ldapSettings = _config.GetSection("SAMA").GetSection("LDAP");
 
-                    var formattedUsername = string.Format(ldapSettings.GetValue<string>("BindDnFormat"), username);
-                    ldap.SecureSocketLayer = ldapSettings.GetValue<bool>("SSL");
-                    ldap.UserDefinedServerCertValidationDelegate += Ldap_UserDefinedServerCertValidationDelegate;
-                    ldap.Connect(ldapSettings.GetValue<string>("Host"), ldapSettings.GetValue<int>("Port"));
-                    ldap.Bind(LdapConnection.Ldap_V3, formattedUsername, password);
-
-                    var results = ldap.Search(ldapSettings.GetValue<string>("SearchBaseDn"),
-                        LdapConnection.SCOPE_SUB,
+                var ldapUser = _ldapWrapper.Authenticate(
+                        ldapSettings.GetValue<string>("Host"),
+                        ldapSettings.GetValue<int>("Port"),
+                        ldapSettings.GetValue<bool>("SSL"),
+                        string.Format(ldapSettings.GetValue<string>("BindDnFormat"), username),
+                        password,
+                        ldapSettings.GetValue<string>("SearchBaseDn"),
                         string.Format(ldapSettings.GetValue<string>("SearchFilterFormat"), username),
-                        new[] { ldapSettings.GetValue<string>("NameAttribute") },
-                        false);
-                    var entry = results.next();
+                        ldapSettings.GetValue<string>("NameAttribute"),
+                        Ldap_UserDefinedServerCertValidationDelegate
+                    );
 
-                    return new ApplicationUser
-                    {
-                        Id = Guid.NewGuid(),
-                        UserName = entry.getAttribute(ldapSettings.GetValue<string>("NameAttribute")).StringValue,
-                        IsRemote = true
-                    };
-                }
+                return new ApplicationUser
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = ldapUser.DisplayName,
+                    IsRemote = true
+                };
             }
             catch (Exception)
             {
@@ -54,7 +53,11 @@ namespace sama.Services
             return _config.GetSection("SAMA").GetSection("LDAP").GetValue<bool>("Enabled");
         }
 
-        private bool Ldap_UserDefinedServerCertValidationDelegate(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        public void Dispose()
+        {
+        }
+
+        private bool Ldap_UserDefinedServerCertValidationDelegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             return true;
         }

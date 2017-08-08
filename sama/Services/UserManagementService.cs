@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace sama.Services
 {
-    public class UserManagementService : IUserStore<ApplicationUser>, IRoleStore<IdentityRole>
+    public class UserManagementService : IUserStore<ApplicationUser>, IRoleStore<IdentityRole>, IDisposable
     {
         private readonly ILogger<UserManagementService> _logger;
         private readonly DbContextOptions<ApplicationDbContext> _dbContextOptions;

@@ -33,7 +33,7 @@ namespace TestSama.Controllers
             _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
             _signInManager = Substitute.For<SignInManager<ApplicationUser>>(_userManager, Substitute.For<IHttpContextAccessor>(), Substitute.For<IUserClaimsPrincipalFactory<ApplicationUser>>(), null, null, null);
             _userService = Substitute.For<UserManagementService>(null, null);
-            _ldapService = Substitute.For<LdapService>((IConfigurationRoot)null);
+            _ldapService = Substitute.For<LdapService>(null, null);
             _controller = new AccountController(_signInManager, _userService, _userManager, _ldapService);
 
             _provider = Substitute.For<IServiceProvider>();

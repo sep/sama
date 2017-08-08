@@ -45,6 +45,7 @@ namespace sama
             services.AddTransient<IRoleStore<IdentityRole>, UserManagementService>();
             services.AddTransient<UserManagementService>();
             services.AddTransient<LdapService>();
+            services.AddTransient<LdapAuthWrapper>();
 
             services.AddSingleton(Configuration);
 
