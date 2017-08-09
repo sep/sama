@@ -1,10 +1,3 @@
-The armhf .so file is from:
-https://github.com/ericsink/SQLitePCL.raw/blob/51f8073b22b278b94871b2c5e786e7b932dccffb/linux/armhf/libe_sqlite3.so
-
-It must be placed in the same directory as the "sama" executable.
-
----
-
 The "sama" executable should be marked as such by calling "chmod +x sama".
 
 ---
