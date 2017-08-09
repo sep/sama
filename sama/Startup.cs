@@ -85,6 +85,15 @@ namespace sama
 
             app.UseAuthentication();
 
+            var behindReverseProxy = Configuration.GetSection("SAMA").GetValue<bool>("BehindReverseProxy");
+            if (behindReverseProxy)
+            {
+                app.UseForwardedHeaders(new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+                });
+            }
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
