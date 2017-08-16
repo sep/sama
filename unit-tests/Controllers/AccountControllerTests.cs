@@ -68,7 +68,7 @@ namespace TestSama.Controllers
             var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = true });
 
             Assert.IsInstanceOfType(result, typeof(RedirectToActionResult));
-            await _signInManager.Received().SignInAsync(user, false, null, true);
+            await _signInManager.Received().SignInAsync(user, false, null);
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace TestSama.Controllers
             var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass" });
 
             Assert.IsInstanceOfType(result, typeof(ViewResult));
-            await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>(), Arg.Any<bool>());
+            await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace TestSama.Controllers
             var result = await _controller.CreateInitial(new RegisterViewModel { Username = "a", Password = "b", ConfirmPassword = "b" });
 
             Assert.IsInstanceOfType(result, typeof(RedirectToActionResult));
-            await _signInManager.Received().SignInAsync(user, false, null, true);
+            await _signInManager.Received().SignInAsync(user, false, null);
         }
 
         [TestMethod]
@@ -114,7 +114,7 @@ namespace TestSama.Controllers
             var result = await _controller.Create(new RegisterViewModel { Username = "a", Password = "b", ConfirmPassword = "b" });
 
             Assert.IsInstanceOfType(result, typeof(RedirectToActionResult));
-            await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>(), Arg.Any<bool>());
+            await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>());
         }
 
         [TestMethod]
