@@ -20,6 +20,7 @@ namespace TestSama.Controllers
     {
         private EndpointsController _controller;
         private IServiceProvider _provider;
+        private IServiceScope _scope;
         private ApplicationDbContext _testDbContext;
         private StateService _stateService;
         private UserManagementService _userService;
@@ -28,10 +29,11 @@ namespace TestSama.Controllers
         public void Setup()
         {
             _provider = TestUtility.InitDI();
-            _testDbContext = new ApplicationDbContext(_provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
+            _scope = _provider.CreateScope();
+            _testDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             _stateService = Substitute.For<StateService>();
             _userService = Substitute.For<UserManagementService>(null, null);
-            _controller = new EndpointsController(_provider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService);
+            _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService);
 
             SeedEndpoints();
         }
@@ -106,9 +108,8 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task EditShouldUpdateEndpointAndResetStateWhenModelIsValid()
         {
-            var endpoint = new Endpoint { Id = 1, Name = "W", Location = "E" };
-
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
+            var endpoint = _testDbContext.Endpoints.Where(e => e.Name == "A").Single();
+            endpoint.Name = "W";
 
             var result = await _controller.Edit(1, endpoint) as RedirectToActionResult;
             Assert.IsNotNull(result);

@@ -1,5 +1,5 @@
 ﻿using FluentScheduler;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,19 +13,21 @@ namespace sama.Services
             MaxDegreeOfParallelism = (Environment.ProcessorCount < 3 ? Environment.ProcessorCount : 3)
         };
 
-        private readonly DbContextOptions<ApplicationDbContext> _dbContextOptions;
+        private readonly IServiceProvider _provider;
         private readonly EndpointCheckService _checkService;
 
-        public MonitorJob(DbContextOptions<ApplicationDbContext> db, EndpointCheckService checkService)
+        public MonitorJob(IServiceProvider provider, EndpointCheckService checkService)
         {
-            _dbContextOptions = db;
+            _provider = provider;
             _checkService = checkService;
         }
 
         public virtual void Execute()
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            var scopeFactory = _provider.GetRequiredService<IServiceScopeFactory>();
+            using (var scope = scopeFactory.CreateScope())
             {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var endpoints = dbContext.Endpoints.Where(e => e.Enabled).ToList();
                 Parallel.ForEach(endpoints, TplOptions, e => _checkService.ProcessEndpoint(e, 0));
             }

@@ -12,19 +12,26 @@ namespace TestSama
         public static IServiceProvider InitDI()
         {
             var collection = new ServiceCollection();
+
+            var sqliteConnection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source=file:testdb_{Guid.NewGuid().ToString("N")}.db?mode=memory");
+            sqliteConnection.Open();
+
             collection.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite($"Data Source=testdb_{Guid.NewGuid().ToString("N")}; Cache=Shared; Mode=Memory");
+                options.UseSqlite(sqliteConnection);
             });
 
             collection.AddSingleton<HttpClientHandler>(Substitute.ForPartsOf<TestHttpHandler>());
 
-            var provider = collection.BuildServiceProvider();
+            var provider = collection.BuildServiceProvider(true);
 
-            var dbContext = provider.GetRequiredService<ApplicationDbContext>();
-            dbContext.Database.OpenConnection();
-            dbContext.Database.Migrate();
-            dbContext.SaveChanges();
+            using (var scope = provider.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.OpenConnection();
+                dbContext.Database.Migrate();
+                dbContext.SaveChanges();
+            }
 
             return provider;
         }

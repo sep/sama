@@ -18,6 +18,7 @@ namespace TestSama.Services
         UserManagementService _service;
         private ILogger<UserManagementService> _logger;
         private IServiceProvider _provider;
+        private IServiceScope _scope;
         private ApplicationDbContext _testDbContext;
 
         private ApplicationUser _testUser;
@@ -26,9 +27,10 @@ namespace TestSama.Services
         public void Setup()
         {
             _provider = TestUtility.InitDI();
-            _testDbContext = new ApplicationDbContext(_provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
+            _scope = _provider.CreateScope();
+            _testDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             _logger = Substitute.For<ILogger<UserManagementService>>();
-            _service = new UserManagementService(_logger, _provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
+            _service = new UserManagementService(_logger, _scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
             _testUser = new ApplicationUser { UserName = "uSeR", PasswordHash = "b", PasswordHashMetadata = "{}" };
             _testDbContext.Users.Add(_testUser);
@@ -39,6 +41,7 @@ namespace TestSama.Services
         public void Teardown()
         {
             _service.Dispose();
+            _scope.Dispose();
         }
 
         [TestMethod]
@@ -134,7 +137,7 @@ namespace TestSama.Services
         {
             await _service.ResetUserPassword(_testUser.Id, "newPassword");
 
-            using(var newContext = new ApplicationDbContext(_provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
+            using(var newContext = new ApplicationDbContext(_scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
                 Assert.AreNotEqual(_testUser.PasswordHash, (await newContext.Users.FirstAsync()).PasswordHash);
         }
 

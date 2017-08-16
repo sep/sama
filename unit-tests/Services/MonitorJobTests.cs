@@ -14,6 +14,7 @@ namespace TestSama.Services
     {
         private MonitorJob _service;
         private IServiceProvider _provider;
+        private IServiceScope _scope;
         private ApplicationDbContext _testDbContext;
         private EndpointCheckService _checkService;
 
@@ -21,9 +22,10 @@ namespace TestSama.Services
         public void Setup()
         {
             _provider = TestUtility.InitDI();
-            _testDbContext = new ApplicationDbContext(_provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
+            _scope = _provider.CreateScope();
+            _testDbContext = new ApplicationDbContext(_scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
             _checkService = Substitute.For<EndpointCheckService>(null, null, null, null);
-            _service = new MonitorJob(_provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>(), _checkService);
+            _service = new MonitorJob(_provider, _checkService);
 
             SeedEndpoints();
         }
