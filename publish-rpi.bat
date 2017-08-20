@@ -4,18 +4,20 @@ rmdir /s /q publish\ 2>nul
 
 echo Publishing...
 
-dotnet publish sama -v quiet -c Release -r linux-arm /p:MvcRazorCompileOnPublish=false /nologo
+dotnet publish sama -v quiet -c Release -r linux-arm -o "bin\publish\publish" /p:MvcRazorCompileOnPublish=false /nologo
 if %ERRORLEVEL% NEQ 0 exit /b 1
 
-dotnet publish sama -v quiet -c Release -r win-x64 /p:MvcRazorCompileOnPublish=true /nologo
-if %ERRORLEVEL% NEQ 0 exit /b 1
-
-move /y sama\bin\Release\netcoreapp2.0\linux-arm\publish . >nul
+dotnet publish sama -v quiet -c Release -o "bin\publish\tmp" /p:MvcRazorCompileOnPublish=true /p:RuntimeIdentifier= /nologo
 if %ERRORLEVEL% NEQ 0 exit /b 1
 
 echo Copying precompiled views...
 
-copy /y sama\bin\Release\netcoreapp2.0\win-x64\publish\sama.PrecompiledViews.dll publish\ /b >nul
+copy /y sama\bin\publish\tmp\sama.PrecompiledViews.dll sama\bin\publish\publish\ /b >nul
+if %ERRORLEVEL% NEQ 0 exit /b 1
+
+echo Moving published project to destination...
+
+move /y sama\bin\publish\publish . >nul
 if %ERRORLEVEL% NEQ 0 exit /b 1
 
 echo Copying extra files...
