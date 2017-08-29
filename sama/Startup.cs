@@ -61,7 +61,7 @@ namespace sama
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, DbContextOptions<ApplicationDbContext> dbContextOptions, MonitorJob monitorJob)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -96,19 +96,6 @@ namespace sama
                     name: "default",
                     template: "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
             });
-
-            using (var dbContext = new ApplicationDbContext(dbContextOptions))
-            {
-                dbContext.Database.Migrate();
-            }
-
-            FluentScheduler.JobManager.Initialize(new FluentScheduler.Registry());
-            FluentScheduler.JobManager.JobException += (info) =>
-            {
-                loggerFactory.CreateLogger(typeof(FluentScheduler.JobManager)).LogError(0, info.Exception, $"Job '{info.Name}' failed");
-            };
-            var interval = Configuration.GetSection("SAMA").GetValue<int>("MonitorIntervalSeconds");
-            FluentScheduler.JobManager.AddJob(monitorJob, s => s.NonReentrant().ToRunNow().AndEvery(interval).Seconds());
         }
     }
 }
