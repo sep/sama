@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Novell.Directory.Ldap;
 using NSubstitute;
 using sama.Services;
 using System;
-using System.Collections.Generic;
 
 namespace TestSama.Services
 {
@@ -12,18 +10,18 @@ namespace TestSama.Services
     public class LdapServiceTests
     {
         private LdapService _service;
-        private IConfigurationRoot _configRoot;
+        private SettingsService _settingsService;
         private LdapAuthWrapper _ldap;
 
         [TestInitialize]
         public void Setup()
         {
-            _configRoot = Substitute.For<IConfigurationRoot>();
+            _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
             _ldap = Substitute.For<LdapAuthWrapper>();
 
-            _service = new LdapService(_configRoot, _ldap);
+            _service = new LdapService(_settingsService, _ldap);
 
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfigWithLdapDisabled());
+            _settingsService.Ldap_Enable.Returns(false);
         }
 
         [TestMethod]
@@ -31,7 +29,7 @@ namespace TestSama.Services
         {
             Assert.IsFalse(_service.IsLdapEnabled());
 
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfigWithLdapEnabled());
+            SetUpLdapSettings();
 
             Assert.IsTrue(_service.IsLdapEnabled());
         }
@@ -39,7 +37,7 @@ namespace TestSama.Services
         [TestMethod]
         public void AuthenticateShouldReturnApplicationUserWhenSuccessful()
         {
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfigWithLdapEnabled());
+            SetUpLdapSettings();
             _ldap.Authenticate("host.example.com", 1234, true, "format1myuserA", "mypass", "somebasedn", "format2myuserB", "somenameattr", Arg.Any<RemoteCertificateValidationCallback>())
                 .Returns(new LdapAuthWrapper.LdapUser
                 {
@@ -56,8 +54,8 @@ namespace TestSama.Services
         [TestMethod]
         public void AuthenticateShouldReturnNullWhenUnsuccessful()
         {
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfigWithLdapEnabled());
-            _ldap.WhenForAnyArgs(w => w.Authenticate("host.example.com", 1234, true, "format1myuserA", "mypass", "somebasedn", "format2myuserB", "somenameattr", Arg.Any<RemoteCertificateValidationCallback>()))
+            SetUpLdapSettings();
+            _ldap.WhenForAnyArgs(w => w.Authenticate("", 0, false, "", "", "", "", "", Arg.Any<RemoteCertificateValidationCallback>()))
                 .Do(c => { throw new Exception(); });
 
             var result = _service.Authenticate("myuser", "mypass");
@@ -65,33 +63,16 @@ namespace TestSama.Services
             Assert.IsNull(result);
         }
 
-        private IConfigurationSection GetSamaConfigWithLdapDisabled()
+        private void SetUpLdapSettings()
         {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    { "SAMA:LDAP:Enabled", "false" },
-                })
-                .Build()
-                .GetSection("SAMA");
-        }
-
-        private IConfigurationSection GetSamaConfigWithLdapEnabled()
-        {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    { "SAMA:LDAP:Enabled", "true" },
-                    { "SAMA:LDAP:Host", "host.example.com" },
-                    { "SAMA:LDAP:Port", "1234" },
-                    { "SAMA:LDAP:SSL", "true" },
-                    { "SAMA:LDAP:BindDnFormat", "format1{0}A" },
-                    { "SAMA:LDAP:SearchBaseDn", "somebasedn" },
-                    { "SAMA:LDAP:SearchFilterFormat", "format2{0}B" },
-                    { "SAMA:LDAP:NameAttribute", "somenameattr" },
-                })
-                .Build()
-                .GetSection("SAMA");
+            _settingsService.Ldap_Enable.Returns(true);
+            _settingsService.Ldap_Host.Returns("host.example.com");
+            _settingsService.Ldap_Port.Returns(1234);
+            _settingsService.Ldap_Ssl.Returns(true);
+            _settingsService.Ldap_BindDnFormat.Returns("format1{0}A");
+            _settingsService.Ldap_SearchBaseDn.Returns("somebasedn");
+            _settingsService.Ldap_SearchFilterFormat.Returns("format2{0}B");
+            _settingsService.Ldap_NameAttribute.Returns("somenameattr");
         }
     }
 }

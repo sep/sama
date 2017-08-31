@@ -13,14 +13,14 @@ namespace sama.Services
 {
     public class EndpointCheckService
     {
-        private readonly IConfigurationRoot _config;
+        private readonly SettingsService _settingsService;
         private readonly StateService _stateService;
         private readonly SlackNotificationService _notifyService;
         private readonly IServiceProvider _serviceProvider;
 
-        public EndpointCheckService(IConfigurationRoot config, StateService stateService, SlackNotificationService notifyService, IServiceProvider serviceProvider)
+        public EndpointCheckService(SettingsService settingsService, StateService stateService, SlackNotificationService notifyService, IServiceProvider serviceProvider)
         {
-            _config = config;
+            _settingsService = settingsService;
             _stateService = stateService;
             _notifyService = notifyService;
             _serviceProvider = serviceProvider;
@@ -129,7 +129,7 @@ namespace sama.Services
             get
             {
                 // 1 retry == 2 total tries
-                return _config.GetSection("SAMA").GetValue("MaxRetryCount", 1);
+                return _settingsService.Monitor_MaxRetries;
             }
         }
 
@@ -137,7 +137,7 @@ namespace sama.Services
         {
             get
             {
-                var seconds = _config.GetSection("SAMA").GetValue("SecondsBetweenTries", 1);
+                var seconds = _settingsService.Monitor_SecondsBetweenTries;
                 return TimeSpan.FromSeconds(seconds);
             }
         }
@@ -146,7 +146,7 @@ namespace sama.Services
         {
             get
             {
-                var seconds = _config.GetSection("SAMA").GetValue("HttpRequestTimeoutSeconds", 15);
+                var seconds = _settingsService.Monitor_RequestTimeoutSeconds;
                 return TimeSpan.FromSeconds(seconds);
             }
         }

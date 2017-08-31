@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using sama.Services;
 using sama.Models;
 using Microsoft.AspNetCore.Identity;
+using System;
 
 namespace sama
 {
@@ -49,6 +50,7 @@ namespace sama
             services.AddSingleton<SlackNotificationService>();
             services.AddSingleton<EndpointCheckService>();
             services.AddSingleton<MonitorJob>();
+            services.AddSingleton<SettingsService>();
 
             services.AddTransient(provider => new System.Net.Http.HttpClientHandler
             {
@@ -77,7 +79,7 @@ namespace sama
 
             app.UseStaticFiles();
 
-            app.UseSession();
+            app.UseSession(new SessionOptions { IdleTimeout = TimeSpan.FromMinutes(30) });
 
             app.UseAuthentication();
 

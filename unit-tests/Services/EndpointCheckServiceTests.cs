@@ -17,7 +17,7 @@ namespace TestSama.Services
     public class EndpointCheckServiceTests
     {
         private EndpointCheckService _service;
-        private IConfigurationRoot _configRoot;
+        private SettingsService _settingsService;
         private StateService _stateService;
         private SlackNotificationService _slackService;
         private TestHttpHandler _httpHandler;
@@ -27,14 +27,14 @@ namespace TestSama.Services
         public void Setup()
         {
             _stateService = Substitute.For<StateService>();
-            _configRoot = Substitute.For<IConfigurationRoot>();
+            _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
             _slackService = Substitute.For<SlackNotificationService>(null, null, null);
             _serviceProvider = TestUtility.InitDI();
             _httpHandler = (TestHttpHandler)_serviceProvider.GetRequiredService<HttpClientHandler>();
 
-            _service = new EndpointCheckService(_configRoot, _stateService, _slackService, _serviceProvider);
-            
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfig());
+            _service = new EndpointCheckService(_settingsService, _stateService, _slackService, _serviceProvider);
+
+            _settingsService.Monitor_RequestTimeoutSeconds.Returns(1);
         }
 
         [TestMethod]
@@ -109,7 +109,7 @@ namespace TestSama.Services
         [TestMethod]
         public async Task CheckShouldRetryConfiguredNumberOfTimesBeforeFailing()
         {
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfig(maxRetryCount: "4"));
+            _settingsService.Monitor_MaxRetries.Returns(4);
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromException<HttpResponseMessage>(new Exception("ERROR")));
 
             _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa" }, 0);
@@ -149,19 +149,6 @@ namespace TestSama.Services
             _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "403" }, 0);
 
             Assert.IsFalse(_httpHandler.AllowAutoRedirect);
-        }
-
-        private IConfigurationSection GetSamaConfig(string maxRetryCount = "1", string secondsBetweenTries = "0", string timeoutSeconds = "15")
-        {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    { "SAMA:MaxRetryCount", maxRetryCount },
-                    { "SAMA:SecondsBetweenTries", secondsBetweenTries },
-                    { "SAMA:HttpRequestTimeoutSeconds", timeoutSeconds },
-                })
-                .Build()
-                .GetSection("SAMA");
         }
     }
 }

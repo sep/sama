@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using sama.Models;
 using System;
@@ -10,13 +9,13 @@ namespace sama.Services
     public class SlackNotificationService
     {
         private readonly ILogger<SlackNotificationService> _logger;
-        private readonly IConfigurationRoot _config;
+        private readonly SettingsService _settings;
         private readonly HttpClientHandler _httpHandler;
 
-        public SlackNotificationService(ILogger<SlackNotificationService> logger, IConfigurationRoot config, HttpClientHandler httpHandler)
+        public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, HttpClientHandler httpHandler)
         {
             _logger = logger;
-            _config = config;
+            _settings = settings;
             _httpHandler = httpHandler;
         }
 
@@ -39,7 +38,7 @@ namespace sama.Services
                 using (var client = new HttpClient(_httpHandler, false))
                 {
                     var data = JsonConvert.SerializeObject(new { text = message });
-                    var url = _config.GetSection("SAMA").GetValue<string>("SlackWebHook");
+                    var url = _settings.Notifications_Slack_WebHook;
                     client.PostAsync(url, new StringContent(data)).Wait();
                 }
             }

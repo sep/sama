@@ -26,4 +26,3 @@ copy /y rpi-prereqs\* publish\ >nul
 if %ERRORLEVEL% NEQ 0 exit /b 1
 
 echo Done!
-echo *** Don't forget to create "appsettings.Production.json" in the publish folder.

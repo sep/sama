@@ -1,0 +1,113 @@
+﻿@model sama.Models.SettingsViewModel
+
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<form asp-action="Index">
+    <div class="row">
+        <div class="col-xs-12 col-sm-4">
+            <h3>Endpoint monitoring</h3>
+            <div class="form-group">
+                <label asp-for="MonitorIntervalSeconds" class="control-label"></label>
+                <input asp-for="MonitorIntervalSeconds" class="form-control" />
+                <span asp-validation-for="MonitorIntervalSeconds" class="text-danger"></span>
+                <p class="text-left">Changing this value will execute endpoint checks immediately.</p>
+            </div>
+            <div class="form-group">
+                <label asp-for="MonitorMaxRetries" class="control-label"></label>
+                <input asp-for="MonitorMaxRetries" class="form-control" />
+                <span asp-validation-for="MonitorMaxRetries" class="text-danger"></span>
+                <p class="text-left">Specifying a number greater than 0 will enable retry logic.</p>
+            </div>
+            <div class="form-group">
+                <label asp-for="MonitorSecondsBetweenTries" class="control-label"></label>
+                <input asp-for="MonitorSecondsBetweenTries" class="form-control" />
+                <span asp-validation-for="MonitorSecondsBetweenTries" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MonitorRequestTimeoutSeconds" class="control-label"></label>
+                <input asp-for="MonitorRequestTimeoutSeconds" class="form-control" />
+                <span asp-validation-for="MonitorRequestTimeoutSeconds" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-4">
+            <h3>Notifications</h3>
+
+            <div class="form-group">
+                <label asp-for="SlackWebHook" class="control-label"></label>
+                <input asp-for="SlackWebHook" class="form-control" />
+                <span asp-validation-for="SlackWebHook" class="text-danger"></span>
+                <p class="text-left">To enable Slack notifications, paste the <a href="https://api.slack.com/custom-integrations/incoming-webhooks">Webhook URL</a> into this field.</p>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-4">
+            <h3>LDAP</h3>
+
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="LdapEnable" /> @Html.DisplayNameFor(model => model.LdapEnable)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="LdapSsl" /> @Html.DisplayNameFor(model => model.LdapSsl)
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapHost" class="control-label"></label>
+                <input asp-for="LdapHost" class="form-control" />
+                <span asp-validation-for="LdapHost" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapPort" class="control-label"></label>
+                <input asp-for="LdapPort" class="form-control" />
+                <span asp-validation-for="LdapPort" class="text-danger"></span>
+                <p class="text-left">Well known ports are 389 for unencrypted traffic and 636 for SSL traffic.</p>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapBindDnFormat" class="control-label"></label>
+                <input asp-for="LdapBindDnFormat" class="form-control" />
+                <span asp-validation-for="LdapBindDnFormat" class="text-danger"></span>
+                <p class="text-left">Example: <code>DOMAIN\{0}</code></p>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapSearchBaseDn" class="control-label"></label>
+                <input asp-for="LdapSearchBaseDn" class="form-control" />
+                <span asp-validation-for="LdapSearchBaseDn" class="text-danger"></span>
+                <p class="text-left">Example: <code>DC=ldap,DC=example,DC=com</code></p>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapSearchFilterFormat" class="control-label"></label>
+                <input asp-for="LdapSearchFilterFormat" class="form-control" />
+                <span asp-validation-for="LdapSearchFilterFormat" class="text-danger"></span>
+                <p class="text-left">Example 1: <code>(&(sAMAccountType=805306368)(memberOf=CN=PermittedMembers,OU=MainOrg,DC=ldap,DC=example,DC=com)(sAMAccountName={0}))</code></p>
+                <p class="text-left">Example 2: <code>(sAMAccountName={0})</code></p>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapNameAttribute" class="control-label"></label>
+                <input asp-for="LdapNameAttribute" class="form-control" />
+                <span asp-validation-for="LdapNameAttribute" class="text-danger"></span>
+                <p class="text-left"><code>displayName</code> may be used for Active Directory</p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <br />
+        <div class="form-group col-xs-12">
+            <input type="submit" value="Save" class="btn btn-primary" />
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

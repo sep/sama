@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Models;
 using sama.Services;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,19 +15,19 @@ namespace TestSama.Services
     {
         private SlackNotificationService _service;
         private ILogger<SlackNotificationService> _logger;
-        private IConfigurationRoot _configRoot;
+        private SettingsService _settings;
         private TestHttpHandler _httpHandler;
 
         [TestInitialize]
         public void Setup()
         {
             _logger = Substitute.For<ILogger<SlackNotificationService>>();
-            _configRoot = Substitute.For<IConfigurationRoot>();
+            _settings = Substitute.For<SettingsService>((IServiceProvider)null);
             _httpHandler = Substitute.ForPartsOf<TestHttpHandler>();
 
-            _service = new SlackNotificationService(_logger, _configRoot, _httpHandler);
+            _service = new SlackNotificationService(_logger, _settings, _httpHandler);
 
-            _configRoot.GetSection("SAMA").Returns(GetSamaConfig());
+            _settings.Notifications_Slack_WebHook.Returns("https://webhook.example.com/hook");
         }
 
         [TestMethod]
@@ -64,17 +62,6 @@ namespace TestSama.Services
             await _httpHandler.Received(1).RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
             Assert.AreEqual("https://webhook.example.com/hook", message.RequestUri.ToString());
             Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: TESTERROR""}", await message.Content.ReadAsStringAsync());
-        }
-
-        private IConfigurationSection GetSamaConfig()
-        {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    { "SAMA:SlackWebHook", "https://webhook.example.com/hook" },
-                })
-                .Build()
-                .GetSection("SAMA");
         }
     }
 }

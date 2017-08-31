@@ -35,3 +35,7 @@ textarea {
         display: none;
     }
 }
+
+.global-flash-alert {
+    margin: 16px 0 0;
+}

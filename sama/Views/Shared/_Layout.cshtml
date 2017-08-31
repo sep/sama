@@ -39,6 +39,7 @@
                     {
                         <li><a asp-area="" asp-controller="Endpoints" asp-action="List">Endpoints</a></li>
                         <li><a asp-area="" asp-controller="Account" asp-action="List">Users</a></li>
+                        <li><a asp-area="" asp-controller="Settings" asp-action="Index">Settings</a></li>
                     }
                 </ul>
                 @await Html.PartialAsync("_UserPartial")
@@ -46,6 +47,15 @@
         </div>
     </nav>
     <div class="container body-content">
+        @if (TempData.ContainsKey("GlobalFlashType") && TempData.ContainsKey("GlobalFlashMessage"))
+        {
+            <div class="row">
+                <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+                    <div class="global-flash-alert alert alert-@TempData["GlobalFlashType"]">@TempData["GlobalFlashMessage"]</div>
+                </div>
+            </div>
+        }
+
         @RenderBody()
         <hr />
         <footer>

@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using sama.Models;
+﻿using sama.Models;
 using System;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -8,12 +7,12 @@ namespace sama.Services
 {
     public class LdapService : IDisposable
     {
-        private readonly IConfigurationRoot _config;
+        private readonly SettingsService _settingsService;
         private readonly LdapAuthWrapper _ldapWrapper;
 
-        public LdapService(IConfigurationRoot config, LdapAuthWrapper ldapWrapper)
+        public LdapService(SettingsService settingsService, LdapAuthWrapper ldapWrapper)
         {
-            _config = config;
+            _settingsService = settingsService;
             _ldapWrapper = ldapWrapper;
         }
 
@@ -21,17 +20,15 @@ namespace sama.Services
         {
             try
             {
-                var ldapSettings = _config.GetSection("SAMA").GetSection("LDAP");
-
                 var ldapUser = _ldapWrapper.Authenticate(
-                        ldapSettings.GetValue<string>("Host"),
-                        ldapSettings.GetValue<int>("Port"),
-                        ldapSettings.GetValue<bool>("SSL"),
-                        string.Format(ldapSettings.GetValue<string>("BindDnFormat"), username),
+                        _settingsService.Ldap_Host,
+                        _settingsService.Ldap_Port,
+                        _settingsService.Ldap_Ssl,
+                        string.Format(_settingsService.Ldap_BindDnFormat, username),
                         password,
-                        ldapSettings.GetValue<string>("SearchBaseDn"),
-                        string.Format(ldapSettings.GetValue<string>("SearchFilterFormat"), username),
-                        ldapSettings.GetValue<string>("NameAttribute"),
+                        _settingsService.Ldap_SearchBaseDn,
+                        string.Format(_settingsService.Ldap_SearchFilterFormat, username),
+                        _settingsService.Ldap_NameAttribute,
                         Ldap_UserDefinedServerCertValidationDelegate
                     );
 
@@ -50,7 +47,7 @@ namespace sama.Services
 
         public virtual bool IsLdapEnabled()
         {
-            return _config.GetSection("SAMA").GetSection("LDAP").GetValue<bool>("Enabled");
+            return _settingsService.Ldap_Enable;
         }
 
         public void Dispose()

@@ -1,5 +1,4 @@
 ﻿using FluentScheduler;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,7 +20,7 @@ namespace sama.Services
         public static void InitializeScheduler(IServiceProvider provider)
         {
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-            var config = provider.GetRequiredService<IConfigurationRoot>();
+            var settingsService = provider.GetRequiredService<SettingsService>();
             var selfInstance = provider.GetRequiredService<MonitorJob>();
 
             JobManager.Initialize(new Registry());
@@ -29,8 +28,23 @@ namespace sama.Services
             {
                 loggerFactory.CreateLogger(typeof(JobManager)).LogError(0, info.Exception, $"Job '{info.Name}' failed");
             };
-            var interval = config.GetSection("SAMA").GetValue<int>("MonitorIntervalSeconds");
-            JobManager.AddJob(selfInstance, s => s.NonReentrant().ToRunNow().AndEvery(interval).Seconds());
+            var interval = settingsService.Monitor_IntervalSeconds;
+            JobManager.AddJob(selfInstance, s => s.WithName("DefaultMonitorJob").NonReentrant().ToRunNow().AndEvery(interval).Seconds());
+        }
+
+        public static void ReloadSchedule(IServiceProvider provider)
+        {
+            var settingsService = provider.GetRequiredService<SettingsService>();
+            var selfInstance = provider.GetRequiredService<MonitorJob>();
+
+            JobManager.Stop();
+
+            JobManager.RemoveJob("DefaultMonitorJob");
+
+            var interval = settingsService.Monitor_IntervalSeconds;
+            JobManager.AddJob(selfInstance, s => s.WithName("DefaultMonitorJob").NonReentrant().ToRunNow().AndEvery(interval).Seconds());
+
+            JobManager.Start();
         }
 
         public MonitorJob(IServiceProvider provider, EndpointCheckService checkService)
