@@ -32,7 +32,6 @@ The `appsettings.json` file has default settings for SAMA. They should be modifi
 ## Future planned/wished-for features (PRs are welcome!)
 
 - Per-endpoint overrides for timeout, interval, retry settings
-- Moving global configuration into database for web-based modification
 - Expanded notification options beyond Slack (email, IFTTT?)
 - Checks beyond HTTP/HTTPS (ping, TCP, more?)
 - TLS checks for certificate expiration, validity
