@@ -35,6 +35,28 @@ namespace TestSama.Extensions
         }
 
         [TestMethod]
+        public void ShouldConvertIcmpEndpointToViewModel()
+        {
+            var ep1 = new Endpoint { Id = 3, Enabled = true, Kind = Endpoint.EndpointKind.Icmp, Name = "asdf" };
+            ep1.SetIcmpAddress("fdsa");
+
+            var vm1 = ep1.ToEndpointViewModel();
+            Assert.IsInstanceOfType(vm1, typeof(IcmpEndpointViewModel));
+            Assert.AreEqual(3, vm1.Id);
+            Assert.IsTrue(vm1.Enabled);
+            Assert.AreEqual(Endpoint.EndpointKind.Icmp, vm1.Kind);
+            Assert.AreEqual("Ping", vm1.KindString);
+            Assert.AreEqual("asdf", vm1.Name);
+            var icmp1 = (IcmpEndpointViewModel)vm1;
+            Assert.AreEqual("fdsa", icmp1.Address);
+
+            var ep2 = new Endpoint { Kind = Endpoint.EndpointKind.Icmp };
+
+            var vm2 = ep2.ToEndpointViewModel();
+            Assert.IsInstanceOfType(vm2, typeof(IcmpEndpointViewModel));
+        }
+
+        [TestMethod]
         public void ShouldConvertHttpViewModelToEndpoint()
         {
             var vm1 = new HttpEndpointViewModel { Id = 5, Enabled = true, Kind = Endpoint.EndpointKind.Http, Name = "fdsa", Location = "asdf", ResponseMatch = "qwerty", StatusCodes = " 201, 500" };
@@ -50,6 +72,22 @@ namespace TestSama.Extensions
             var vm2 = new HttpEndpointViewModel { Kind = Endpoint.EndpointKind.Http };
             var ep2 = vm2.ToEndpoint();
             Assert.AreEqual(Endpoint.EndpointKind.Http, ep2.Kind);
+        }
+
+        [TestMethod]
+        public void ShouldConvertIcmpViewModelToEndpoint()
+        {
+            var vm1 = new IcmpEndpointViewModel { Id = 5, Enabled = true, Kind = Endpoint.EndpointKind.Icmp, Name = "fdsa", Address = "asdf" };
+            var ep1 = vm1.ToEndpoint();
+            Assert.AreEqual(5, ep1.Id);
+            Assert.IsTrue(ep1.Enabled);
+            Assert.AreEqual(Endpoint.EndpointKind.Icmp, ep1.Kind);
+            Assert.AreEqual("fdsa", ep1.Name);
+            Assert.AreEqual("asdf", ep1.GetIcmpAddress());
+
+            var vm2 = new IcmpEndpointViewModel { Kind = Endpoint.EndpointKind.Icmp };
+            var ep2 = vm2.ToEndpoint();
+            Assert.AreEqual(Endpoint.EndpointKind.Icmp, ep2.Kind);
         }
     }
 }

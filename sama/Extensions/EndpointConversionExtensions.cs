@@ -20,7 +20,10 @@ namespace sama.Extensions
             }
             else if (endpoint.Kind == Endpoint.EndpointKind.Icmp)
             {
-                throw new NotImplementedException();
+                vm = new IcmpEndpointViewModel
+                {
+                    Address = endpoint.GetIcmpAddress()
+                };
             }
             else
             {
@@ -57,7 +60,9 @@ namespace sama.Extensions
             }
             else if (vm.Kind == Endpoint.EndpointKind.Icmp)
             {
-                throw new NotImplementedException();
+                var icmpVm = (IcmpEndpointViewModel)vm;
+
+                endpoint.SetIcmpAddress(icmpVm.Address);
             }
             else
             {
