@@ -42,10 +42,10 @@ namespace TestSama.Services
 
         private void SeedEndpoints()
         {
-            _testDbContext.Endpoints.Add(new Endpoint { Id = 1, Name = "A", Location = "B", Enabled = false });
-            _testDbContext.Endpoints.Add(new Endpoint { Id = 2, Name = "C", Location = "D", Enabled = true });
-            _testDbContext.Endpoints.Add(new Endpoint { Id = 3, Name = "D", Location = "E", Enabled = true });
-            _testDbContext.Endpoints.Add(new Endpoint { Id = 4, Name = "F", Location = "G", Enabled = false });
+            _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("A", false, 1, "B"));
+            _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("C", true, 2, "D"));
+            _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("D", true, 3, "E"));
+            _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("F", false, 4, "G"));
             _testDbContext.SaveChanges();
         }
     }

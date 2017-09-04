@@ -1,4 +1,4 @@
-﻿@model IEnumerable<sama.Models.Endpoint>
+﻿@model IEnumerable<sama.Models.EndpointViewModel>
 
 @{
     ViewData["Title"] = "Endpoints";
@@ -20,12 +20,8 @@
             <th>
                 @Html.DisplayNameFor(model => model.Name)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ResponseMatch)
-            </th>
+            <th>Kind</th>
+            <th>Details</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -58,10 +54,19 @@
                     @Html.DisplayFor(modelItem => item.Name)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Location)
+                    @item.KindString
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.ResponseMatch)
+                    @if (item.Kind == sama.Models.Endpoint.EndpointKind.Http)
+                    {
+                        var httpEndpoint = (sama.Models.HttpEndpointViewModel)item;
+                        <span>@httpEndpoint.Location</span>
+                        @if (!string.IsNullOrWhiteSpace(httpEndpoint.ResponseMatch))
+                        {
+                            <i>matching</i>
+                            <code>@httpEndpoint.ResponseMatch</code>
+                        }
+                    }
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-xs">Edit</a> |

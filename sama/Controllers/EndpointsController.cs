@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using sama.Models;
 using sama.Services;
 using Microsoft.AspNetCore.Authorization;
+using sama.Extensions;
 
 namespace sama.Controllers
 {
@@ -40,14 +41,18 @@ namespace sama.Controllers
         public async Task<IActionResult> Index()
         {
             ViewData.Add("CurrentStates", _stateService.GetAllStates());
-            return View(await _context.Endpoints.ToListAsync());
+
+            var endpoints = await _context.Endpoints.ToListAsync();
+            return View(endpoints.Select(e => e.ToEndpointViewModel()));
         }
 
         // GET: Endpoints/List
         public async Task<IActionResult> List()
         {
             ViewData.Add("CurrentStates", _stateService.GetAllStates());
-            return View(await _context.Endpoints.ToListAsync());
+
+            var endpoints = await _context.Endpoints.ToListAsync();
+            return View(endpoints.Select(e => e.ToEndpointViewModel()));
         }
 
         // GET: Endpoints/Details/5
@@ -67,7 +72,7 @@ namespace sama.Controllers
 
             ViewData.Add("State", _stateService.GetState(endpoint.Id));
 
-            return View(endpoint);
+            return View(endpoint.ToEndpointViewModel());
         }
 
         // GET: Endpoints/Create
@@ -77,19 +82,19 @@ namespace sama.Controllers
         }
 
         // POST: Endpoints/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Enabled,Name,Location,ResponseMatch,StatusCodes")] Endpoint endpoint)
+        public async Task<IActionResult> Create(HttpEndpointViewModel vm)
         {
             if (ModelState.IsValid)
             {
+                var endpoint = vm.ToEndpoint();
+                endpoint.Id = 0;
                 _context.Add(endpoint);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(List));
             }
-            return View(endpoint);
+            return View(vm);
         }
 
         // GET: Endpoints/Edit/5
@@ -105,17 +110,16 @@ namespace sama.Controllers
             {
                 return NotFound();
             }
-            return View(endpoint);
+
+            return View(endpoint.ToEndpointViewModel());
         }
 
         // POST: Endpoints/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Enabled,Name,Location,ResponseMatch,StatusCodes")] Endpoint endpoint)
+        public async Task<IActionResult> Edit(int id, HttpEndpointViewModel vm)
         {
-            if (id != endpoint.Id)
+            if (id != vm.Id)
             {
                 return NotFound();
             }
@@ -124,13 +128,14 @@ namespace sama.Controllers
             {
                 try
                 {
+                    var endpoint = vm.ToEndpoint();
                     _context.Update(endpoint);
                     await _context.SaveChangesAsync();
                     _stateService.SetState(endpoint, null, null);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!EndpointExists(endpoint.Id))
+                    if (!EndpointExists(vm.Id))
                     {
                         return NotFound();
                     }
@@ -141,7 +146,7 @@ namespace sama.Controllers
                 }
                 return RedirectToAction(nameof(List));
             }
-            return View(endpoint);
+            return View(vm);
         }
 
         // GET: Endpoints/Delete/5

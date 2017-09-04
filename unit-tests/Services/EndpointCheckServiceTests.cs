@@ -42,7 +42,7 @@ namespace TestSama.Services
         {
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
 
             _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<Exception>());
         }
@@ -53,7 +53,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = true });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
 
             _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<Exception>());
         }
@@ -64,7 +64,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
         }
@@ -75,7 +75,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = false });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
         }
@@ -88,7 +88,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", ResponseMatch = "theKEY" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "theKEY"), 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), false, Arg.Any<Exception>());
         }
@@ -101,7 +101,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", ResponseMatch = "the keys" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "the keys"), 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
         }
@@ -112,7 +112,7 @@ namespace TestSama.Services
             _settingsService.Monitor_MaxRetries.Returns(4);
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromException<HttpResponseMessage>(new Exception("ERROR")));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), false, Arg.Any<Exception>());
             await _httpHandler.Received(5).RealSendAsync(Arg.Is<HttpRequestMessage>(m => m.RequestUri.ToString() == "http://asdf.example.com/fdsa"), Arg.Any<CancellationToken>());
@@ -126,7 +126,7 @@ namespace TestSama.Services
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = " 403" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }), 0);
 
             _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
         }
@@ -136,7 +136,7 @@ namespace TestSama.Services
         {
             Assert.IsTrue(_httpHandler.AllowAutoRedirect);
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int>()), 0);
 
             Assert.IsTrue(_httpHandler.AllowAutoRedirect);
         }
@@ -146,7 +146,7 @@ namespace TestSama.Services
         {
             Assert.IsTrue(_httpHandler.AllowAutoRedirect);
 
-            _service.ProcessEndpoint(new Endpoint { Name = "A", Location = "http://asdf.example.com/fdsa", StatusCodes = "403" }, 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }), 0);
 
             Assert.IsFalse(_httpHandler.AllowAutoRedirect);
         }

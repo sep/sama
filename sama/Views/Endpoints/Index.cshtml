@@ -1,4 +1,4 @@
-@model IEnumerable<sama.Models.Endpoint>
+@model IEnumerable<sama.Models.EndpointViewModel>
 
 @{
     ViewData["Title"] = "Overview";
@@ -66,7 +66,7 @@
         <div class="col-sm-4 endpoint-state endpoint-down">
             <div class="endpoint-child">
                 <span>
-                    <a href="@item.Location">@item.Name</a>
+                    @item.Name
                     <br />
                     <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Exception?.Message</i>
                 </span>
@@ -77,7 +77,7 @@
     {
         <div class="col-sm-4 endpoint-state endpoint-up">
             <div class="endpoint-child">
-                <span><a href="@item.Location">@item.Name</a></span>
+                <span>@item.Name</span>
             </div>
         </div>
     }
@@ -86,7 +86,7 @@
         <div class="col-sm-4 endpoint-state endpoint-indeterminate">
             <div class="endpoint-child">
                 <span>
-                    <a href="@item.Location">@item.Name</a>
+                    @item.Name
                     @if (!item.Enabled)
                     {
                         <br /><i>(Disabled)</i>

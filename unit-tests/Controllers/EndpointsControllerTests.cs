@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama;
 using sama.Controllers;
+using sama.Extensions;
 using sama.Models;
 using sama.Services;
 using System;
@@ -35,7 +35,7 @@ namespace TestSama.Controllers
             _userService = Substitute.For<UserManagementService>(null, null);
             _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService);
 
-            SeedEndpoints();
+            SeedHttpEndpoints();
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreSame(states, result.ViewData["CurrentStates"]);
-            Assert.AreEqual(2, (result.Model as List<Endpoint>).Count);
+            Assert.AreEqual(2, (result.Model as IEnumerable<EndpointViewModel>).Count());
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreSame(states, result.ViewData["CurrentStates"]);
-            Assert.AreEqual(2, (result.Model as List<Endpoint>).Count);
+            Assert.AreEqual(2, (result.Model as IEnumerable<EndpointViewModel>).Count());
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreSame(state, result.ViewData["State"]);
-            Assert.AreEqual("C", (result.Model as Endpoint).Name);
+            Assert.AreEqual("C", (result.Model as EndpointViewModel).Name);
         }
 
         [TestMethod]
@@ -87,7 +87,7 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task ShouldCreateEndpointWhenModelIsValid()
         {
-            var result = await _controller.Create(new Endpoint { Name = "Q", Location = "W" }) as RedirectToActionResult;
+            var result = await _controller.Create(new HttpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Http, Location = "W" }) as RedirectToActionResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
@@ -99,7 +99,7 @@ namespace TestSama.Controllers
         {
             _controller.ModelState.AddModelError("Location", "Location is required");
 
-            var result = await _controller.Create(new Endpoint { Name = "Q" }) as ViewResult;
+            var result = await _controller.Create(new HttpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Http }) as ViewResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "Q").Count());
@@ -110,13 +110,14 @@ namespace TestSama.Controllers
         {
             var endpoint = _testDbContext.Endpoints.Where(e => e.Name == "A").Single();
             endpoint.Name = "W";
+            _testDbContext.Entry(endpoint).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
 
-            var result = await _controller.Edit(1, endpoint) as RedirectToActionResult;
+            var result = await _controller.Edit(1, (HttpEndpointViewModel)endpoint.ToEndpointViewModel()) as RedirectToActionResult;
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
-            _stateService.Received().SetState(endpoint, null, null);
+            _stateService.Received().SetState(Arg.Is<Endpoint>(e => e.Id == endpoint.Id), null, null);
         }
 
         [TestMethod]
@@ -132,10 +133,10 @@ namespace TestSama.Controllers
             _stateService.Received().RemoveState(1);
         }
 
-        private void SeedEndpoints()
+        private void SeedHttpEndpoints()
         {
-            _testDbContext.Endpoints.Add(new Endpoint { Id = 1, Name = "A", Location = "B", Enabled = false });
-            _testDbContext.Endpoints.Add(new Endpoint { Id = 2, Name = "C", Location = "D", Enabled = true });
+            _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("A", false, 1, "B"));
+            _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("C", true, 2, "D"));
             _testDbContext.SaveChanges();
         }
     }

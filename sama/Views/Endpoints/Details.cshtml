@@ -1,4 +1,4 @@
-@model sama.Models.Endpoint
+@model sama.Models.EndpointViewModel
 
 @{
     ViewData["Title"] = "Details";
@@ -8,7 +8,7 @@
 <h2>Details</h2>
 
 <div>
-    <h4>Endpoint</h4>
+    <h4>@Model.KindString Endpoint</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -23,24 +23,18 @@
         <dd>
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Location)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Location)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.ResponseMatch)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.ResponseMatch)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.StatusCodes)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.StatusCodes)
-        </dd>
+        @if (Model.Kind == sama.Models.Endpoint.EndpointKind.Http)
+        {
+            await Html.RenderPartialAsync("_DetailsHttpPartial");
+        }
+        else if (Model.Kind == sama.Models.Endpoint.EndpointKind.Icmp)
+        {
+            throw new NotImplementedException();
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
         <dt>
             Last State
         </dt>

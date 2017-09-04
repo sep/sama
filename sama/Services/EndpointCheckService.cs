@@ -8,6 +8,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using sama.Extensions;
 
 namespace sama.Services
 {
@@ -30,9 +31,10 @@ namespace sama.Services
         {
             using (var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>())
             using (var client = new HttpClient(httpHandler, false))
-            using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.Location))
+            using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.GetHttpLocation()))
             {
-                if (!string.IsNullOrWhiteSpace(endpoint.StatusCodes))
+                var statusCodes = endpoint.GetHttpStatusCodes() ?? new List<int>();
+                if (statusCodes.Count > 0)
                     httpHandler.AllowAutoRedirect = false;
 
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko");
@@ -57,7 +59,7 @@ namespace sama.Services
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(endpoint.ResponseMatch))
+                if (string.IsNullOrWhiteSpace(endpoint.GetHttpResponseMatch()))
                 {
                     SetEndpointSuccess(endpoint);
                     return;
@@ -74,7 +76,7 @@ namespace sama.Services
                     return;
                 }
 
-                var index = contentTask.Result.IndexOf(endpoint.ResponseMatch);
+                var index = contentTask.Result.IndexOf(endpoint.GetHttpResponseMatch());
                 if (index < 0)
                 {
                     SetEndpointFailure(endpoint, new Exception("The keyword match was not found."), retryCount);
@@ -153,15 +155,15 @@ namespace sama.Services
 
         private bool IsExpectedStatusCode(Endpoint endpoint, HttpResponseMessage response)
         {
-            if (string.IsNullOrEmpty(endpoint.StatusCodes))
+            var statusCodes = endpoint.GetHttpStatusCodes() ?? new List<int>();
+            if (statusCodes.Count < 1)
             {
                 return response.IsSuccessStatusCode;
             }
             else
             {
-                var statusCodes = endpoint.StatusCodes.Replace(" ", "").Split(',').ToList();
                 var statusCode = (int)response.StatusCode;
-                return statusCodes.Contains(statusCode.ToString());
+                return statusCodes.Contains(statusCode);
             }
         }
     }

@@ -2,7 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using sama;
+using sama.Extensions;
+using sama.Models;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace TestSama
@@ -34,6 +37,23 @@ namespace TestSama
             }
 
             return provider;
+        }
+
+        public static Endpoint CreateHttpEndpoint(string name, bool enabled = true, int id = 0, string httpLocation = null, string httpResponseMatch = null, List<int> httpStatusCodes = null)
+        {
+            var endpoint = new Endpoint
+            {
+                Id = id,
+                Name = name,
+                Enabled = enabled,
+                Kind = Endpoint.EndpointKind.Http
+            };
+
+            if (httpLocation != null) endpoint.SetHttpLocation(httpLocation);
+            if (httpResponseMatch != null) endpoint.SetHttpResponseMatch(httpResponseMatch);
+            if (httpStatusCodes != null) endpoint.SetHttpStatusCodes(httpStatusCodes);
+
+            return endpoint;
         }
     }
 }

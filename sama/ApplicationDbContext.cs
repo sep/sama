@@ -13,6 +13,5 @@ namespace sama
         public DbSet<Endpoint> Endpoints { get; set; }
         public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<Setting> Settings { get; set; }
-        public DbSet<sama.Models.SettingsViewModel> SettingsViewModel { get; set; }
     }
 }
