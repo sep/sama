@@ -19,7 +19,7 @@ namespace sama
                 dbContext.Database.Migrate();
             }
 
-            Services.MonitorJob.InitializeScheduler(host.Services);
+            host.Services.GetRequiredService<Services.MonitorJob>().InitializeScheduler(host.Services);
 
             host.Run();
         }

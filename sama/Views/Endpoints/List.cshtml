@@ -67,6 +67,15 @@
                             <code>@httpEndpoint.ResponseMatch</code>
                         }
                     }
+                    else if (item.Kind == sama.Models.Endpoint.EndpointKind.Icmp)
+                    {
+                        var icmpEndpoint = (sama.Models.IcmpEndpointViewModel)item;
+                        <span>@icmpEndpoint.Address</span>
+                    }
+                    else
+                    {
+                        <span>UNKNOWN</span>
+                    }
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-xs">Edit</a> |

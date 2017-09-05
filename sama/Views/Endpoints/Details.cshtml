@@ -29,7 +29,7 @@
         }
         else if (Model.Kind == sama.Models.Endpoint.EndpointKind.Icmp)
         {
-            throw new NotImplementedException();
+            await Html.RenderPartialAsync("_DetailsIcmpPartial");
         }
         else
         {
@@ -51,7 +51,7 @@
                 else
                 {
                     <div>Down as of @state.LastUpdated.ToLocalTime().ToString("g")</div>
-                    <div>Reason: @(state.Exception?.Message ?? "Unknown")</div>
+                    <div>Reason: @(state.FailureMessage ?? "Unknown")</div>
                 }
             }
         </dd>

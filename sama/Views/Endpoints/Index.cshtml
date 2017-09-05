@@ -68,7 +68,7 @@
                 <span>
                     @item.Name
                     <br />
-                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Exception?.Message</i>
+                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.FailureMessage</i>
                 </span>
             </div>
         </div>

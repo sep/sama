@@ -57,7 +57,7 @@ namespace TestSama.Services
                     message = ci.Arg<HttpRequestMessage>();
                 });
 
-            _service.Notify(new Endpoint { Name = "A" }, false, new Exception("TESTERROR"));
+            _service.Notify(new Endpoint { Name = "A" }, false, "TESTERROR");
 
             await _httpHandler.Received(1).RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
             Assert.AreEqual("https://webhook.example.com/hook", message.RequestUri.ToString());

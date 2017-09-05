@@ -76,15 +76,33 @@ namespace sama.Controllers
         }
 
         // GET: Endpoints/Create
-        public IActionResult Create()
+        public IActionResult Create(Endpoint.EndpointKind kind = Endpoint.EndpointKind.Http)
         {
+            ViewData["Kind"] = kind;
+            ViewData["PostTarget"] = "Create" + kind.ToString();
             return View();
         }
 
-        // POST: Endpoints/Create
-        [HttpPost]
+        // POST: Endpoints/CreateHttp
+        [HttpPost, ActionName("CreateHttp")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(HttpEndpointViewModel vm)
+        {
+            if (ModelState.IsValid)
+            {
+                var endpoint = vm.ToEndpoint();
+                endpoint.Id = 0;
+                _context.Add(endpoint);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(List));
+            }
+            return View(vm);
+        }
+
+        // POST: Endpoints/CreateIcmp
+        [HttpPost, ActionName("CreateIcmp")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(IcmpEndpointViewModel vm)
         {
             if (ModelState.IsValid)
             {
@@ -111,13 +129,49 @@ namespace sama.Controllers
                 return NotFound();
             }
 
+            ViewData["PostTarget"] = "Edit" + endpoint.Kind.ToString();
             return View(endpoint.ToEndpointViewModel());
         }
 
-        // POST: Endpoints/Edit/5
-        [HttpPost, ActionName("Edit")]
+        // POST: Endpoints/EditHttp/5
+        [HttpPost, ActionName("EditHttp")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, HttpEndpointViewModel vm)
+        {
+            if (id != vm.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var endpoint = vm.ToEndpoint();
+                    _context.Update(endpoint);
+                    await _context.SaveChangesAsync();
+                    _stateService.SetState(endpoint, null, null);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!EndpointExists(vm.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(List));
+            }
+            return View(vm);
+        }
+
+        // POST: Endpoints/EditIcmp/5
+        [HttpPost, ActionName("EditIcmp")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, IcmpEndpointViewModel vm)
         {
             if (id != vm.Id)
             {

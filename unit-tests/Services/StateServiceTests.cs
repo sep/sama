@@ -21,7 +21,7 @@ namespace TestSama.Services
 
             _service.SetState(Ep1, null, null);
             _service.SetState(Ep2, true, null);
-            _service.SetState(Ep3, false, new Exception("ERROR"));
+            _service.SetState(Ep3, false, "ERROR");
         }
 
         [TestMethod]
@@ -29,25 +29,25 @@ namespace TestSama.Services
         {
             AssertStateEquality(null, null, _service.GetState(1));
             AssertStateEquality(true, null, _service.GetState(2));
-            AssertStateEquality(false, new Exception("ERROR"), _service.GetState(3));
+            AssertStateEquality(false, "ERROR", _service.GetState(3));
 
             var allStates = _service.GetAllStates();
             Assert.AreEqual(3, allStates.Count);
             AssertStateEquality(null, null, allStates[Ep1]);
             AssertStateEquality(true, null, allStates[Ep2]);
-            AssertStateEquality(false, new Exception("ERROR"), allStates[Ep3]);
+            AssertStateEquality(false, "ERROR", allStates[Ep3]);
         }
 
         [TestMethod]
         public void ShouldUpdateEndpointState()
         {
             AssertStateEquality(true, null, _service.GetState(2));
-            AssertStateEquality(false, new Exception("ERROR"), _service.GetState(3));
+            AssertStateEquality(false, "ERROR", _service.GetState(3));
 
             _service.SetState(Ep2, null, null);
 
             AssertStateEquality(null, null, _service.GetState(2));
-            AssertStateEquality(false, new Exception("ERROR"), _service.GetState(3));
+            AssertStateEquality(false, "ERROR", _service.GetState(3));
 
             var allStates = _service.GetAllStates();
             Assert.AreEqual(3, allStates.Count);
@@ -77,19 +77,10 @@ namespace TestSama.Services
             Assert.AreEqual(0, _service.GetAllStates().Count);
         }
 
-        private void AssertStateEquality(bool? expectedIsUp, Exception expectedException, StateService.EndpointState actualState)
+        private void AssertStateEquality(bool? expectedIsUp, string expectedMessage, StateService.EndpointState actualState)
         {
             Assert.AreEqual(expectedIsUp, actualState.IsUp);
-            
-            if (expectedException == null)
-            {
-                Assert.IsNull(actualState.Exception);
-            }
-            else
-            {
-                Assert.AreEqual(expectedException.GetType(), actualState.Exception.GetType());
-                Assert.AreEqual(expectedException.Message, actualState.Exception.Message);
-            }
+            Assert.AreEqual(expectedMessage, actualState.FailureMessage);
         }
     }
 }

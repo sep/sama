@@ -19,7 +19,7 @@ namespace sama.Services
             _httpHandler = httpHandler;
         }
 
-        public virtual void Notify(Endpoint endpoint, bool isUp, Exception exception)
+        public virtual void Notify(Endpoint endpoint, bool isUp, string failureMessage)
         {
             if (isUp)
             {
@@ -27,7 +27,7 @@ namespace sama.Services
             }
             else
             {
-                SendNotification($"The endpoint '{endpoint.Name}' is down: {exception.Message}");
+                SendNotification($"The endpoint '{endpoint.Name}' is down: {failureMessage}");
             }
         }
 

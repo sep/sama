@@ -4,6 +4,7 @@ using NSubstitute;
 using sama;
 using sama.Extensions;
 using sama.Models;
+using sama.Services;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -25,6 +26,7 @@ namespace TestSama
             });
 
             collection.AddSingleton<HttpClientHandler>(Substitute.ForPartsOf<TestHttpHandler>());
+            collection.AddSingleton(Substitute.For<MonitorJob>(null, null));
 
             var provider = collection.BuildServiceProvider(true);
 
@@ -52,6 +54,21 @@ namespace TestSama
             if (httpLocation != null) endpoint.SetHttpLocation(httpLocation);
             if (httpResponseMatch != null) endpoint.SetHttpResponseMatch(httpResponseMatch);
             if (httpStatusCodes != null) endpoint.SetHttpStatusCodes(httpStatusCodes);
+
+            return endpoint;
+        }
+
+        public static Endpoint CreateIcmpEndpoint(string name, bool enabled = true, int id = 0, string icmpAddress = null)
+        {
+            var endpoint = new Endpoint
+            {
+                Id = id,
+                Name = name,
+                Enabled = enabled,
+                Kind = Endpoint.EndpointKind.Icmp
+            };
+
+            if (icmpAddress != null) endpoint.SetIcmpAddress(icmpAddress);
 
             return endpoint;
         }

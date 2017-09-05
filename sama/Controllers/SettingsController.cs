@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using sama.Models;
 using sama.Services;
 using System;
@@ -68,7 +69,7 @@ namespace sama.Controllers
                 if (_settingsService.Monitor_IntervalSeconds != vm.MonitorIntervalSeconds)
                 {
                     _settingsService.Monitor_IntervalSeconds = vm.MonitorIntervalSeconds;
-                    MonitorJob.ReloadSchedule(_provider);
+                    _provider.GetRequiredService<MonitorJob>().ReloadSchedule(_provider);
                 }
 
                 _settingsService.Monitor_MaxRetries = vm.MonitorMaxRetries;

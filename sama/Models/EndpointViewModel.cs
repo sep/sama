@@ -16,17 +16,6 @@ namespace sama.Models
         
         public Endpoint.EndpointKind Kind { get; set; }
 
-        public string KindString
-        {
-            get
-            {
-                if (Kind == Endpoint.EndpointKind.Http)
-                    return "HTTP";
-                else if (Kind == Endpoint.EndpointKind.Icmp)
-                    return "Ping";
-                else
-                    return "Unknown";
-            }
-        }
+        public string KindString { get { return Utility.KindString(Kind); } }
     }
 }

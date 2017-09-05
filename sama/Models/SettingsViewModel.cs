@@ -17,7 +17,7 @@ namespace sama.Models
         [Range(0, 60), Display(Name = "Interval between tries (seconds)")]
         public int MonitorSecondsBetweenTries { get; set; }
 
-        [Range(1, 600), Display(Name = "Request timeout (seconds)")]
+        [Range(1, 600), Display(Name = "HTTP request timeout (seconds)")]
         public int MonitorRequestTimeoutSeconds { get; set; }
 
 

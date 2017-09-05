@@ -1,15 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Models;
 using sama.Services;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace TestSama.Services
 {
@@ -20,8 +14,9 @@ namespace TestSama.Services
         private SettingsService _settingsService;
         private StateService _stateService;
         private SlackNotificationService _slackService;
-        private TestHttpHandler _httpHandler;
-        private IServiceProvider _serviceProvider;
+        private ICheckService _goodCheckService;
+        private ICheckService _badCheckService1;
+        private ICheckService _badCheckService2;
 
         [TestInitialize]
         public void Setup()
@@ -29,126 +24,101 @@ namespace TestSama.Services
             _stateService = Substitute.For<StateService>();
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
             _slackService = Substitute.For<SlackNotificationService>(null, null, null);
-            _serviceProvider = TestUtility.InitDI();
-            _httpHandler = (TestHttpHandler)_serviceProvider.GetRequiredService<HttpClientHandler>();
+            _goodCheckService = Substitute.For<ICheckService>();
+            _badCheckService1 = Substitute.For<ICheckService>();
+            _badCheckService2 = Substitute.For<ICheckService>();
 
-            _service = new EndpointCheckService(_settingsService, _stateService, _slackService, _serviceProvider);
+            _service = new EndpointCheckService(_settingsService, _stateService, _slackService, new List<ICheckService> { _badCheckService1, _goodCheckService, _badCheckService2 });
 
-            _settingsService.Monitor_RequestTimeoutSeconds.Returns(1);
+            _goodCheckService.CanHandle(Arg.Any<Endpoint>()).Returns(true);
+            _badCheckService1.CanHandle(Arg.Any<Endpoint>()).Returns(false);
+            _badCheckService2.CanHandle(Arg.Any<Endpoint>()).Returns(false);
         }
 
         [TestMethod]
-        public void CheckShouldNotSendSuccessMessageIfFirstTimeSuccess()
+        public void ShouldSelectFirstMatchingCheckService()
         {
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
+            _service.ProcessEndpoint(new Endpoint(), 0);
 
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
+            _goodCheckService.Received().CanHandle(Arg.Any<Endpoint>());
+            _badCheckService1.Received().CanHandle(Arg.Any<Endpoint>());
+            _badCheckService2.DidNotReceive().CanHandle(Arg.Any<Endpoint>());
 
-            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<Exception>());
+            _goodCheckService.Received().Check(Arg.Any<Endpoint>(), out string _);
+            _badCheckService1.DidNotReceive().Check(Arg.Any<Endpoint>(), out string _);
+            _badCheckService2.DidNotReceive().Check(Arg.Any<Endpoint>(), out string _);
         }
 
         [TestMethod]
-        public void CheckShouldNotSendSuccessMessageAfterPreviousSuccess()
+        public void ShouldSendFailureIfNoMatchingCheckServices()
         {
+            _goodCheckService.CanHandle(Arg.Any<Endpoint>()).Returns(false);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
+
+            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, "There is no registered handler for this kind of endpoint.");
+        }
+
+        [TestMethod]
+        public void ShouldNotSendSuccessMessageIfFirstTimeSuccess()
+        {
+            SetCheckServiceReturnValue(true, null);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
+
+            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public void ShouldNotSendSuccessMessageAfterPreviousSuccess()
+        {
+            SetCheckServiceReturnValue(true, null);
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = true });
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
 
-            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<Exception>());
+            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<string>());
         }
 
         [TestMethod]
-        public void CheckShouldSendSuccessMessageAfterSettingsChange()
+        public void ShouldSendSuccessMessageAfterSettingsChange()
         {
+            SetCheckServiceReturnValue(true, null);
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
 
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
+            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<string>());
         }
 
         [TestMethod]
-        public void CheckShouldSendSuccessMessageAfterPreviousFailure()
+        public void ShouldSendSuccessMessageAfterPreviousFailure()
         {
+            SetCheckServiceReturnValue(true, null);
             _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = false });
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)));
 
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
 
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
+            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<string>());
         }
 
         [TestMethod]
-        public void CheckShouldFailWhenKeywordMatchMissing()
+        public void ShouldRetryConfiguredNumberOfTimesBeforeFailing()
         {
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-            response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("wrong keywords here"));
-            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
-
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "theKEY"), 0);
-
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, Arg.Any<Exception>());
-        }
-
-        [TestMethod]
-        public void CheckShouldSucceedWhenKeywordMatchSucceeds()
-        {
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-            response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("all of the keys are here"));
-            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
-
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "the keys"), 0);
-
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
-        }
-
-        [TestMethod]
-        public async Task CheckShouldRetryConfiguredNumberOfTimesBeforeFailing()
-        {
+            SetCheckServiceReturnValue(false, "ERRORMSG");
             _settingsService.Monitor_MaxRetries.Returns(4);
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromException<HttpResponseMessage>(new Exception("ERROR")));
 
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa"), 0);
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
 
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, Arg.Any<Exception>());
-            await _httpHandler.Received(5).RealSendAsync(Arg.Is<HttpRequestMessage>(m => m.RequestUri.ToString() == "http://asdf.example.com/fdsa"), Arg.Any<CancellationToken>());
+            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, "ERRORMSG");
+            _goodCheckService.Received(5).Check(Arg.Any<Endpoint>(), out string _);
         }
 
-        [TestMethod]
-        public void CheckShouldSucceedWhenCustomStatusCodesSet()
+        private void SetCheckServiceReturnValue(bool success, string failureMessage)
         {
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
-            response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(""));
-            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
-            _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
-
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }), 0);
-
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<Exception>());
-        }
-
-        [TestMethod]
-        public void CheckShouldSetAllowAutoRedirectForDefaultStatusCodes()
-        {
-            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
-
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int>()), 0);
-
-            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
-        }
-
-        [TestMethod]
-        public void CheckShouldDisableAllowAutoRedirectForSpecifiedStatusCodes()
-        {
-            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
-
-            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }), 0);
-
-            Assert.IsFalse(_httpHandler.AllowAutoRedirect);
+            _goodCheckService.Check(Arg.Any<Endpoint>(), out string msg).Returns(call =>
+            {
+                call[1] = failureMessage;
+                return success;
+            });
         }
     }
 }

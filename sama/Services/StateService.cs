@@ -12,17 +12,17 @@ namespace sama.Services
         {
             public DateTimeOffset LastUpdated { get; set; }
             public bool? IsUp { get; set; }
-            public Exception Exception { get; set; }
+            public string FailureMessage { get; set; }
         }
 
         private readonly Dictionary<Endpoint, EndpointState> _endpointStates = new Dictionary<Endpoint, EndpointState>();
 
-        public virtual void SetState(Endpoint endpoint, bool? isUp, Exception exception)
+        public virtual void SetState(Endpoint endpoint, bool? isUp, string failureMessage)
         {
             lock (this)
             {
                 RemoveState(endpoint.Id);
-                _endpointStates.Add(endpoint, new EndpointState { IsUp = isUp, Exception = exception, LastUpdated = DateTimeOffset.UtcNow });
+                _endpointStates.Add(endpoint, new EndpointState { IsUp = isUp, FailureMessage = failureMessage, LastUpdated = DateTimeOffset.UtcNow });
             }
         }
 

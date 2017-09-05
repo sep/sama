@@ -51,6 +51,7 @@ namespace sama
             services.AddSingleton<EndpointCheckService>();
             services.AddSingleton<MonitorJob>();
             services.AddSingleton<SettingsService>();
+            services.AddSingleton<ICheckService, HttpCheckService>();
 
             services.AddTransient(provider => new System.Net.Http.HttpClientHandler
             {

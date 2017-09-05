@@ -6,7 +6,7 @@
 
 <h2>@ViewData["Title"]</h2>
 
-<form asp-action="Edit">
+<form asp-action="@ViewBag.PostTarget">
     <div class="form-horizontal">
         <h4>@(Model.KindString) Endpoint</h4>
         <hr />
@@ -31,6 +31,10 @@
         @if (Model.Kind == sama.Models.Endpoint.EndpointKind.Http)
         {
             @await Html.PartialAsync("_EditHttpPartial")
+        }
+        else if (Model.Kind == sama.Models.Endpoint.EndpointKind.Icmp)
+        {
+            @await Html.PartialAsync("_EditIcmpPartial")
         }
         else
         {

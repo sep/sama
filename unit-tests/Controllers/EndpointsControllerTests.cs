@@ -48,7 +48,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreSame(states, result.ViewData["CurrentStates"]);
-            Assert.AreEqual(2, (result.Model as IEnumerable<EndpointViewModel>).Count());
+            Assert.AreEqual(3, (result.Model as IEnumerable<EndpointViewModel>).Count());
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreSame(states, result.ViewData["CurrentStates"]);
-            Assert.AreEqual(2, (result.Model as IEnumerable<EndpointViewModel>).Count());
+            Assert.AreEqual(3, (result.Model as IEnumerable<EndpointViewModel>).Count());
         }
 
         [TestMethod]
@@ -80,22 +80,32 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task DetailsShouldReturn404WhenNoValidIdSpecified()
         {
-            Assert.IsNotNull(await _controller.Details(3) as NotFoundResult);
+            Assert.IsNotNull(await _controller.Details(90) as NotFoundResult);
             Assert.IsNotNull(await _controller.Details(null) as NotFoundResult);
         }
 
         [TestMethod]
-        public async Task ShouldCreateEndpointWhenModelIsValid()
+        public async Task ShouldCreateHttpEndpointWhenModelIsValid()
         {
             var result = await _controller.Create(new HttpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Http, Location = "W" }) as RedirectToActionResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q").Count());
+            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Http).Count());
         }
 
         [TestMethod]
-        public async Task ShouldNotCreateEndpointWhenModelIsNotValid()
+        public async Task ShouldCreateIcmpEndpointWhenModelIsValid()
+        {
+            var result = await _controller.Create(new IcmpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Icmp, Address = "W" }) as RedirectToActionResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("List", result.ActionName);
+            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Icmp).Count());
+        }
+
+        [TestMethod]
+        public async Task ShouldNotCreateHttpEndpointWhenModelIsNotValid()
         {
             _controller.ModelState.AddModelError("Location", "Location is required");
 
@@ -106,7 +116,18 @@ namespace TestSama.Controllers
         }
 
         [TestMethod]
-        public async Task EditShouldUpdateEndpointAndResetStateWhenModelIsValid()
+        public async Task ShouldNotCreateIcmpEndpointWhenModelIsNotValid()
+        {
+            _controller.ModelState.AddModelError("Location", "Location is required");
+
+            var result = await _controller.Create(new IcmpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Icmp }) as ViewResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "Q").Count());
+        }
+
+        [TestMethod]
+        public async Task EditShouldUpdateHttpEndpointAndResetStateWhenModelIsValid()
         {
             var endpoint = _testDbContext.Endpoints.Where(e => e.Name == "A").Single();
             endpoint.Name = "W";
@@ -117,6 +138,21 @@ namespace TestSama.Controllers
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
+            _stateService.Received().SetState(Arg.Is<Endpoint>(e => e.Id == endpoint.Id), null, null);
+        }
+
+        [TestMethod]
+        public async Task EditShouldUpdateIcmpEndpointAndResetStateWhenModelIsValid()
+        {
+            var endpoint = _testDbContext.Endpoints.Where(e => e.Name == "E").Single();
+            endpoint.Name = "W";
+            _testDbContext.Entry(endpoint).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
+            var result = await _controller.Edit(3, (IcmpEndpointViewModel)endpoint.ToEndpointViewModel()) as RedirectToActionResult;
+            Assert.IsNotNull(result);
+            Assert.AreEqual("List", result.ActionName);
+            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
+            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "E").Count());
             _stateService.Received().SetState(Arg.Is<Endpoint>(e => e.Id == endpoint.Id), null, null);
         }
 
@@ -137,6 +173,7 @@ namespace TestSama.Controllers
         {
             _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("A", false, 1, "B"));
             _testDbContext.Endpoints.Add(TestUtility.CreateHttpEndpoint("C", true, 2, "D"));
+            _testDbContext.Endpoints.Add(TestUtility.CreateIcmpEndpoint("E", true, 3, "F"));
             _testDbContext.SaveChanges();
         }
     }
