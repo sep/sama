@@ -27,6 +27,13 @@ namespace sama.Services
             }
             else
             {
+                if (!string.IsNullOrWhiteSpace(failureMessage))
+                {
+                    var msg = failureMessage.Trim();
+                    if (!msg.EndsWith('.') && !msg.EndsWith('!') && !msg.EndsWith('?'))
+                        failureMessage = failureMessage.Trim() + '.';
+                }
+
                 SendNotification($"The endpoint '{endpoint.Name}' is down: {failureMessage}");
             }
         }

@@ -30,13 +30,25 @@ namespace sama.Services
                 return;
             }
 
-            if (!service.Check(endpoint, out string failureMessage))
+            bool checkSuccess;
+            string failureMessage;
+            try
             {
-                SetEndpointFailure(endpoint, failureMessage, retryCount);
+                checkSuccess = service.Check(endpoint, out failureMessage);
+            }
+            catch (Exception ex)
+            {
+                SetEndpointFailure(endpoint, $"Unexpected check failure: {ex.Message}", retryCount);
+                return;
+            }
+
+            if (checkSuccess)
+            {
+                SetEndpointSuccess(endpoint);
             }
             else
             {
-                SetEndpointSuccess(endpoint);
+                SetEndpointFailure(endpoint, failureMessage, retryCount);
             }
         }
 

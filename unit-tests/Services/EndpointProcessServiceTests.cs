@@ -59,6 +59,16 @@ namespace TestSama.Services
         }
 
         [TestMethod]
+        public void ShouldSendFailureIfCheckServiceThrows()
+        {
+            _goodCheckService.When(call => call.Check(Arg.Any<Endpoint>(), out string _))
+                .Throw(new Exception("ERRORMSG"));
+            _service.ProcessEndpoint(TestUtility.CreateHttpEndpoint("A"), 0);
+
+            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, "Unexpected check failure: ERRORMSG");
+        }
+
+        [TestMethod]
         public void ShouldNotSendSuccessMessageIfFirstTimeSuccess()
         {
             SetCheckServiceReturnValue(true, null);

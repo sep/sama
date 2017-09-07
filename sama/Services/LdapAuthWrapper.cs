@@ -1,8 +1,10 @@
 ﻿using Novell.Directory.Ldap;
-using System;
 
 namespace sama.Services
 {
+    /// <summary>
+    /// This is a wrapper around lower-level LDAP functionality that cannot be (easily) tested.
+    /// </summary>
     public class LdapAuthWrapper
     {
         public class LdapUser

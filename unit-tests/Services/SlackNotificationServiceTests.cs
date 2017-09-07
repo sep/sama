@@ -57,11 +57,34 @@ namespace TestSama.Services
                     message = ci.Arg<HttpRequestMessage>();
                 });
 
-            _service.Notify(new Endpoint { Name = "A" }, false, "TESTERROR");
+            _service.Notify(new Endpoint { Name = "A" }, false, "TESTERROR!");
 
             await _httpHandler.Received(1).RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
             Assert.AreEqual("https://webhook.example.com/hook", message.RequestUri.ToString());
-            Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: TESTERROR""}", await message.Content.ReadAsStringAsync());
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: TESTERROR!""}", await message.Content.ReadAsStringAsync());
+        }
+
+        [TestMethod]
+        public async Task ShouldAddPeriodToDownEventMessageOnlyWhenNoEndingPunctuationExists()
+        {
+            HttpRequestMessage message = null;
+            _httpHandler.When(h => h.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()))
+                .Do(ci =>
+                {
+                    message = ci.Arg<HttpRequestMessage>();
+                });
+
+            _service.Notify(new Endpoint { Name = "A" }, false, "error1");
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: error1.""}", await message.Content.ReadAsStringAsync());
+
+            _service.Notify(new Endpoint { Name = "A" }, false, "error2.");
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: error2.""}", await message.Content.ReadAsStringAsync());
+
+            _service.Notify(new Endpoint { Name = "A" }, false, "error3!");
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: error3!""}", await message.Content.ReadAsStringAsync());
+
+            _service.Notify(new Endpoint { Name = "A" }, false, "error4?");
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: error4?""}", await message.Content.ReadAsStringAsync());
         }
     }
 }
