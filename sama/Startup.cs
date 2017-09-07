@@ -48,7 +48,7 @@ namespace sama
 
             services.AddSingleton<StateService>();
             services.AddSingleton<SlackNotificationService>();
-            services.AddSingleton<EndpointCheckService>();
+            services.AddSingleton<EndpointProcessService>();
             services.AddSingleton<MonitorJob>();
             services.AddSingleton<SettingsService>();
             services.AddSingleton<ICheckService, HttpCheckService>();

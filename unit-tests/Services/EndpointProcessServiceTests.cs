@@ -8,9 +8,9 @@ using System.Collections.Generic;
 namespace TestSama.Services
 {
     [TestClass]
-    public class EndpointCheckServiceTests
+    public class EndpointProcessServiceTests
     {
-        private EndpointCheckService _service;
+        private EndpointProcessService _service;
         private SettingsService _settingsService;
         private StateService _stateService;
         private SlackNotificationService _slackService;
@@ -28,7 +28,7 @@ namespace TestSama.Services
             _badCheckService1 = Substitute.For<ICheckService>();
             _badCheckService2 = Substitute.For<ICheckService>();
 
-            _service = new EndpointCheckService(_settingsService, _stateService, _slackService, new List<ICheckService> { _badCheckService1, _goodCheckService, _badCheckService2 });
+            _service = new EndpointProcessService(_settingsService, _stateService, _slackService, new List<ICheckService> { _badCheckService1, _goodCheckService, _badCheckService2 });
 
             _goodCheckService.CanHandle(Arg.Any<Endpoint>()).Returns(true);
             _badCheckService1.CanHandle(Arg.Any<Endpoint>()).Returns(false);

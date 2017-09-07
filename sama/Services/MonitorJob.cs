@@ -15,7 +15,7 @@ namespace sama.Services
         };
 
         private readonly IServiceProvider _provider;
-        private readonly EndpointCheckService _checkService;
+        private readonly EndpointProcessService _processService;
 
         public virtual void InitializeScheduler(IServiceProvider provider)
         {
@@ -45,10 +45,10 @@ namespace sama.Services
             JobManager.Start();
         }
 
-        public MonitorJob(IServiceProvider provider, EndpointCheckService checkService)
+        public MonitorJob(IServiceProvider provider, EndpointProcessService processService)
         {
             _provider = provider;
-            _checkService = checkService;
+            _processService = processService;
         }
 
         public virtual void Execute()
@@ -58,7 +58,7 @@ namespace sama.Services
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var endpoints = dbContext.Endpoints.Where(e => e.Enabled).ToList();
-                Parallel.ForEach(endpoints, TplOptions, e => _checkService.ProcessEndpoint(e, 0));
+                Parallel.ForEach(endpoints, TplOptions, e => _processService.ProcessEndpoint(e, 0));
             }
         }
     }

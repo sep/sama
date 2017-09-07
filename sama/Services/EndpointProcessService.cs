@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 namespace sama.Services
 {
-    public class EndpointCheckService
+    public class EndpointProcessService
     {
         private readonly SettingsService _settingsService;
         private readonly StateService _stateService;
         private readonly SlackNotificationService _notifyService;
         private readonly IEnumerable<ICheckService> _checkServices;
 
-        public EndpointCheckService(SettingsService settingsService, StateService stateService, SlackNotificationService notifyService, IEnumerable<ICheckService> checkServices)
+        public EndpointProcessService(SettingsService settingsService, StateService stateService, SlackNotificationService notifyService, IEnumerable<ICheckService> checkServices)
         {
             _settingsService = settingsService;
             _stateService = stateService;

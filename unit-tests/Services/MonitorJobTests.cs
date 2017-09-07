@@ -16,7 +16,7 @@ namespace TestSama.Services
         private IServiceProvider _provider;
         private IServiceScope _scope;
         private ApplicationDbContext _testDbContext;
-        private EndpointCheckService _checkService;
+        private EndpointProcessService _processService;
 
         [TestInitialize]
         public void Setup()
@@ -24,8 +24,8 @@ namespace TestSama.Services
             _provider = TestUtility.InitDI();
             _scope = _provider.CreateScope();
             _testDbContext = new ApplicationDbContext(_scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-            _checkService = Substitute.For<EndpointCheckService>(null, null, null, null);
-            _service = new MonitorJob(_provider, _checkService);
+            _processService = Substitute.For<EndpointProcessService>(null, null, null, null);
+            _service = new MonitorJob(_provider, _processService);
 
             SeedEndpoints();
         }
@@ -35,9 +35,9 @@ namespace TestSama.Services
         {
             _service.Execute();
 
-            _checkService.Received(2).ProcessEndpoint(Arg.Any<Endpoint>(), Arg.Any<int>());
-            _checkService.Received().ProcessEndpoint(Arg.Is<Endpoint>(e => e.Id == 2), 0);
-            _checkService.Received().ProcessEndpoint(Arg.Is<Endpoint>(e => e.Id == 3), 0);
+            _processService.Received(2).ProcessEndpoint(Arg.Any<Endpoint>(), Arg.Any<int>());
+            _processService.Received().ProcessEndpoint(Arg.Is<Endpoint>(e => e.Id == 2), 0);
+            _processService.Received().ProcessEndpoint(Arg.Is<Endpoint>(e => e.Id == 3), 0);
         }
 
         private void SeedEndpoints()
