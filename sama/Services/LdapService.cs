@@ -32,9 +32,14 @@ namespace sama.Services
                         Ldap_UserDefinedServerCertValidationDelegate
                     );
 
+                var userId = Guid.NewGuid().ToByteArray();
+                userId[0] = 0;
+                userId[1] = 0;
+                userId[2] = 0;
+                userId[3] = 0;
                 return new ApplicationUser
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new Guid(userId),
                     UserName = ldapUser.DisplayName,
                     IsRemote = true
                 };

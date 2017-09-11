@@ -59,7 +59,7 @@ namespace TestSama.Controllers
         }
 
         [TestMethod]
-        public async Task PostLoginShouldLogIn()
+        public async Task PostLoginShouldLogInLocalUser()
         {
             var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "user" };
             _userService.FindUserByUsername("user").Returns(user);
@@ -72,13 +72,37 @@ namespace TestSama.Controllers
         }
 
         [TestMethod]
-        public async Task PostLoginWithWrongCredentialsShouldNotLogIn()
+        public async Task PostLoginShouldLogInRemoteUser()
+        {
+            var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "user" };
+            _ldapService.Authenticate("user", "pass").Returns(user);
+
+            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = false });
+
+            Assert.IsInstanceOfType(result, typeof(RedirectToActionResult));
+            await _signInManager.Received().SignInAsync(user, false, null);
+        }
+
+        [TestMethod]
+        public async Task PostLoginWithWrongCredentialsShouldNotLogInLocalUser()
         {
             var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "user" };
             _userService.FindUserByUsername("user").Returns(user);
             _userService.ValidateCredentials(user, "pass").Returns(false);
 
-            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass" });
+            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = true });
+
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task PostLoginWithWrongCredentialsShouldNotLogInRemoteUser()
+        {
+            var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "user" };
+            _ldapService.Authenticate("user", "pass").Returns((ApplicationUser)null);
+
+            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = false });
 
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>());
@@ -142,15 +166,29 @@ namespace TestSama.Controllers
         }
 
         [TestMethod]
-        public async Task GetEditWithIdShouldShowEditView()
+        public async Task GetEditWithIdShouldShowEditViewForLocalUser()
         {
             var id = Guid.NewGuid();
             var user = new ApplicationUser { Id = id, UserName = "user" };
             _userService.FindByIdAsync(id.ToString("D"), CancellationToken.None).Returns(user);
 
-            var result = await _controller.Edit(id);
+            var result = await _controller.Edit(id) as ViewResult;
 
-            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.ViewName);
+        }
+
+        [TestMethod]
+        public async Task GetEditWithIdShouldShowEditRemoteViewForRemoteUser()
+        {
+            var userId = "00000000-4444-4444-4444-123456789012";
+            _userService.FindByIdAsync(userId, CancellationToken.None).Returns((ApplicationUser)null);
+            _userManager.GetUserId(Arg.Any<System.Security.Claims.ClaimsPrincipal>()).Returns(userId);
+
+            var result = await _controller.Edit(Guid.Parse(userId)) as ViewResult;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("EditRemote", result.ViewName);
         }
 
         [TestMethod]

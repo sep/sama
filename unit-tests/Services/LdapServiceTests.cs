@@ -49,6 +49,11 @@ namespace TestSama.Services
             Assert.IsNotNull(result);
             Assert.IsTrue(result.IsRemote);
             Assert.AreEqual("the user", result.UserName);
+            var userId = result.Id.ToByteArray();
+            Assert.AreEqual(0, userId[0]);
+            Assert.AreEqual(0, userId[1]);
+            Assert.AreEqual(0, userId[2]);
+            Assert.AreEqual(0, userId[3]);
         }
 
         [TestMethod]

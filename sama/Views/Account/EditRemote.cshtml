@@ -1,0 +1,24 @@
+﻿@model sama.Models.ResetPasswordViewModel
+
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (ViewBag.IsCurrentUser)
+{
+    <h4>
+        You are logged in as a remote user. If you would like to modify your information, please do so in your remote system.
+    </h4>
+}
+else
+{
+    <h4>
+        Only local users can be modified.
+    </h4>
+}
+
+<div>
+    <a asp-action="List">Back to List</a>
+</div>
