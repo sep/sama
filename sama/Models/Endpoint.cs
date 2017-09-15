@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace sama.Models
 {
@@ -25,5 +26,8 @@ namespace sama.Models
 
         [Required]
         public string JsonConfig { get; set; }
+
+        [Required]
+        public DateTimeOffset LastUpdated { get; set; }
     }
 }

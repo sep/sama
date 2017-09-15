@@ -53,10 +53,9 @@ namespace sama.Services
 
         public virtual void Execute()
         {
-            var scopeFactory = _provider.GetRequiredService<IServiceScopeFactory>();
-            using (var scope = scopeFactory.CreateScope())
+            using (var scope = _provider.CreateScope())
+            using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var endpoints = dbContext.Endpoints.Where(e => e.Enabled).ToList();
                 Parallel.ForEach(endpoints, TplOptions, e => _processService.ProcessEndpoint(e, 0));
             }

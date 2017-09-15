@@ -24,7 +24,7 @@ namespace TestSama.Services
             _provider = TestUtility.InitDI();
             _scope = _provider.CreateScope();
             _testDbContext = new ApplicationDbContext(_scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-            _processService = Substitute.For<EndpointProcessService>(null, null, null, null);
+            _processService = Substitute.For<EndpointProcessService>(null, null, null, null, null);
             _service = new MonitorJob(_provider, _processService);
 
             SeedEndpoints();

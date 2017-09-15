@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using sama.Extensions;
 using sama.Models;
+using System;
 using System.Collections.Generic;
 
 namespace TestSama.Extensions
@@ -68,10 +69,12 @@ namespace TestSama.Extensions
             Assert.AreEqual("asdf", ep1.GetHttpLocation());
             Assert.AreEqual("qwerty", ep1.GetHttpResponseMatch());
             CollectionAssert.AreEquivalent(new List<int> { 201, 500 }, ep1.GetHttpStatusCodes());
+            Assert.IsTrue(DateTimeOffset.UtcNow.AddMinutes(-1) < ep1.LastUpdated);
 
             var vm2 = new HttpEndpointViewModel { Kind = Endpoint.EndpointKind.Http };
             var ep2 = vm2.ToEndpoint();
             Assert.AreEqual(Endpoint.EndpointKind.Http, ep2.Kind);
+            Assert.IsTrue(DateTimeOffset.UtcNow.AddMinutes(-1) < ep2.LastUpdated);
         }
 
         [TestMethod]
@@ -84,10 +87,12 @@ namespace TestSama.Extensions
             Assert.AreEqual(Endpoint.EndpointKind.Icmp, ep1.Kind);
             Assert.AreEqual("fdsa", ep1.Name);
             Assert.AreEqual("asdf", ep1.GetIcmpAddress());
+            Assert.IsTrue(DateTimeOffset.UtcNow.AddMinutes(-1) < ep1.LastUpdated);
 
             var vm2 = new IcmpEndpointViewModel { Kind = Endpoint.EndpointKind.Icmp };
             var ep2 = vm2.ToEndpoint();
             Assert.AreEqual(Endpoint.EndpointKind.Icmp, ep2.Kind);
+            Assert.IsTrue(DateTimeOffset.UtcNow.AddMinutes(-1) < ep2.LastUpdated);
         }
     }
 }

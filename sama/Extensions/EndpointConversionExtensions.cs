@@ -45,7 +45,8 @@ namespace sama.Extensions
                 Id = vm.Id,
                 Enabled = vm.Enabled,
                 Name = vm.Name,
-                Kind = vm.Kind
+                Kind = vm.Kind,
+                LastUpdated = DateTimeOffset.UtcNow
             };
 
             if (vm.Kind == Endpoint.EndpointKind.Http)

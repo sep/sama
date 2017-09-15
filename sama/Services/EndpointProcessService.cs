@@ -2,6 +2,8 @@
 using System;
 using System.Threading;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace sama.Services
 {
@@ -11,17 +13,21 @@ namespace sama.Services
         private readonly StateService _stateService;
         private readonly SlackNotificationService _notifyService;
         private readonly IEnumerable<ICheckService> _checkServices;
+        private readonly IServiceProvider _provider;
 
-        public EndpointProcessService(SettingsService settingsService, StateService stateService, SlackNotificationService notifyService, IEnumerable<ICheckService> checkServices)
+        public EndpointProcessService(SettingsService settingsService, StateService stateService, SlackNotificationService notifyService, IEnumerable<ICheckService> checkServices, IServiceProvider provider)
         {
             _settingsService = settingsService;
             _stateService = stateService;
             _notifyService = notifyService;
             _checkServices = checkServices;
+            _provider = provider;
         }
 
         public virtual void ProcessEndpoint(Endpoint endpoint, int retryCount)
         {
+            if (!IsEndpointCurrent(endpoint)) return;
+
             var service = GetCheckService(endpoint);
 
             if (service == null)
@@ -30,25 +36,21 @@ namespace sama.Services
                 return;
             }
 
-            bool checkSuccess;
-            string failureMessage;
             try
             {
-                checkSuccess = service.Check(endpoint, out failureMessage);
+                if (service.Check(endpoint, out string failureMessage))
+                {
+                    SetEndpointSuccess(endpoint);
+                }
+                else
+                {
+                    SetEndpointFailure(endpoint, failureMessage, retryCount);
+                }
             }
             catch (Exception ex)
             {
                 SetEndpointFailure(endpoint, $"Unexpected check failure: {ex.Message}", retryCount);
                 return;
-            }
-
-            if (checkSuccess)
-            {
-                SetEndpointSuccess(endpoint);
-            }
-            else
-            {
-                SetEndpointFailure(endpoint, failureMessage, retryCount);
             }
         }
 
@@ -64,6 +66,8 @@ namespace sama.Services
 
         private void SetEndpointSuccess(Endpoint endpoint)
         {
+            if (!IsEndpointCurrent(endpoint)) return;
+
             var previous = _stateService.GetState(endpoint.Id);
             if (previous != null && previous.IsUp != true)
             {
@@ -75,6 +79,8 @@ namespace sama.Services
 
         private void SetEndpointFailure(Endpoint endpoint, string failureMessage, int retryCount)
         {
+            if (!IsEndpointCurrent(endpoint)) return;
+
             if (retryCount < MaxRetries)
             {
                 Thread.Sleep(RetrySleep);
@@ -90,6 +96,16 @@ namespace sama.Services
             }
 
             _stateService.SetState(endpoint, false, failureMessage);
+        }
+
+        private bool IsEndpointCurrent(Endpoint endpoint)
+        {
+            using (var scope = _provider.CreateScope())
+            using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
+            {
+                var latest = dbContext.Endpoints.FirstOrDefault(e => e.Id == endpoint.Id);
+                return latest?.LastUpdated == endpoint.LastUpdated;
+            }
         }
 
         private int MaxRetries
