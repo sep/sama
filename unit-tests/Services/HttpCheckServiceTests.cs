@@ -46,10 +46,10 @@ namespace TestSama.Services
             response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("wrong keywords here"));
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            var success = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "theKEY"), out string msg);
+            var result = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "theKEY"));
 
-            Assert.IsFalse(success);
-            Assert.AreEqual("The keyword match was not found.", msg);
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual("The keyword match was not found.", result.Error.Message);
         }
 
         [TestMethod]
@@ -59,10 +59,10 @@ namespace TestSama.Services
             response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes("all of the keys are here"));
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            var success = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "the keys"), out string msg);
+            var result = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "the keys"));
 
-            Assert.IsTrue(success);
-            Assert.IsNull(msg);
+            Assert.IsTrue(result.Success);
+            Assert.IsNull(result.Error);
         }
 
         [TestMethod]
@@ -72,10 +72,10 @@ namespace TestSama.Services
             response.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(""));
             _httpHandler.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(response));
 
-            var success = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }), out string msg);
+            var result = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }));
 
-            Assert.IsTrue(success);
-            Assert.IsNull(msg);
+            Assert.IsTrue(result.Success);
+            Assert.IsNull(result.Error);
         }
 
         [TestMethod]
@@ -83,7 +83,7 @@ namespace TestSama.Services
         {
             Assert.IsTrue(_httpHandler.AllowAutoRedirect);
 
-            _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int>()), out string _);
+            _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int>()));
 
             Assert.IsTrue(_httpHandler.AllowAutoRedirect);
         }
@@ -93,7 +93,7 @@ namespace TestSama.Services
         {
             Assert.IsTrue(_httpHandler.AllowAutoRedirect);
 
-            _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }), out string _);
+            _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }));
 
             Assert.IsFalse(_httpHandler.AllowAutoRedirect);
         }

@@ -3,8 +3,7 @@ using NSubstitute;
 using sama.Models;
 using sama.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Net.NetworkInformation;
 
 namespace TestSama.Services
 {
@@ -31,32 +30,34 @@ namespace TestSama.Services
         [TestMethod]
         public void ShouldReturnSuccessWhenPingSucceeds()
         {
-            _pingWrapper.SendPing("fdsa").Returns(System.Net.NetworkInformation.IPStatus.Success);
+            _pingWrapper.SendPing("fdsa").Returns((IPStatus.Success, TimeSpan.FromMilliseconds(5)));
 
-            var result = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "fdsa"), out string msg);
-            Assert.IsTrue(result);
-            Assert.IsNull(msg);
+            var result = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "fdsa"));
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(TimeSpan.FromMilliseconds(5), result.ResponseTime);
+            Assert.IsNull(result.Error);
         }
 
         [TestMethod]
         public void ShouldReturnFailureWithCorrectMessagesWhenPingFails()
         {
-            _pingWrapper.SendPing("fdsa").Returns(System.Net.NetworkInformation.IPStatus.TimedOut);
-            _pingWrapper.SendPing("asdf").Returns(System.Net.NetworkInformation.IPStatus.DestinationHostUnreachable);
+            _pingWrapper.SendPing("fdsa").Returns((IPStatus.TimedOut, TimeSpan.MinValue));
+            _pingWrapper.SendPing("asdf").Returns((IPStatus.DestinationHostUnreachable, TimeSpan.MinValue));
             _pingWrapper.When(call => call.SendPing("asdffdsa"))
                 .Throw(new Exception("OH NO"));
 
-            var result1 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "fdsa"), out string msg1);
-            Assert.IsFalse(result1);
-            Assert.AreEqual("The ping request timed out.", msg1);
+            var result1 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "fdsa"));
+            Assert.IsFalse(result1.Success);
+            Assert.AreEqual("The ping request timed out.", result1.Error.Message);
 
-            var result2 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "asdf"), out string msg2);
-            Assert.IsFalse(result2);
-            Assert.AreEqual("The destination host is unreachable.", msg2);
+            var result2 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "asdf"));
+            Assert.IsFalse(result2.Success);
+            Assert.AreEqual("The destination host is unreachable.", result2.Error.Message);
 
-            var result3 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "asdffdsa"), out string msg3);
-            Assert.IsFalse(result3);
-            Assert.AreEqual("Unable to ping: OH NO.", msg3);
+            var result3 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "asdffdsa"));
+            Assert.IsFalse(result3.Success);
+            Assert.AreEqual("Unable to ping: OH NO.", result3.Error.Message);
         }
     }
 }

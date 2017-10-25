@@ -17,7 +17,6 @@ namespace TestSama.Services
         private IServiceProvider _provider;
         private SettingsService _settingsService;
         private StateService _stateService;
-        private SlackNotificationService _slackService;
         private ICheckService _goodCheckService;
         private ICheckService _badCheckService1;
         private ICheckService _badCheckService2;
@@ -28,13 +27,12 @@ namespace TestSama.Services
         {
             _provider = TestUtility.InitDI();
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
-            _stateService = Substitute.For<StateService>();
-            _slackService = Substitute.For<SlackNotificationService>(null, null, null);
+            _stateService = Substitute.For<StateService>(_provider);
             _goodCheckService = Substitute.For<ICheckService>();
             _badCheckService1 = Substitute.For<ICheckService>();
             _badCheckService2 = Substitute.For<ICheckService>();
 
-            _service = new EndpointProcessService(_settingsService, _stateService, _slackService, new List<ICheckService> { _badCheckService1, _goodCheckService, _badCheckService2 }, _provider);
+            _service = new EndpointProcessService(_settingsService, _stateService, new List<ICheckService> { _badCheckService1, _goodCheckService, _badCheckService2 }, _provider);
 
             _goodCheckService.CanHandle(Arg.Any<Endpoint>()).Returns(true);
             _badCheckService1.CanHandle(Arg.Any<Endpoint>()).Returns(false);
@@ -59,9 +57,9 @@ namespace TestSama.Services
             _badCheckService1.Received().CanHandle(Arg.Any<Endpoint>());
             _badCheckService2.DidNotReceive().CanHandle(Arg.Any<Endpoint>());
 
-            _goodCheckService.Received().Check(Arg.Any<Endpoint>(), out string _);
-            _badCheckService1.DidNotReceive().Check(Arg.Any<Endpoint>(), out string _);
-            _badCheckService2.DidNotReceive().Check(Arg.Any<Endpoint>(), out string _);
+            _goodCheckService.Received().Check(Arg.Any<Endpoint>());
+            _badCheckService1.DidNotReceive().Check(Arg.Any<Endpoint>());
+            _badCheckService2.DidNotReceive().Check(Arg.Any<Endpoint>());
         }
 
         [TestMethod]
@@ -70,59 +68,17 @@ namespace TestSama.Services
             _goodCheckService.CanHandle(Arg.Any<Endpoint>()).Returns(false);
             _service.ProcessEndpoint(_validEndpoint, 0);
 
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, "There is no registered handler for this kind of endpoint.");
+            _stateService.Received().AddEndpointCheckResult(_validEndpoint.Id, Arg.Is<EndpointCheckResult>(r => r.Error.Message == "There is no registered handler for this kind of endpoint."), true);
         }
 
         [TestMethod]
         public void ShouldSendFailureIfCheckServiceThrows()
         {
-            _goodCheckService.When(call => call.Check(Arg.Any<Endpoint>(), out string _))
+            _goodCheckService.When(call => call.Check(Arg.Any<Endpoint>()))
                 .Throw(new Exception("ERRORMSG"));
             _service.ProcessEndpoint(_validEndpoint, 0);
 
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, "Unexpected check failure: ERRORMSG");
-        }
-
-        [TestMethod]
-        public void ShouldNotSendSuccessMessageIfFirstTimeSuccess()
-        {
-            SetCheckServiceReturnValue(true, null);
-            _service.ProcessEndpoint(_validEndpoint, 0);
-
-            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<string>());
-        }
-
-        [TestMethod]
-        public void ShouldNotSendSuccessMessageAfterPreviousSuccess()
-        {
-            SetCheckServiceReturnValue(true, null);
-            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = true });
-
-            _service.ProcessEndpoint(_validEndpoint, 0);
-
-            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<string>());
-        }
-
-        [TestMethod]
-        public void ShouldSendSuccessMessageAfterSettingsChange()
-        {
-            SetCheckServiceReturnValue(true, null);
-            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = null });
-
-            _service.ProcessEndpoint(_validEndpoint, 0);
-
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<string>());
-        }
-
-        [TestMethod]
-        public void ShouldSendSuccessMessageAfterPreviousFailure()
-        {
-            SetCheckServiceReturnValue(true, null);
-            _stateService.GetState(Arg.Any<int>()).Returns(new StateService.EndpointState { IsUp = false });
-
-            _service.ProcessEndpoint(_validEndpoint, 0);
-
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), true, Arg.Any<string>());
+            _stateService.Received().AddEndpointCheckResult(_validEndpoint.Id, Arg.Is<EndpointCheckResult>(r => r.Error.Message == "Unexpected check failure: ERRORMSG"), true);
         }
 
         [TestMethod]
@@ -133,8 +89,10 @@ namespace TestSama.Services
 
             _service.ProcessEndpoint(_validEndpoint, 0);
 
-            _slackService.Received().Notify(Arg.Any<Endpoint>(), false, "ERRORMSG");
-            _goodCheckService.Received(5).Check(Arg.Any<Endpoint>(), out string _);
+            _goodCheckService.Received(5).Check(Arg.Any<Endpoint>());
+
+            _stateService.Received(4).AddEndpointCheckResult(_validEndpoint.Id, Arg.Is<EndpointCheckResult>(r => r.Success == false), false);
+            _stateService.Received(1).AddEndpointCheckResult(_validEndpoint.Id, Arg.Is<EndpointCheckResult>(r => r.Success == false), true);
         }
 
         [TestMethod]
@@ -146,45 +104,41 @@ namespace TestSama.Services
             _badCheckService1.DidNotReceive().CanHandle(Arg.Any<Endpoint>());
             _goodCheckService.DidNotReceive().CanHandle(Arg.Any<Endpoint>());
             _badCheckService2.DidNotReceive().CanHandle(Arg.Any<Endpoint>());
-            _goodCheckService.DidNotReceive().Check(Arg.Any<Endpoint>(), out string _);
+            _goodCheckService.DidNotReceive().Check(Arg.Any<Endpoint>());
         }
 
         [TestMethod]
         public void ShouldNotRespondToSuccessWhenEndpointChanged()
         {
-            _goodCheckService.Check(Arg.Any<Endpoint>(), out string msg).Returns(call =>
+            _goodCheckService.Check(Arg.Any<Endpoint>()).Returns(call =>
             {
                 TouchEndpoint(_validEndpoint);
 
-                msg = null;
-                return true;
+                return new EndpointCheckResult { Start = DateTimeOffset.UtcNow, Stop = DateTimeOffset.UtcNow, Success = true };
             });
 
             _service.ProcessEndpoint(_validEndpoint, 0);
 
-            _goodCheckService.Received().Check(Arg.Any<Endpoint>(), out string _);
-            _stateService.DidNotReceive().GetState(Arg.Any<int>());
-            _stateService.DidNotReceive().SetState(Arg.Any<Endpoint>(), Arg.Any<bool?>(), Arg.Any<string>());
-            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<string>());
+            _goodCheckService.Received().Check(Arg.Any<Endpoint>());
+            _stateService.DidNotReceive().GetStatus(Arg.Any<int>());
+            _stateService.DidNotReceive().AddEndpointCheckResult(Arg.Any<int>(), Arg.Any<EndpointCheckResult>(), Arg.Any<bool>());
         }
 
         [TestMethod]
         public void ShouldNotRespondToFailureWhenEndpointChanged()
         {
-            _goodCheckService.Check(Arg.Any<Endpoint>(), out string msg).Returns(call =>
+            _goodCheckService.Check(Arg.Any<Endpoint>()).Returns(call =>
             {
                 TouchEndpoint(_validEndpoint);
 
-                msg = "ERRORMSG";
-                return false;
+                return new EndpointCheckResult { Start = DateTimeOffset.UtcNow, Stop = DateTimeOffset.UtcNow, Success = false, Error = new Exception("ERRORMSG") };
             });
 
             _service.ProcessEndpoint(_validEndpoint, 0);
 
-            _goodCheckService.Received().Check(Arg.Any<Endpoint>(), out string _);
-            _stateService.DidNotReceive().GetState(Arg.Any<int>());
-            _stateService.DidNotReceive().SetState(Arg.Any<Endpoint>(), Arg.Any<bool?>(), Arg.Any<string>());
-            _slackService.DidNotReceive().Notify(Arg.Any<Endpoint>(), Arg.Any<bool>(), Arg.Any<string>());
+            _goodCheckService.Received().Check(Arg.Any<Endpoint>());
+            _stateService.DidNotReceive().GetStatus(Arg.Any<int>());
+            _stateService.DidNotReceive().AddEndpointCheckResult(Arg.Any<int>(), Arg.Any<EndpointCheckResult>(), Arg.Any<bool>());
         }
 
         private void TouchEndpoint(Endpoint endpoint)
@@ -200,10 +154,12 @@ namespace TestSama.Services
 
         private void SetCheckServiceReturnValue(bool success, string failureMessage)
         {
-            _goodCheckService.Check(Arg.Any<Endpoint>(), out string msg).Returns(call =>
+            _goodCheckService.Check(Arg.Any<Endpoint>()).Returns(call =>
             {
-                call[1] = failureMessage;
-                return success;
+                if (success)
+                    return new EndpointCheckResult { Start = DateTimeOffset.UtcNow, Stop = DateTimeOffset.UtcNow, Success = true };
+
+                return new EndpointCheckResult { Start = DateTimeOffset.UtcNow, Stop = DateTimeOffset.UtcNow, Success = false, Error = new Exception(failureMessage) };
             });
         }
     }

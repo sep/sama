@@ -19,20 +19,27 @@ namespace sama.Services
             return (endpoint.Kind == Endpoint.EndpointKind.Icmp);
         }
 
-        public bool Check(Endpoint endpoint, out string failureMessage)
+        public EndpointCheckResult Check(Endpoint endpoint)
         {
+            var checkResult = new EndpointCheckResult { Start = DateTimeOffset.UtcNow };
+
             try
             {
-                var result = _pingWrapper.SendPing(endpoint.GetIcmpAddress());
-                if (result == IPStatus.Success)
+                var (status, roundtripTime) = _pingWrapper.SendPing(endpoint.GetIcmpAddress());
+                if (status == IPStatus.Success)
                 {
-                    failureMessage = null;
-                    return true;
+                    checkResult.Success = true;
+                    checkResult.Stop = DateTimeOffset.UtcNow;
+                    checkResult.ResponseTime = roundtripTime;
+                    return checkResult;
                 }
                 else
                 {
-                    failureMessage = GetFriendlyError(result);
-                    return false;
+                    checkResult.Error = new Exception(GetFriendlyError(status));
+                    checkResult.Success = false;
+                    checkResult.Stop = DateTimeOffset.UtcNow;
+                    checkResult.ResponseTime = null;
+                    return checkResult;
                 }
             }
             catch (Exception ex)
@@ -40,8 +47,11 @@ namespace sama.Services
                 if (ex.GetType() == typeof(PingException) && ex.InnerException != null)
                     ex = ex.InnerException;
 
-                failureMessage = $"Unable to ping: {ex.Message}.";
-                return false;
+                checkResult.Error = new Exception($"Unable to ping: {ex.Message}.", ex);
+                checkResult.Success = false;
+                checkResult.Stop = DateTimeOffset.UtcNow;
+                checkResult.ResponseTime = null;
+                return checkResult;
             }
         }
 

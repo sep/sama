@@ -40,7 +40,7 @@ namespace sama.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            ViewData.Add("CurrentStates", _stateService.GetAllStates());
+            ViewData.Add("CurrentStates", _stateService.GetAll());
 
             var endpoints = await _context.Endpoints.ToListAsync();
             return View(endpoints.Select(e => e.ToEndpointViewModel()));
@@ -49,7 +49,7 @@ namespace sama.Controllers
         // GET: Endpoints/List
         public async Task<IActionResult> List()
         {
-            ViewData.Add("CurrentStates", _stateService.GetAllStates());
+            ViewData.Add("CurrentStates", _stateService.GetAll());
 
             var endpoints = await _context.Endpoints.ToListAsync();
             return View(endpoints.Select(e => e.ToEndpointViewModel()));
@@ -70,7 +70,7 @@ namespace sama.Controllers
                 return NotFound();
             }
 
-            ViewData.Add("State", _stateService.GetState(endpoint.Id));
+            ViewData.Add("State", _stateService.GetStatus(endpoint.Id));
 
             return View(endpoint.ToEndpointViewModel());
         }
@@ -150,7 +150,7 @@ namespace sama.Controllers
                     var endpoint = vm.ToEndpoint();
                     _context.Update(endpoint);
                     await _context.SaveChangesAsync();
-                    _stateService.SetState(endpoint, null, null);
+                    _stateService.RemoveStatus(endpoint.Id);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -185,7 +185,7 @@ namespace sama.Controllers
                     var endpoint = vm.ToEndpoint();
                     _context.Update(endpoint);
                     await _context.SaveChangesAsync();
-                    _stateService.SetState(endpoint, null, null);
+                    _stateService.RemoveStatus(endpoint.Id);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -229,7 +229,7 @@ namespace sama.Controllers
             var endpoint = await _context.Endpoints.SingleOrDefaultAsync(m => m.Id == id);
             _context.Endpoints.Remove(endpoint);
             await _context.SaveChangesAsync();
-            _stateService.RemoveState(id);
+            _stateService.RemoveStatus(id);
             return RedirectToAction(nameof(List));
         }
 

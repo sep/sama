@@ -11,15 +11,13 @@ namespace sama.Services
     {
         private readonly SettingsService _settingsService;
         private readonly StateService _stateService;
-        private readonly SlackNotificationService _notifyService;
         private readonly IEnumerable<ICheckService> _checkServices;
         private readonly IServiceProvider _provider;
 
-        public EndpointProcessService(SettingsService settingsService, StateService stateService, SlackNotificationService notifyService, IEnumerable<ICheckService> checkServices, IServiceProvider provider)
+        public EndpointProcessService(SettingsService settingsService, StateService stateService, IEnumerable<ICheckService> checkServices, IServiceProvider provider)
         {
             _settingsService = settingsService;
             _stateService = stateService;
-            _notifyService = notifyService;
             _checkServices = checkServices;
             _provider = provider;
         }
@@ -32,24 +30,38 @@ namespace sama.Services
 
             if (service == null)
             {
-                SetEndpointFailure(endpoint, "There is no registered handler for this kind of endpoint.", retryCount);
+                var result = new EndpointCheckResult {
+                    Start = DateTimeOffset.UtcNow,
+                    Stop = DateTimeOffset.UtcNow,
+                    Success = false,
+                    Error = new Exception("There is no registered handler for this kind of endpoint.")
+                };
+                SetEndpointFailure(endpoint, result, retryCount);
                 return;
             }
 
             try
             {
-                if (service.Check(endpoint, out string failureMessage))
+                var result = service.Check(endpoint);
+                if (result.Success)
                 {
-                    SetEndpointSuccess(endpoint);
+                    SetEndpointSuccess(endpoint, result);
                 }
                 else
                 {
-                    SetEndpointFailure(endpoint, failureMessage, retryCount);
+                    SetEndpointFailure(endpoint, result, retryCount);
                 }
             }
             catch (Exception ex)
             {
-                SetEndpointFailure(endpoint, $"Unexpected check failure: {ex.Message}", retryCount);
+                var result = new EndpointCheckResult
+                {
+                    Start = DateTimeOffset.UtcNow,
+                    Stop = DateTimeOffset.UtcNow,
+                    Success = false,
+                    Error = new Exception($"Unexpected check failure: {ex.Message}", ex)
+                };
+                SetEndpointFailure(endpoint, result, retryCount);
                 return;
             }
         }
@@ -64,38 +76,27 @@ namespace sama.Services
             return null;
         }
 
-        private void SetEndpointSuccess(Endpoint endpoint)
+        private void SetEndpointSuccess(Endpoint endpoint, EndpointCheckResult result)
         {
             if (!IsEndpointCurrent(endpoint)) return;
 
-            var previous = _stateService.GetState(endpoint.Id);
-            if (previous != null && previous.IsUp != true)
-            {
-                // It's back up!
-                _notifyService.Notify(endpoint, true, null);
-            }
-            _stateService.SetState(endpoint, true, null);
+            _stateService.AddEndpointCheckResult(endpoint.Id, result, true);
         }
 
-        private void SetEndpointFailure(Endpoint endpoint, string failureMessage, int retryCount)
+        private void SetEndpointFailure(Endpoint endpoint, EndpointCheckResult result, int retryCount)
         {
             if (!IsEndpointCurrent(endpoint)) return;
 
             if (retryCount < MaxRetries)
             {
+                _stateService.AddEndpointCheckResult(endpoint.Id, result, false);
+
                 Thread.Sleep(RetrySleep);
                 ProcessEndpoint(endpoint, retryCount + 1);
                 return;
             }
 
-            var previous = _stateService.GetState(endpoint.Id);
-            if (previous?.IsUp == null || previous?.IsUp == true || previous?.FailureMessage != failureMessage)
-            {
-                // It's down!
-                _notifyService.Notify(endpoint, false, failureMessage);
-            }
-
-            _stateService.SetState(endpoint, false, failureMessage);
+            _stateService.AddEndpointCheckResult(endpoint.Id, result, true);
         }
 
         private bool IsEndpointCurrent(Endpoint endpoint)

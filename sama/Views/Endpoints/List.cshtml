@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Endpoints";
-    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Services.StateService.EndpointState>)ViewData["CurrentStates"];
+    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Models.EndpointStatus>)ViewData["CurrentStates"];
 }
 
 <h2>Endpoints</h2>
@@ -31,15 +31,15 @@
             <tr>
                 <td>
                     @{
-                        var state = states.FirstOrDefault(kvp => kvp.Key.Id == item.Id).Value ?? new sama.Services.StateService.EndpointState();
+                        var state = states.FirstOrDefault(kvp => kvp.Key.Id == item.Id).Value ?? new sama.Models.EndpointStatus();
 
                         if (state.IsUp == true)
                         {
-                            <span class="label label-success" title="as of @state.LastUpdated.ToLocalTime().ToString("g")">Up</span>
+                            <span class="label label-success" title="last updated at @state.LastUpdated.ToLocalTime().ToString("g")">Up</span>
                         }
                         else if (state.IsUp == false)
                         {
-                            <span class="label label-danger" title="as of @state.LastUpdated.ToLocalTime().ToString("g")">Down</span>
+                            <span class="label label-danger" title="last updated at @state.LastUpdated.ToLocalTime().ToString("g")">Down</span>
                         }
                         else
                         {

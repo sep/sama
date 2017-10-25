@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Details";
-    var state = (sama.Services.StateService.EndpointState)ViewData["State"] ?? new sama.Services.StateService.EndpointState();
+    var state = (sama.Models.EndpointStatus)ViewData["State"] ?? new sama.Models.EndpointStatus();
 }
 
 <h2>Details</h2>
@@ -51,7 +51,7 @@
                 else
                 {
                     <div>Down as of @state.LastUpdated.ToLocalTime().ToString("g")</div>
-                    <div>Reason: @(state.FailureMessage ?? "Unknown")</div>
+                    <div>Reason: @(state?.Error?.Message ?? "Unknown")</div>
                 }
             }
         </dd>

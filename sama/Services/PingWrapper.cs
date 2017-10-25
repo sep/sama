@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using System;
+using System.Net.NetworkInformation;
 
 namespace sama.Services
 {
@@ -7,11 +8,12 @@ namespace sama.Services
     /// </summary>
     public class PingWrapper
     {
-        public virtual IPStatus SendPing(string address)
+        public virtual (IPStatus, TimeSpan) SendPing(string address)
         {
             using(var ping = new Ping())
             {
-                return ping.Send(address).Status;
+                var result = ping.Send(address);
+                return (result.Status, TimeSpan.FromMilliseconds(result.RoundtripTime));
             }
         }
     }

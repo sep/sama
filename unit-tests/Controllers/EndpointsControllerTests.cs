@@ -31,7 +31,7 @@ namespace TestSama.Controllers
             _provider = TestUtility.InitDI();
             _scope = _provider.CreateScope();
             _testDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            _stateService = Substitute.For<StateService>();
+            _stateService = Substitute.For<StateService>(_provider);
             _userService = Substitute.For<UserManagementService>(null, null);
             _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService);
 
@@ -41,8 +41,8 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task IndexShouldDisplayAllEndpoints()
         {
-            var states = new ReadOnlyDictionary<Endpoint, StateService.EndpointState>(new Dictionary<Endpoint, StateService.EndpointState>());
-            _stateService.GetAllStates().Returns(states);
+            var states = new ReadOnlyDictionary<Endpoint, EndpointStatus>(new Dictionary<Endpoint, EndpointStatus>());
+            _stateService.GetAll().Returns(states);
 
             var result = await _controller.Index() as ViewResult;
 
@@ -54,8 +54,8 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task ListShouldDisplayAllEndpoints()
         {
-            var states = new ReadOnlyDictionary<Endpoint, StateService.EndpointState>(new Dictionary<Endpoint, StateService.EndpointState>());
-            _stateService.GetAllStates().Returns(states);
+            var states = new ReadOnlyDictionary<Endpoint, EndpointStatus>(new Dictionary<Endpoint, EndpointStatus>());
+            _stateService.GetAll().Returns(states);
 
             var result = await _controller.List() as ViewResult;
 
@@ -67,8 +67,8 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task DetailsShouldDisplayEndpointInfo()
         {
-            var state = new StateService.EndpointState();
-            _stateService.GetState(2).Returns(state);
+            var state = new EndpointStatus();
+            _stateService.GetStatus(2).Returns(state);
 
             var result = await _controller.Details(2) as ViewResult;
 
@@ -138,7 +138,7 @@ namespace TestSama.Controllers
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
-            _stateService.Received().SetState(Arg.Is<Endpoint>(e => e.Id == endpoint.Id), null, null);
+            _stateService.Received().RemoveStatus(endpoint.Id);
         }
 
         [TestMethod]
@@ -153,7 +153,7 @@ namespace TestSama.Controllers
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "E").Count());
-            _stateService.Received().SetState(Arg.Is<Endpoint>(e => e.Id == endpoint.Id), null, null);
+            _stateService.Received().RemoveStatus(endpoint.Id);
         }
 
         [TestMethod]
@@ -166,7 +166,7 @@ namespace TestSama.Controllers
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
-            _stateService.Received().RemoveState(1);
+            _stateService.Received().RemoveStatus(1);
         }
 
         private void SeedHttpEndpoints()

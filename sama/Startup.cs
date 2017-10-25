@@ -47,13 +47,15 @@ namespace sama
             services.AddSingleton(Configuration);
 
             services.AddSingleton<StateService>();
-            services.AddSingleton<SlackNotificationService>();
             services.AddSingleton<EndpointProcessService>();
             services.AddSingleton<MonitorJob>();
             services.AddSingleton<SettingsService>();
+            services.AddSingleton<PingWrapper>();
+
             services.AddSingleton<ICheckService, HttpCheckService>();
             services.AddSingleton<ICheckService, IcmpCheckService>();
-            services.AddSingleton<PingWrapper>();
+
+            services.AddSingleton<INotificationService, SlackNotificationService>();
 
             services.AddTransient(provider => new System.Net.Http.HttpClientHandler
             {

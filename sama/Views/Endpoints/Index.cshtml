@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Overview";
-    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Services.StateService.EndpointState>)ViewData["CurrentStates"];
+    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Models.EndpointStatus>)ViewData["CurrentStates"];
     var upEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == true).OrderBy(e => e.Name.ToLowerInvariant());
     var downEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == false).OrderBy(e => e.Name.ToLowerInvariant());
     var indeterminateEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == null).OrderBy(e => e.Name.ToLowerInvariant());
@@ -68,7 +68,7 @@
                 <span>
                     @item.Name
                     <br />
-                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.FailureMessage</i>
+                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Error?.Message</i>
                 </span>
             </div>
         </div>

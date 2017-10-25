@@ -24,8 +24,10 @@ namespace sama.Services
             return (endpoint.Kind == Endpoint.EndpointKind.Http);
         }
 
-        public bool Check(Endpoint endpoint, out string failureMessage)
+        public EndpointCheckResult Check(Endpoint endpoint)
         {
+            var result = new EndpointCheckResult { Start = DateTimeOffset.UtcNow };
+
             using (var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>())
             using (var client = new HttpClient(httpHandler, false))
             using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.GetHttpLocation()))
@@ -52,21 +54,21 @@ namespace sama.Services
                     if (ex is TaskCanceledException)
                         ex = new Exception($"The request timed out after {ClientTimeout.TotalSeconds} sec.");
 
-                    failureMessage = ex.Message;
-                    return false;
+                    SetFailure(result, ex);
+                    return result;
                 }
 
                 var response = task.Result;
                 if (!IsExpectedStatusCode(endpoint, response))
                 {
-                    failureMessage = $"HTTP status code is {(int)response.StatusCode}.";
-                    return false;
+                    SetFailure(result, new Exception($"HTTP status code is {(int)response.StatusCode}."));
+                    return result;
                 }
 
                 if (string.IsNullOrWhiteSpace(endpoint.GetHttpResponseMatch()))
                 {
-                    failureMessage = null;
-                    return true;
+                    SetSuccess(result);
+                    return result;
                 }
 
                 var contentTask = response.Content.ReadAsStringAsync();
@@ -76,20 +78,20 @@ namespace sama.Services
                 }
                 catch (Exception ex)
                 {
-                    failureMessage = $"Failed to read HTTP content: {ex.Message}.";
-                    return false;
+                    SetFailure(result, new Exception($"Failed to read HTTP content: {ex.Message}.", ex));
+                    return result;
                 }
 
                 var index = contentTask.Result.IndexOf(endpoint.GetHttpResponseMatch());
                 if (index < 0)
                 {
-                    failureMessage = "The keyword match was not found.";
-                    return false;
+                    SetFailure(result, new Exception("The keyword match was not found."));
+                    return result;
                 }
                 else
                 {
-                    failureMessage = null;
-                    return true;
+                    SetSuccess(result);
+                    return result;
                 }
             }
         }
@@ -115,6 +117,22 @@ namespace sama.Services
                 var statusCode = (int)response.StatusCode;
                 return statusCodes.Contains(statusCode);
             }
+        }
+
+        private void SetFailure(EndpointCheckResult result, Exception ex)
+        {
+            result.Error = ex;
+            result.Success = false;
+            result.Stop = DateTimeOffset.UtcNow;
+            result.ResponseTime = null;
+        }
+
+        private void SetSuccess(EndpointCheckResult result)
+        {
+            result.Error = null;
+            result.Success = true;
+            result.Stop = DateTimeOffset.UtcNow;
+            result.ResponseTime = result.Stop - result.Start;
         }
     }
 }

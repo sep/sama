@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Humanizer;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using sama.Models;
 using System;
@@ -6,7 +7,7 @@ using System.Net.Http;
 
 namespace sama.Services
 {
-    public class SlackNotificationService
+    public class SlackNotificationService : INotificationService
     {
         private readonly ILogger<SlackNotificationService> _logger;
         private readonly SettingsService _settings;
@@ -19,22 +20,35 @@ namespace sama.Services
             _httpHandler = httpHandler;
         }
 
-        public virtual void Notify(Endpoint endpoint, bool isUp, string failureMessage)
+        public void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
         {
-            if (isUp)
+            // Ignore this notification type.
+        }
+
+        public void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        {
+            var failureMessage = reason?.Message;
+
+            if (!string.IsNullOrWhiteSpace(failureMessage))
             {
-                SendNotification($"The endpoint '{endpoint.Name}' is up. Hooray!");
+                var msg = failureMessage.Trim();
+                if (!msg.EndsWith('.') && !msg.EndsWith('!') && !msg.EndsWith('?'))
+                    failureMessage = failureMessage.Trim() + '.';
+            }
+
+            SendNotification($"The endpoint '{endpoint.Name}' is down: {failureMessage}");
+        }
+
+        public void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf)
+        {
+            if (downAsOf.HasValue)
+            {
+                var downLength = DateTimeOffset.UtcNow - downAsOf.Value;
+                SendNotification($"The endpoint '{endpoint.Name}' is up after being down for {downLength.Humanize()}. Hooray!");
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(failureMessage))
-                {
-                    var msg = failureMessage.Trim();
-                    if (!msg.EndsWith('.') && !msg.EndsWith('!') && !msg.EndsWith('?'))
-                        failureMessage = failureMessage.Trim() + '.';
-                }
-
-                SendNotification($"The endpoint '{endpoint.Name}' is down: {failureMessage}");
+                SendNotification($"The endpoint '{endpoint.Name}' is up. Hooray!");
             }
         }
 

@@ -4,8 +4,6 @@ using sama;
 using sama.Services;
 using System;
 using System.Linq;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TestSama.Services
 {
