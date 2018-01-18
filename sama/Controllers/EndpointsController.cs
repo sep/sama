@@ -6,6 +6,7 @@ using sama.Models;
 using sama.Services;
 using Microsoft.AspNetCore.Authorization;
 using sama.Extensions;
+using System.Collections.Generic;
 
 namespace sama.Controllers
 {
@@ -15,12 +16,14 @@ namespace sama.Controllers
         private readonly ApplicationDbContext _context;
         private readonly StateService _stateService;
         private readonly UserManagementService _userService;
+        private readonly IEnumerable<INotificationService> _notifiers;
 
-        public EndpointsController(ApplicationDbContext context, StateService stateService, UserManagementService userService)
+        public EndpointsController(ApplicationDbContext context, StateService stateService, UserManagementService userService, IEnumerable<INotificationService> notifiers)
         {
             _context = context;
             _stateService = stateService;
             _userService = userService;
+            _notifiers = notifiers;
         }
 
         [AllowAnonymous]
@@ -94,6 +97,7 @@ namespace sama.Controllers
                 endpoint.Id = 0;
                 _context.Add(endpoint);
                 await _context.SaveChangesAsync();
+                NotifyEvent(endpoint, NotificationType.EndpointAdded);
                 return RedirectToAction(nameof(List));
             }
             return View(vm);
@@ -110,6 +114,7 @@ namespace sama.Controllers
                 endpoint.Id = 0;
                 _context.Add(endpoint);
                 await _context.SaveChangesAsync();
+                NotifyEvent(endpoint, NotificationType.EndpointAdded);
                 return RedirectToAction(nameof(List));
             }
             return View(vm);
@@ -148,8 +153,10 @@ namespace sama.Controllers
                 try
                 {
                     var endpoint = vm.ToEndpoint();
+                    var oldEndpoint = _context.Endpoints.AsNoTracking().First(e => e.Id == endpoint.Id);
                     _context.Update(endpoint);
                     await _context.SaveChangesAsync();
+                    NotifyEditEvent(oldEndpoint, endpoint);
                     _stateService.RemoveStatus(endpoint.Id);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -183,8 +190,10 @@ namespace sama.Controllers
                 try
                 {
                     var endpoint = vm.ToEndpoint();
+                    var oldEndpoint = _context.Endpoints.AsNoTracking().First(e => e.Id == endpoint.Id);
                     _context.Update(endpoint);
                     await _context.SaveChangesAsync();
+                    NotifyEditEvent(oldEndpoint, endpoint);
                     _stateService.RemoveStatus(endpoint.Id);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -230,12 +239,34 @@ namespace sama.Controllers
             _context.Endpoints.Remove(endpoint);
             await _context.SaveChangesAsync();
             _stateService.RemoveStatus(id);
+            NotifyEvent(endpoint, NotificationType.EndpointRemoved);
             return RedirectToAction(nameof(List));
         }
 
         private bool EndpointExists(int id)
         {
             return _context.Endpoints.Any(e => e.Id == id);
+        }
+
+        private void NotifyEvent(Endpoint endpoint, NotificationType type)
+        {
+            _notifiers
+                .ToList()
+                .ForEach(n => n.NotifyMisc(endpoint, type));
+        }
+
+        private void NotifyEditEvent(Endpoint oldEndpoint, Endpoint newEndpoint)
+        {
+            var enabled = (!oldEndpoint.Enabled && newEndpoint.Enabled);
+            var disabled = (oldEndpoint.Enabled && !newEndpoint.Enabled);
+
+            var type = NotificationType.EndpointReconfigured;
+            if (enabled) type = NotificationType.EndpointEnabled;
+            if (disabled) type = NotificationType.EndpointDisabled;
+
+            _notifiers
+                .ToList()
+                .ForEach(n => n.NotifyMisc(newEndpoint, type));
         }
     }
 }

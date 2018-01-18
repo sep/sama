@@ -29,11 +29,12 @@ namespace TestSama.Controllers
         public void Setup()
         {
             _provider = TestUtility.InitDI();
+            var notifiers = _provider.GetServices<INotificationService>();
             _scope = _provider.CreateScope();
             _testDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             _stateService = Substitute.For<StateService>(_provider);
             _userService = Substitute.For<UserManagementService>(null, null);
-            _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService);
+            _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService, notifiers);
 
             SeedHttpEndpoints();
         }
@@ -167,6 +168,12 @@ namespace TestSama.Controllers
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
             _stateService.Received().RemoveStatus(1);
+        }
+
+        [TestMethod]
+        public void ShouldTestNotifications()
+        {
+            Assert.Fail("FAIL");
         }
 
         private void SeedHttpEndpoints()

@@ -103,5 +103,31 @@ namespace TestSama.Services
             _service.NotifyDown(new Endpoint { Name = "A" }, DateTimeOffset.UtcNow, new Exception("error4?"));
             Assert.AreEqual(@"{""text"":""The endpoint 'A' is down: error4?""}", await message.Content.ReadAsStringAsync());
         }
+
+        [TestMethod]
+        public async Task ShouldNotifyEndpointMiscEvents()
+        {
+            HttpRequestMessage message = null;
+            _httpHandler.When(h => h.RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()))
+                .Do(ci =>
+                {
+                    message = ci.Arg<HttpRequestMessage>();
+                });
+
+            _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointAdded);
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' has been added.""}", await message.Content.ReadAsStringAsync());
+
+            _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointRemoved);
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' has been removed.""}", await message.Content.ReadAsStringAsync());
+
+            _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointEnabled);
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' has been enabled.""}", await message.Content.ReadAsStringAsync());
+
+            _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointDisabled);
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' has been disabled.""}", await message.Content.ReadAsStringAsync());
+
+            _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointReconfigured);
+            Assert.AreEqual(@"{""text"":""The endpoint 'A' has been reconfigured.""}", await message.Content.ReadAsStringAsync());
+        }
     }
 }

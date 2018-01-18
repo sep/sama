@@ -20,6 +20,30 @@ namespace sama.Services
             _httpHandler = httpHandler;
         }
 
+        public void NotifyMisc(Endpoint endpoint, NotificationType type)
+        {
+            switch (type)
+            {
+                case NotificationType.EndpointAdded:
+                    SendNotification($"The endpoint '{endpoint.Name}' has been added.");
+                    break;
+                case NotificationType.EndpointRemoved:
+                    SendNotification($"The endpoint '{endpoint.Name}' has been removed.");
+                    break;
+                case NotificationType.EndpointEnabled:
+                    SendNotification($"The endpoint '{endpoint.Name}' has been enabled.");
+                    break;
+                case NotificationType.EndpointDisabled:
+                    SendNotification($"The endpoint '{endpoint.Name}' has been disabled.");
+                    break;
+                case NotificationType.EndpointReconfigured:
+                    SendNotification($"The endpoint '{endpoint.Name}' has been reconfigured.");
+                    break;
+                default:
+                    return;
+            }
+        }
+
         public void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
         {
             // Ignore this notification type.
