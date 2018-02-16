@@ -56,6 +56,7 @@ namespace sama
             services.AddSingleton<ICheckService, IcmpCheckService>();
 
             services.AddSingleton<INotificationService, SlackNotificationService>();
+            services.AddSingleton<AggregateNotificationService>();
 
             services.AddTransient(provider => new System.Net.Http.HttpClientHandler
             {

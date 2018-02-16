@@ -28,11 +28,6 @@ namespace TestSama
             collection.AddSingleton<HttpClientHandler>(Substitute.ForPartsOf<TestHttpHandler>());
             collection.AddSingleton(Substitute.For<MonitorJob>(null, null));
 
-            var notifier1 = Substitute.For<INotificationService>();
-            collection.AddSingleton(notifier1);
-            var notifier2 = Substitute.For<INotificationService>();
-            collection.AddSingleton(notifier2);
-
             var provider = collection.BuildServiceProvider(true);
 
             using (var scope = provider.CreateScope())

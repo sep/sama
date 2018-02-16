@@ -11,11 +11,13 @@ namespace sama.Services
     public class StateService
     {
         private readonly IServiceProvider _provider;
+        private readonly AggregateNotificationService _notifier;
         private readonly ConcurrentDictionary<int, EndpointStatus> _endpointStates = new ConcurrentDictionary<int, EndpointStatus>();
 
-        public StateService(IServiceProvider provider)
+        public StateService(IServiceProvider provider, AggregateNotificationService notifier)
         {
             _provider = provider;
+            _notifier = notifier;
         }
 
         public virtual void SetEndpointCheckInProgress(int endpointId)
@@ -112,9 +114,7 @@ namespace sama.Services
 
         private void NotifyNewestCheckResult(Endpoint endpoint, EndpointCheckResult endpointCheckResult)
         {
-            _provider.GetServices<INotificationService>()
-                .ToList()
-                .ForEach(n => n.NotifySingleResult(endpoint, endpointCheckResult));
+            _notifier.NotifySingleResult(endpoint, endpointCheckResult);
         }
 
         private void NotifyUpDown(Endpoint endpoint, EndpointStatus status)
@@ -124,9 +124,7 @@ namespace sama.Services
                 if (status.IsUp == false)
                 {
                     // Endpoint has just come up
-                    _provider.GetServices<INotificationService>()
-                        .ToList()
-                        .ForEach(n => n.NotifyUp(endpoint, status.DownAsOf));
+                    _notifier.NotifyUp(endpoint, status.DownAsOf);
                 }
                 // If old status is true or null, don't notify that it's up
             }
@@ -135,16 +133,12 @@ namespace sama.Services
                 if (status.IsUp == null || status.IsUp == true)
                 {
                     // Endpoint has just gone down
-                    _provider.GetServices<INotificationService>()
-                        .ToList()
-                        .ForEach(n => n.NotifyDown(endpoint, status.DownAsOf ?? status.InProgressResults.Last().Start, status.InProgressResults.Last().Error));
+                    _notifier.NotifyDown(endpoint, status.DownAsOf ?? status.InProgressResults.Last().Start, status.InProgressResults.Last().Error);
                 }
                 else if (status.LastFinishedResults?.Last().Error?.ToString() != status.InProgressResults.Last().Error?.ToString())
                 {
                     // Endpoint is down, but with a different error
-                    _provider.GetServices<INotificationService>()
-                       .ToList()
-                       .ForEach(n => n.NotifyDown(endpoint, status.DownAsOf ?? status.InProgressResults.Last().Start, status.InProgressResults.Last().Error));
+                    _notifier.NotifyDown(endpoint, status.DownAsOf ?? status.InProgressResults.Last().Start, status.InProgressResults.Last().Error);
                 }
             }
         }

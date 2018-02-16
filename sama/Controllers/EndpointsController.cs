@@ -16,14 +16,14 @@ namespace sama.Controllers
         private readonly ApplicationDbContext _context;
         private readonly StateService _stateService;
         private readonly UserManagementService _userService;
-        private readonly IEnumerable<INotificationService> _notifiers;
+        private readonly AggregateNotificationService _notifier;
 
-        public EndpointsController(ApplicationDbContext context, StateService stateService, UserManagementService userService, IEnumerable<INotificationService> notifiers)
+        public EndpointsController(ApplicationDbContext context, StateService stateService, UserManagementService userService, AggregateNotificationService notifier)
         {
             _context = context;
             _stateService = stateService;
             _userService = userService;
-            _notifiers = notifiers;
+            _notifier = notifier;
         }
 
         [AllowAnonymous]
@@ -250,9 +250,7 @@ namespace sama.Controllers
 
         private void NotifyEvent(Endpoint endpoint, NotificationType type)
         {
-            _notifiers
-                .ToList()
-                .ForEach(n => n.NotifyMisc(endpoint, type));
+            _notifier.NotifyMisc(endpoint, type);
         }
 
         private void NotifyEditEvent(Endpoint oldEndpoint, Endpoint newEndpoint)
@@ -264,9 +262,7 @@ namespace sama.Controllers
             if (enabled) type = NotificationType.EndpointEnabled;
             if (disabled) type = NotificationType.EndpointDisabled;
 
-            _notifiers
-                .ToList()
-                .ForEach(n => n.NotifyMisc(newEndpoint, type));
+            _notifier.NotifyMisc(newEndpoint, type);
         }
     }
 }

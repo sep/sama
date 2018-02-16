@@ -24,17 +24,18 @@ namespace TestSama.Controllers
         private ApplicationDbContext _testDbContext;
         private StateService _stateService;
         private UserManagementService _userService;
+        private AggregateNotificationService _notifier;
 
         [TestInitialize]
         public void Setup()
         {
             _provider = TestUtility.InitDI();
-            var notifiers = _provider.GetServices<INotificationService>();
             _scope = _provider.CreateScope();
             _testDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            _stateService = Substitute.For<StateService>(_provider);
+            _stateService = Substitute.For<StateService>(_provider, null);
             _userService = Substitute.For<UserManagementService>(null, null);
-            _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService, notifiers);
+            _notifier = Substitute.For<AggregateNotificationService>(new List<INotificationService>());
+            _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService, _notifier);
 
             SeedHttpEndpoints();
         }
@@ -93,6 +94,8 @@ namespace TestSama.Controllers
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Http).Count());
+
+            _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "Q"), NotificationType.EndpointAdded);
         }
 
         [TestMethod]
@@ -103,6 +106,8 @@ namespace TestSama.Controllers
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Icmp).Count());
+
+            _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "Q"), NotificationType.EndpointAdded);
         }
 
         [TestMethod]
@@ -140,6 +145,8 @@ namespace TestSama.Controllers
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
             _stateService.Received().RemoveStatus(endpoint.Id);
+
+            _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "W"), NotificationType.EndpointReconfigured);
         }
 
         [TestMethod]
@@ -155,6 +162,8 @@ namespace TestSama.Controllers
             Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "E").Count());
             _stateService.Received().RemoveStatus(endpoint.Id);
+
+            _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "W"), NotificationType.EndpointReconfigured);
         }
 
         [TestMethod]
@@ -168,12 +177,8 @@ namespace TestSama.Controllers
             Assert.AreEqual("List", result.ActionName);
             Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
             _stateService.Received().RemoveStatus(1);
-        }
 
-        [TestMethod]
-        public void ShouldTestNotifications()
-        {
-            Assert.Fail("FAIL");
+            _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "A"), NotificationType.EndpointRemoved);
         }
 
         private void SeedHttpEndpoints()

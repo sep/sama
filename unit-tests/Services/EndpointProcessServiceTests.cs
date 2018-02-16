@@ -27,7 +27,7 @@ namespace TestSama.Services
         {
             _provider = TestUtility.InitDI();
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
-            _stateService = Substitute.For<StateService>(_provider);
+            _stateService = Substitute.For<StateService>(_provider, null);
             _goodCheckService = Substitute.For<ICheckService>();
             _badCheckService1 = Substitute.For<ICheckService>();
             _badCheckService2 = Substitute.For<ICheckService>();

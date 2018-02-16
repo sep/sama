@@ -14,20 +14,19 @@ namespace TestSama.Services
     public class StateServiceTests
     {
         private IServiceProvider _provider;
+        private AggregateNotificationService _notifier;
         private StateService _service;
 
         private Endpoint _ep1 = new Endpoint { Id = 100, Name = "A", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
         private Endpoint _ep2 = new Endpoint { Id = 200, Name = "B", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
         private Endpoint _ep3 = new Endpoint { Id = 300, Name = "C", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
 
-        private INotificationService _notifier1;
-        private INotificationService _notifier2;
-
         [TestInitialize]
         public void Setup()
         {
             _provider = TestUtility.InitDI();
-            _service = new StateService(_provider);
+            _notifier = Substitute.For<AggregateNotificationService>(new List<INotificationService>());
+            _service = new StateService(_provider, _notifier);
 
             using (var scope = _provider.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
@@ -39,12 +38,7 @@ namespace TestSama.Services
             _service.AddEndpointCheckResult(_ep2.Id, new EndpointCheckResult { Start = DateTimeOffset.UtcNow, Stop = DateTimeOffset.UtcNow, Success = true }, true);
             _service.AddEndpointCheckResult(_ep3.Id, new EndpointCheckResult { Start = DateTimeOffset.UtcNow, Stop = DateTimeOffset.UtcNow, Success = false, Error = new Exception("ERROR") }, true);
 
-            var notifiers = _provider.GetServices<INotificationService>();
-            Assert.AreEqual(2, notifiers.Count());
-            _notifier1 = notifiers.First();
-            _notifier2 = notifiers.Last();
-            _notifier1.ClearReceivedCalls();
-            _notifier2.ClearReceivedCalls();
+            _notifier.ClearReceivedCalls();
         }
 
         [TestMethod]
@@ -115,16 +109,14 @@ namespace TestSama.Services
             AssertDownNotification(_ep1.Id, "ERROR");
             AssertNoUpNotifications();
 
-            _notifier1.ClearReceivedCalls();
-            _notifier2.ClearReceivedCalls();
+            _notifier.ClearReceivedCalls();
 
             _service.AddEndpointCheckResult(_ep2.Id, result, true);
             AssertResultNotification(_ep2.Id, result);
             AssertDownNotification(_ep2.Id, "ERROR");
             AssertNoUpNotifications();
 
-            _notifier1.ClearReceivedCalls();
-            _notifier2.ClearReceivedCalls();
+            _notifier.ClearReceivedCalls();
 
             _service.AddEndpointCheckResult(_ep3.Id, result, true);
             AssertResultNotification(_ep3.Id, result);
@@ -180,38 +172,32 @@ namespace TestSama.Services
 
         private void AssertResultNotification(int endpointId, EndpointCheckResult result)
         {
-            _notifier1.Received(1).NotifySingleResult(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<EndpointCheckResult>());
-            _notifier2.Received(1).NotifySingleResult(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<EndpointCheckResult>());
+            _notifier.Received(1).NotifySingleResult(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<EndpointCheckResult>());
         }
 
         private void AssertNoResultNotifications()
         {
-            _notifier1.DidNotReceiveWithAnyArgs().NotifySingleResult(null, null);
-            _notifier2.DidNotReceiveWithAnyArgs().NotifySingleResult(null, null);
+            _notifier.DidNotReceiveWithAnyArgs().NotifySingleResult(null, null);
         }
 
         private void AssertUpNotification(int endpointId)
         {
-            _notifier1.Received(1).NotifyUp(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<DateTimeOffset?>());
-            _notifier2.Received(1).NotifyUp(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<DateTimeOffset?>());
+            _notifier.Received(1).NotifyUp(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<DateTimeOffset?>());
         }
 
         private void AssertNoUpNotifications()
         {
-            _notifier1.DidNotReceiveWithAnyArgs().NotifyUp(null, null);
-            _notifier2.DidNotReceiveWithAnyArgs().NotifyUp(null, null);
+            _notifier.DidNotReceiveWithAnyArgs().NotifyUp(null, null);
         }
 
         private void AssertDownNotification(int endpointId, string errorMessage)
         {
-            _notifier1.Received(1).NotifyDown(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<DateTimeOffset>(), Arg.Is<Exception>(ex => ex.Message == errorMessage));
-            _notifier2.Received(1).NotifyDown(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<DateTimeOffset>(), Arg.Is<Exception>(ex => ex.Message == errorMessage));
+            _notifier.Received(1).NotifyDown(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<DateTimeOffset>(), Arg.Is<Exception>(ex => ex.Message == errorMessage));
         }
 
         private void AssertNoDownNotifications()
         {
-            _notifier1.DidNotReceiveWithAnyArgs().NotifyDown(null, DateTimeOffset.MinValue, null);
-            _notifier2.DidNotReceiveWithAnyArgs().NotifyDown(null, DateTimeOffset.MinValue, null);
+            _notifier.DidNotReceiveWithAnyArgs().NotifyDown(null, DateTimeOffset.MinValue, null);
         }
     }
 }
