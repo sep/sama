@@ -25,6 +25,13 @@ namespace sama.Models
         public string SlackWebHook { get; set; }
 
 
+        [Display(Name = "Graphite server hostname")]
+        public string GraphiteHost { get; set; }
+        
+        [Range(0, 65535), Display(Name = "Graphite server port")]
+        public int GraphitePort { get; set; }
+
+
         [Display(Name = "Enable LDAP")]
         public bool LdapEnable { get; set; }
 

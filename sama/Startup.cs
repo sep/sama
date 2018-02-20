@@ -51,11 +51,13 @@ namespace sama
             services.AddSingleton<MonitorJob>();
             services.AddSingleton<SettingsService>();
             services.AddSingleton<PingWrapper>();
+            services.AddSingleton<TcpClientWrapper>();
 
             services.AddSingleton<ICheckService, HttpCheckService>();
             services.AddSingleton<ICheckService, IcmpCheckService>();
 
             services.AddSingleton<INotificationService, SlackNotificationService>();
+            services.AddSingleton<INotificationService, GraphiteNotificationService>();
             services.AddSingleton<AggregateNotificationService>();
 
             services.AddTransient(provider => new System.Net.Http.HttpClientHandler

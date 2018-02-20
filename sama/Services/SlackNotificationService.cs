@@ -78,12 +78,14 @@ namespace sama.Services
 
         private void SendNotification(string message)
         {
+            var url = _settings.Notifications_Slack_WebHook;
+            if (string.IsNullOrWhiteSpace(url)) return;
+
             try
             {
                 using (var client = new HttpClient(_httpHandler, false))
                 {
                     var data = JsonConvert.SerializeObject(new { text = message });
-                    var url = _settings.Notifications_Slack_WebHook;
                     client.PostAsync(url, new StringContent(data)).Wait();
                 }
             }

@@ -25,6 +25,18 @@ namespace sama.Services
             set { SetSetting("SlackNotifications", "WebHook", value); }
         }
 
+        public virtual string Notifications_Graphite_Host
+        {
+            get { return GetSetting("GraphiteNotifications", "ServerHost", ""); }
+            set { SetSetting("GraphiteNotifications", "ServerHost", value); }
+        }
+
+        public virtual int Notifications_Graphite_Port
+        {
+            get { return GetSetting("GraphiteNotifications", "ServerPort", 0); }
+            set { SetSetting("GraphiteNotifications", "ServerPort", value); }
+        }
+
         public virtual int Monitor_IntervalSeconds
         {
             get { return GetSetting("Monitor", "IntervalSeconds", 90); }

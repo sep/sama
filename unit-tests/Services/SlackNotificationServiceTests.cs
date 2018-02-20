@@ -129,5 +129,16 @@ namespace TestSama.Services
             _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointReconfigured);
             Assert.AreEqual(@"{""text"":""The endpoint 'A' has been reconfigured.""}", await message.Content.ReadAsStringAsync());
         }
+
+        [TestMethod]
+        public async Task ShouldNotSendNotificationsWhenWebhookUrlIsEmpty()
+        {
+            _settings.Notifications_Slack_WebHook.Returns("");
+
+            _service.NotifyMisc(new Endpoint { Name = "A" }, NotificationType.EndpointAdded);
+
+            await _httpHandler.DidNotReceiveWithAnyArgs().RealSendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>());
+            _logger.DidNotReceiveWithAnyArgs().Log<object>(Arg.Any<LogLevel>(), Arg.Any<EventId>(), Arg.Any<object>(), Arg.Any<Exception>(), (a, b) => "");
+        }
     }
 }

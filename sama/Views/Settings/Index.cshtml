@@ -38,12 +38,28 @@
         <div class="col-xs-12 col-sm-4">
             <h3>Notifications</h3>
 
+            <h4>Slack</h4>
             <div class="form-group">
                 <label asp-for="SlackWebHook" class="control-label"></label>
                 <input asp-for="SlackWebHook" class="form-control" />
                 <span asp-validation-for="SlackWebHook" class="text-danger"></span>
                 <p class="text-left">To enable Slack notifications, paste the <a href="https://api.slack.com/custom-integrations/incoming-webhooks">Webhook URL</a> into this field.</p>
             </div>
+
+            <h4>Graphite</h4>
+            <p class="text-left">The Graphite protocol is used to send statistics to time series databases like Graphite, InfluxDB, and KairosDB.</p>
+            <div class="form-group">
+                <label asp-for="GraphiteHost" class="control-label"></label>
+                <input asp-for="GraphiteHost" class="form-control" />
+                <span asp-validation-for="GraphiteHost" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="GraphitePort" class="control-label"></label>
+                <input asp-for="GraphitePort" class="form-control" />
+                <span asp-validation-for="GraphitePort" class="text-danger"></span>
+                <p class="text-left">2003 is a commonly used port.</p>
+            </div>
+
         </div>
         <div class="col-xs-12 col-sm-4">
             <h3>LDAP</h3>

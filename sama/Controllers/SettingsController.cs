@@ -32,6 +32,9 @@ namespace sama.Controllers
 
                 SlackWebHook = _settingsService.Notifications_Slack_WebHook,
 
+                GraphiteHost = _settingsService.Notifications_Graphite_Host,
+                GraphitePort = _settingsService.Notifications_Graphite_Port,
+
                 LdapEnable = _settingsService.Ldap_Enable,
                 LdapHost = _settingsService.Ldap_Host,
                 LdapPort = _settingsService.Ldap_Port,
@@ -77,6 +80,9 @@ namespace sama.Controllers
                 _settingsService.Monitor_RequestTimeoutSeconds = vm.MonitorRequestTimeoutSeconds;
 
                 _settingsService.Notifications_Slack_WebHook = vm.SlackWebHook;
+
+                _settingsService.Notifications_Graphite_Host = vm.GraphiteHost;
+                _settingsService.Notifications_Graphite_Port = vm.GraphitePort;
 
                 _settingsService.Ldap_Enable = vm.LdapEnable;
                 _settingsService.Ldap_Host = vm.LdapHost;
