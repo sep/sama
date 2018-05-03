@@ -1,11 +1,7 @@
 @model IEnumerable<sama.Models.EndpointViewModel>
 
-@{
+@{ 
     ViewData["Title"] = "Overview";
-    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Models.EndpointStatus>)ViewData["CurrentStates"];
-    var upEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == true).OrderBy(e => e.Name.ToLowerInvariant());
-    var downEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == false).OrderBy(e => e.Name.ToLowerInvariant());
-    var indeterminateEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == null).OrderBy(e => e.Name.ToLowerInvariant());
 }
 
 <style type="text/css">
@@ -58,52 +54,30 @@
     }
 </style>
 
-<h2>@ViewData["Title"] (@downEndpoints.Count() down)</h2>
-<hr />
-<div class="row overview-blocks">
-    @foreach(var item in downEndpoints)
-    {
-        <div class="col-sm-4 endpoint-state endpoint-down">
-            <div class="endpoint-child">
-                <span>
-                    @item.Name
-                    <br />
-                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Error?.Message</i>
-                </span>
-            </div>
-        </div>
-    }
-    @foreach (var item in upEndpoints)
-    {
-        <div class="col-sm-4 endpoint-state endpoint-up">
-            <div class="endpoint-child">
-                <span>@item.Name</span>
-            </div>
-        </div>
-    }
-    @foreach (var item in indeterminateEndpoints)
-    {
-        <div class="col-sm-4 endpoint-state endpoint-indeterminate">
-            <div class="endpoint-child">
-                <span>
-                    @item.Name
-                    @if (!item.Enabled)
-                    {
-                        <br /><i>(Disabled)</i>
-                    }
-                </span>
-            </div>
-        </div>
-    }
-</div>
-<p class="refreshed-on">
-    Last updated on <script type="text/javascript">document.write(new Date().toLocaleString());</script>
-</p>
+<section id="main-endpoints-section">
+    @Html.Partial("_IndexEndpointsPartial")
+</section>
 
 @section Scripts {
 <script type="text/javascript">
+    var updateUrl = '@Url.Action("IndexPartial")';
+
+    function updatePage() {
+        jQuery
+            .ajax({
+                url: updateUrl,
+                dataType: 'html'
+            })
+            .done(function (data) {
+                $('#main-endpoints-section').html(data);
+            })
+            .fail(function () {
+                $('#main-endpoints-section').html('<h3>SAMA is unable to refresh status information. There may be an outage or scheduled maintenance.</h3><p>Last refresh attempt on ' + (new Date().toLocaleString()) + '</p>');
+            });
+    }
+
     $(function () {
-        setTimeout('document.location.reload();', 60000);
+        setInterval('updatePage();', 30000);
     });
 </script>
 }

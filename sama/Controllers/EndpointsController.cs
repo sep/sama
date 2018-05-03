@@ -6,7 +6,6 @@ using sama.Models;
 using sama.Services;
 using Microsoft.AspNetCore.Authorization;
 using sama.Extensions;
-using System.Collections.Generic;
 
 namespace sama.Controllers
 {
@@ -47,6 +46,16 @@ namespace sama.Controllers
 
             var endpoints = await _context.Endpoints.ToListAsync();
             return View(endpoints.Select(e => e.ToEndpointViewModel()));
+        }
+
+        // GET: Endpoints/IndexPartial
+        [AllowAnonymous]
+        public async Task<IActionResult> IndexPartial()
+        {
+            ViewData.Add("CurrentStates", _stateService.GetAll());
+
+            var endpoints = await _context.Endpoints.ToListAsync();
+            return PartialView("_IndexEndpointsPartial", endpoints.Select(e => e.ToEndpointViewModel()));
         }
 
         // GET: Endpoints/List
