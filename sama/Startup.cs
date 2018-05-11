@@ -52,6 +52,7 @@ namespace sama
             services.AddSingleton<SettingsService>();
             services.AddSingleton<PingWrapper>();
             services.AddSingleton<TcpClientWrapper>();
+            services.AddSingleton<CertificateValidationService>();
 
             services.AddSingleton<ICheckService, HttpCheckService>();
             services.AddSingleton<ICheckService, IcmpCheckService>();

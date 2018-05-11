@@ -38,6 +38,8 @@ namespace TestSama.Services
             Assert.AreEqual("", _service.Ldap_SearchBaseDn);
             Assert.AreEqual("", _service.Ldap_SearchFilterFormat);
             Assert.AreEqual("", _service.Ldap_NameAttribute);
+            Assert.AreEqual(false, _service.Ldap_SslIgnoreValidity);
+            Assert.AreEqual("", _service.Ldap_SslValidCert);
         }
 
         [TestMethod]
@@ -58,6 +60,8 @@ namespace TestSama.Services
             _service.Ldap_SearchBaseDn = "d";
             _service.Ldap_SearchFilterFormat = "e";
             _service.Ldap_NameAttribute = "f";
+            _service.Ldap_SslIgnoreValidity = true;
+            _service.Ldap_SslValidCert = "g";
 
             Assert.AreEqual("a", _service.Notifications_Slack_WebHook);
             Assert.AreEqual("abc", _service.Notifications_Graphite_Host);
@@ -74,6 +78,8 @@ namespace TestSama.Services
             Assert.AreEqual("d", _service.Ldap_SearchBaseDn);
             Assert.AreEqual("e", _service.Ldap_SearchFilterFormat);
             Assert.AreEqual("f", _service.Ldap_NameAttribute);
+            Assert.AreEqual(true, _service.Ldap_SslIgnoreValidity);
+            Assert.AreEqual("g", _service.Ldap_SslValidCert);
         }
 
         [TestMethod]

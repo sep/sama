@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Controllers;
@@ -10,7 +9,6 @@ using sama.Models;
 using sama.Services;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +31,7 @@ namespace TestSama.Controllers
             _userManager = Substitute.For<UserManager<ApplicationUser>>(Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
             _signInManager = Substitute.For<SignInManager<ApplicationUser>>(_userManager, Substitute.For<IHttpContextAccessor>(), Substitute.For<IUserClaimsPrincipalFactory<ApplicationUser>>(), null, null, null);
             _userService = Substitute.For<UserManagementService>(null, null);
-            _ldapService = Substitute.For<LdapService>(null, null);
+            _ldapService = Substitute.For<LdapService>(null, null, null);
             _controller = new AccountController(_signInManager, _userService, _userManager, _ldapService);
 
             _provider = Substitute.For<IServiceProvider>();
@@ -106,6 +104,21 @@ namespace TestSama.Controllers
 
             Assert.IsInstanceOfType(result, typeof(ViewResult));
             await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task PostLoginWithLdapSslErrorShouldNotLogInRemoteUser()
+        {
+            var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "user" };
+            _ldapService.When(ls => ls.Authenticate("user", "pass"))
+                .Do(ci => throw new sama.SslException("asdf"));
+
+            var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = false });
+
+            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            await _signInManager.DidNotReceive().SignInAsync(Arg.Any<ApplicationUser>(), Arg.Any<bool>(), Arg.Any<string>());
+            Assert.AreEqual("Could not establish a secure LDAP connection", _controller.ModelState[""].Errors[0].ErrorMessage);
+            Assert.AreEqual("Details: asdf", _controller.ModelState[""].Errors[1].ErrorMessage);
         }
 
         [TestMethod]

@@ -11,15 +11,17 @@ namespace TestSama.Services
     {
         private LdapService _service;
         private SettingsService _settingsService;
+        private CertificateValidationService _certService;
         private LdapAuthWrapper _ldap;
 
         [TestInitialize]
         public void Setup()
         {
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
+            _certService = Substitute.For<CertificateValidationService>(_settingsService);
             _ldap = Substitute.For<LdapAuthWrapper>();
 
-            _service = new LdapService(_settingsService, _ldap);
+            _service = new LdapService(_settingsService, _certService, _ldap);
 
             _settingsService.Ldap_Enable.Returns(false);
         }
@@ -57,15 +59,37 @@ namespace TestSama.Services
         }
 
         [TestMethod]
-        public void AuthenticateShouldReturnNullWhenUnsuccessful()
+        public void AuthenticateShouldThrowWhenUnsuccessful()
         {
             SetUpLdapSettings();
             _ldap.WhenForAnyArgs(w => w.Authenticate("", 0, false, "", "", "", "", "", Arg.Any<RemoteCertificateValidationCallback>()))
-                .Do(c => { throw new Exception(); });
+                .Do(c => { throw new ArgumentOutOfRangeException(); });
 
-            var result = _service.Authenticate("myuser", "mypass");
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => _service.Authenticate("myuser", "mypass"));
+        }
 
-            Assert.IsNull(result);
+        [TestMethod]
+        public void AuthenticateShouldReferenceCertificateValidationServiceForValidationCallback()
+        {
+            SetUpLdapSettings();
+            RemoteCertificateValidationCallback cb = null;
+            _ldap.Authenticate("", 0, false, "", "", "", "", "", Arg.Any<RemoteCertificateValidationCallback>())
+                .ReturnsForAnyArgs(new LdapAuthWrapper.LdapUser
+                {
+                    DisplayName = "the user"
+                })
+                .AndDoes(ci =>
+                {
+                    cb = ci.Arg<RemoteCertificateValidationCallback>();
+                });
+                
+
+            _service.Authenticate("a", "b");
+
+            Assert.IsNotNull(cb);
+            cb.Invoke(null, null, null, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors);
+
+            _certService.Received(1).ValidateLdap(null, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors);
         }
 
         private void SetUpLdapSettings()

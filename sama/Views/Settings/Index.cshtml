@@ -4,6 +4,15 @@
     ViewData["Title"] = "Settings";
 }
 
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+            <div class="global-flash-alert alert alert-danger">Your changes could not be saved. Please correct any error(s) below.</div>
+        </div>
+    </div>
+}
+
 <h2>@ViewData["Title"]</h2>
 
 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -79,6 +88,14 @@
                 </div>
             </div>
             <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="LdapSslIgnoreValidity" /> @Html.DisplayNameFor(model => model.LdapSslIgnoreValidity)
+                    </label>
+                    <p class="text-left">WARNING: This is a dangerous option to enable, as it significantly reduces security.</p>
+                </div>
+            </div>
+            <div class="form-group">
                 <label asp-for="LdapHost" class="control-label"></label>
                 <input asp-for="LdapHost" class="form-control" />
                 <span asp-validation-for="LdapHost" class="text-danger"></span>
@@ -113,6 +130,12 @@
                 <input asp-for="LdapNameAttribute" class="form-control" />
                 <span asp-validation-for="LdapNameAttribute" class="text-danger"></span>
                 <p class="text-left"><code>displayName</code> may be used for Active Directory</p>
+            </div>
+            <div class="form-group">
+                <label asp-for="LdapSslValidCert" class="control-label"></label>
+                <textarea asp-for="LdapSslValidCert" rows="5" class="form-control"></textarea>
+                <span asp-validation-for="LdapSslValidCert" class="text-danger"></span>
+                <p class="text-left">Optional PEM-encoded certificate that will be matched anywhere in a valid certificate chain (use this to pin a certificate)</p>
             </div>
         </div>
     </div>

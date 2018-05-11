@@ -43,6 +43,8 @@ namespace sama.Controllers
                 LdapSearchBaseDn = _settingsService.Ldap_SearchBaseDn,
                 LdapSearchFilterFormat = _settingsService.Ldap_SearchFilterFormat,
                 LdapNameAttribute = _settingsService.Ldap_NameAttribute,
+                LdapSslIgnoreValidity = _settingsService.Ldap_SslIgnoreValidity,
+                LdapSslValidCert = _settingsService.Ldap_SslValidCert,
             };
 
             return View(model);
@@ -62,7 +64,6 @@ namespace sama.Controllers
 
                 if (ModelState.ErrorCount > 0)
                 {
-                    ModelState.AddModelError("", "When LDAP is enabled, all LDAP fields are required.");
                     return View(vm);
                 }
             }
@@ -92,6 +93,8 @@ namespace sama.Controllers
                 _settingsService.Ldap_SearchBaseDn = vm.LdapSearchBaseDn;
                 _settingsService.Ldap_SearchFilterFormat = vm.LdapSearchFilterFormat;
                 _settingsService.Ldap_NameAttribute = vm.LdapNameAttribute;
+                _settingsService.Ldap_SslIgnoreValidity = vm.LdapSslIgnoreValidity;
+                _settingsService.Ldap_SslValidCert = vm.LdapSslValidCert;
 
                 TempData["GlobalFlashType"] = "success";
                 TempData["GlobalFlashMessage"] = "Settings were saved successfully!";

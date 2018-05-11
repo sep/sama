@@ -38,8 +38,8 @@ namespace TestSama.Controllers
 
             var result = _controller.Index(vm) as ViewResult;
             Assert.IsNotNull(result);
-            Assert.AreEqual(7, _controller.ModelState.ErrorCount);
-            Assert.AreEqual("When LDAP is enabled, all LDAP fields are required.", _controller.ModelState[""].Errors[0].ErrorMessage);
+            Assert.AreEqual(6, _controller.ModelState.ErrorCount);
+            Assert.IsNull(_controller.ModelState[""]);
         }
 
         [TestMethod]

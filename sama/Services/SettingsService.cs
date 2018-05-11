@@ -109,6 +109,18 @@ namespace sama.Services
             set { SetSetting("LDAP", "NameAttribute", value); }
         }
 
+        public virtual bool Ldap_SslIgnoreValidity
+        {
+            get { return GetSetting("LDAP", "SSLIgnoreValidity", false); }
+            set { SetSetting("LDAP", "SSLIgnoreValidity", value); }
+        }
+
+        public virtual string Ldap_SslValidCert
+        {
+            get { return GetSetting("LDAP", "SSLValidCert", ""); }
+            set { SetSetting("LDAP", "SSLValidCert", value); }
+        }
+
 
 
         private T GetSetting<T>(string section, string name, T defaultValue)

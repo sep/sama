@@ -59,11 +59,24 @@ namespace sama.Controllers
                 }
                 else
                 {
-                    var user = _ldapService.Authenticate(vm.Username, vm.Password);
-                    if (user != null)
+                    try
                     {
-                        await _signInManager.SignInAsync(user, false);
-                        return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
+                        var user = _ldapService.Authenticate(vm.Username, vm.Password);
+                        if (user != null)
+                        {
+                            await _signInManager.SignInAsync(user, false);
+                            return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
+                        }
+                    }
+                    catch (SslException sslEx)
+                    {
+                        ModelState.AddModelError(string.Empty, sslEx.Message);
+                        ModelState.AddModelError(string.Empty, "Details: " + sslEx.Details);
+                        return View(vm);
+                    }
+                    catch (Exception)
+                    {
+                        // Fall through
                     }
                 }
             }

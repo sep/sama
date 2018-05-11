@@ -55,5 +55,11 @@ namespace sama.Models
 
         [Display(Name = "LDAP name attribute")]
         public string LdapNameAttribute { get; set; }
+
+        [Display(Name = "Ignore SSL errors for LDAP")]
+        public bool LdapSslIgnoreValidity { get; set; }
+
+        [PemEncodedData("CERTIFICATE", ErrorMessage = "The \"BEGIN CERTIFICATE\" and \"END CERTIFICATE\" PEM encoding strings must be present."), Display(Name = "Custom LDAP SSL certificate")]
+        public string LdapSslValidCert { get; set; }
     }
 }
