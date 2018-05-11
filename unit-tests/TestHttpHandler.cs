@@ -12,5 +12,10 @@ namespace TestSama
         }
 
         public abstract Task<HttpResponseMessage> RealSendAsync(HttpRequestMessage request, CancellationToken cancellationToken);
+
+        protected override void Dispose(bool disposing)
+        {
+            // Do nothing.
+        }
     }
 }

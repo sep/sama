@@ -85,10 +85,13 @@ namespace sama.Services
             try
             {
                 using (var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>())
-                using (var client = new HttpClient(httpHandler, false))
                 {
-                    var data = JsonConvert.SerializeObject(new { text = message });
-                    client.PostAsync(url, new StringContent(data)).Wait();
+                    httpHandler.ServerCertificateCustomValidationCallback = null;
+                    using (var client = new HttpClient(httpHandler, false))
+                    {
+                        var data = JsonConvert.SerializeObject(new { text = message });
+                        client.PostAsync(url, new StringContent(data)).Wait();
+                    }
                 }
             }
             catch (Exception ex)
