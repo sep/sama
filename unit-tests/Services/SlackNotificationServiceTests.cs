@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Models;
@@ -14,6 +15,7 @@ namespace TestSama.Services
     public class SlackNotificationServiceTests
     {
         private SlackNotificationService _service;
+        private IServiceProvider _provider;
         private ILogger<SlackNotificationService> _logger;
         private SettingsService _settings;
         private TestHttpHandler _httpHandler;
@@ -21,11 +23,12 @@ namespace TestSama.Services
         [TestInitialize]
         public void Setup()
         {
+            _provider = TestUtility.InitDI();
             _logger = Substitute.For<ILogger<SlackNotificationService>>();
             _settings = Substitute.For<SettingsService>((IServiceProvider)null);
-            _httpHandler = Substitute.ForPartsOf<TestHttpHandler>();
+            _httpHandler = _provider.GetRequiredService<HttpClientHandler>() as TestHttpHandler;
 
-            _service = new SlackNotificationService(_logger, _settings, _httpHandler);
+            _service = new SlackNotificationService(_logger, _settings, _provider);
 
             _settings.Notifications_Slack_WebHook.Returns("https://webhook.example.com/hook");
         }

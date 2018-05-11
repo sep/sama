@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using sama.Models;
@@ -11,13 +12,13 @@ namespace sama.Services
     {
         private readonly ILogger<SlackNotificationService> _logger;
         private readonly SettingsService _settings;
-        private readonly HttpClientHandler _httpHandler;
+        private readonly IServiceProvider _serviceProvider;
 
-        public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, HttpClientHandler httpHandler)
+        public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _settings = settings;
-            _httpHandler = httpHandler;
+            _serviceProvider = serviceProvider;
         }
 
         public void NotifyMisc(Endpoint endpoint, NotificationType type)
@@ -83,7 +84,8 @@ namespace sama.Services
 
             try
             {
-                using (var client = new HttpClient(_httpHandler, false))
+                using (var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>())
+                using (var client = new HttpClient(httpHandler, false))
                 {
                     var data = JsonConvert.SerializeObject(new { text = message });
                     client.PostAsync(url, new StringContent(data)).Wait();
