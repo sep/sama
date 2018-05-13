@@ -16,6 +16,8 @@ namespace TestSama.Extensions
             ep1.SetHttpLocation("fdsa");
             ep1.SetHttpResponseMatch("qwerty");
             ep1.SetHttpStatusCodes(new List<int> { 302 });
+            ep1.SetHttpIgnoreTlsCerts(true);
+            ep1.SetHttpCustomTlsCert("zxcvbnm");
 
             var vm1 = ep1.ToEndpointViewModel();
             Assert.IsInstanceOfType(vm1, typeof(HttpEndpointViewModel));
@@ -28,6 +30,8 @@ namespace TestSama.Extensions
             Assert.AreEqual("fdsa", http1.Location);
             Assert.AreEqual("qwerty", http1.ResponseMatch);
             Assert.AreEqual("302", http1.StatusCodes);
+            Assert.IsTrue(http1.IgnoreCerts);
+            Assert.AreEqual("zxcvbnm", http1.CustomCert);
 
             var ep2 = new Endpoint { Kind = Endpoint.EndpointKind.Http };
 
@@ -60,7 +64,7 @@ namespace TestSama.Extensions
         [TestMethod]
         public void ShouldConvertHttpViewModelToEndpoint()
         {
-            var vm1 = new HttpEndpointViewModel { Id = 5, Enabled = true, Kind = Endpoint.EndpointKind.Http, Name = "fdsa", Location = "asdf", ResponseMatch = "qwerty", StatusCodes = " 201, 500" };
+            var vm1 = new HttpEndpointViewModel { Id = 5, Enabled = true, Kind = Endpoint.EndpointKind.Http, Name = "fdsa", Location = "asdf", ResponseMatch = "qwerty", StatusCodes = " 201, 500", IgnoreCerts = true, CustomCert = "zxcvbnm" };
             var ep1 = vm1.ToEndpoint();
             Assert.AreEqual(5, ep1.Id);
             Assert.IsTrue(ep1.Enabled);
@@ -69,6 +73,8 @@ namespace TestSama.Extensions
             Assert.AreEqual("asdf", ep1.GetHttpLocation());
             Assert.AreEqual("qwerty", ep1.GetHttpResponseMatch());
             CollectionAssert.AreEquivalent(new List<int> { 201, 500 }, ep1.GetHttpStatusCodes());
+            Assert.IsTrue(ep1.GetHttpIgnoreTlsCerts());
+            Assert.AreEqual("zxcvbnm", ep1.GetHttpCustomTlsCert());
             Assert.IsTrue(DateTimeOffset.UtcNow.AddMinutes(-1) < ep1.LastUpdated);
 
             var vm2 = new HttpEndpointViewModel { Kind = Endpoint.EndpointKind.Http };

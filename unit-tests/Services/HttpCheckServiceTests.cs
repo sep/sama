@@ -16,6 +16,7 @@ namespace TestSama.Services
     public class HttpCheckServiceTests
     {
         private SettingsService _settingsService;
+        private CertificateValidationService _certService;
         private IServiceProvider _serviceProvider;
         private TestHttpHandler _httpHandler;
         private HttpCheckService _service;
@@ -24,10 +25,11 @@ namespace TestSama.Services
         public void Setup()
         {
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
+            _certService = Substitute.For<CertificateValidationService>(_settingsService);
             _serviceProvider = TestUtility.InitDI();
             _httpHandler = (TestHttpHandler)_serviceProvider.GetRequiredService<HttpClientHandler>();
 
-            _service = new HttpCheckService(_settingsService, _serviceProvider);
+            _service = new HttpCheckService(_settingsService, _certService, _serviceProvider);
 
             _settingsService.Monitor_RequestTimeoutSeconds.Returns(1);
         }

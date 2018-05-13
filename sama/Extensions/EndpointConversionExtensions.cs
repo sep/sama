@@ -15,7 +15,9 @@ namespace sama.Extensions
                 {
                     Location = endpoint.GetHttpLocation(),
                     ResponseMatch = endpoint.GetHttpResponseMatch(),
-                    StatusCodes = string.Join(',', endpoint.GetHttpStatusCodes()?.Select(c => c.ToString()) ?? new string[0])
+                    StatusCodes = string.Join(',', endpoint.GetHttpStatusCodes()?.Select(c => c.ToString()) ?? new string[0]),
+                    IgnoreCerts = endpoint.GetHttpIgnoreTlsCerts(),
+                    CustomCert = endpoint.GetHttpCustomTlsCert()
                 };
             }
             else if (endpoint.Kind == Endpoint.EndpointKind.Icmp)
@@ -58,6 +60,9 @@ namespace sama.Extensions
 
                 if (!string.IsNullOrWhiteSpace(httpVm.StatusCodes))
                     endpoint.SetHttpStatusCodes(httpVm.StatusCodes.Split(',').Select(code => int.Parse(code.Trim())).ToList());
+
+                endpoint.SetHttpIgnoreTlsCerts(httpVm.IgnoreCerts);
+                endpoint.SetHttpCustomTlsCert(httpVm.CustomCert);
             }
             else if (vm.Kind == Endpoint.EndpointKind.Icmp)
             {

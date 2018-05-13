@@ -30,6 +30,18 @@ namespace sama.Extensions
         public static void SetHttpStatusCodes(this Endpoint endpoint, List<int> codes) =>
             SetValue(endpoint, "StatusCodes", codes);
 
+        public static bool GetHttpIgnoreTlsCerts(this Endpoint endpoint) =>
+            GetValue<bool>(endpoint, "IgnoreTlsCertificates");
+
+        public static void SetHttpIgnoreTlsCerts(this Endpoint endpoint, bool ignore) =>
+            SetValue(endpoint, "IgnoreTlsCertificates", ignore);
+
+        public static string GetHttpCustomTlsCert(this Endpoint endpoint) =>
+            GetValue<string>(endpoint, "CustomTlsCertificate");
+
+        public static void SetHttpCustomTlsCert(this Endpoint endpoint, string pemEncodedCert) =>
+            SetValue(endpoint, "CustomTlsCertificate", pemEncodedCert);
+
 
         private static List<T> GetValueList<T>(Endpoint endpoint, string name, List<T> defaultValue = null)
         {

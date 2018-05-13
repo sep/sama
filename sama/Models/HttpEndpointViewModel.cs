@@ -14,5 +14,12 @@ namespace sama.Models
         [Display(Name = "Status Codes")]
         [RegularExpression(@"^([0-9]{3}, ?)*[0-9]{3}$", ErrorMessage = "The Status Codes field must be a comma-separated list of HTTP status codes.")]
         public string StatusCodes { get; set; }
+
+        [Display(Name = "Ignore TLS Certificates")]
+        public bool IgnoreCerts { get; set; }
+
+        [Display(Name = "Custom TLS Certificate")]
+        [PemEncodedData("CERTIFICATE")]
+        public string CustomCert { get; set; }
     }
 }

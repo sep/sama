@@ -19,6 +19,8 @@ namespace TestSama.Extensions
             Assert.ThrowsException<ArgumentException>(() => icmpEndpoint.SetHttpLocation(""));
             Assert.ThrowsException<ArgumentException>(() => icmpEndpoint.SetHttpResponseMatch(""));
             Assert.ThrowsException<ArgumentException>(() => icmpEndpoint.SetHttpStatusCodes(null));
+            Assert.ThrowsException<ArgumentException>(() => icmpEndpoint.SetHttpIgnoreTlsCerts(true));
+            Assert.ThrowsException<ArgumentException>(() => icmpEndpoint.SetHttpCustomTlsCert(""));
         }
 
         [TestMethod]
@@ -122,6 +124,66 @@ namespace TestSama.Extensions
 
             var ep5 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""StatusCodes"":[200,404,500]}" };
             CollectionAssert.AreEquivalent(new List<int> { 200, 404, 500 }, ep5.GetHttpStatusCodes());
+        }
+
+        [TestMethod]
+        public void ShouldSetHttpIgnoreTlsCerts()
+        {
+            var ep1 = new Endpoint { Kind = Endpoint.EndpointKind.Http };
+            ep1.SetHttpIgnoreTlsCerts(false);
+            Assert.AreEqual(@"{""IgnoreTlsCertificates"":false}", ep1.JsonConfig);
+
+            var ep2 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""Stuff"": ""things""}" };
+            ep2.SetHttpIgnoreTlsCerts(true);
+            Assert.AreEqual(@"{""Stuff"":""things"",""IgnoreTlsCertificates"":true}", ep2.JsonConfig);
+        }
+
+        [TestMethod]
+        public void ShouldGetHttpIgnoreTlsCerts()
+        {
+            var ep1 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = null };
+            Assert.IsFalse(ep1.GetHttpIgnoreTlsCerts());
+
+            var ep2 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""IgnoreTlsCertificates"":false}" };
+            Assert.IsFalse(ep2.GetHttpIgnoreTlsCerts());
+
+            var ep3 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""Stuff"":""things""}" };
+            Assert.IsFalse(ep3.GetHttpIgnoreTlsCerts());
+
+            var ep4 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""IgnoreTlsCertificates"":true}" };
+            Assert.IsTrue(ep4.GetHttpIgnoreTlsCerts());
+        }
+
+        [TestMethod]
+        public void ShouldSetHttpCustomTlsCert()
+        {
+            var ep1 = new Endpoint { Kind = Endpoint.EndpointKind.Http };
+            ep1.SetHttpCustomTlsCert("ok");
+            Assert.AreEqual(@"{""CustomTlsCertificate"":""ok""}", ep1.JsonConfig);
+
+            var ep2 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""Stuff"": ""things""}" };
+            ep2.SetHttpCustomTlsCert("ok");
+            Assert.AreEqual(@"{""Stuff"":""things"",""CustomTlsCertificate"":""ok""}", ep2.JsonConfig);
+
+            var ep3 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""CustomTlsCertificate"":""something""}" };
+            ep3.SetHttpCustomTlsCert("ok");
+            Assert.AreEqual(@"{""CustomTlsCertificate"":""ok""}", ep3.JsonConfig);
+        }
+
+        [TestMethod]
+        public void ShouldGetHttpCustomTlsCert()
+        {
+            var ep1 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = null };
+            Assert.IsNull(ep1.GetHttpCustomTlsCert());
+
+            var ep2 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""CustomTlsCertificate"":null}" };
+            Assert.IsNull(ep2.GetHttpCustomTlsCert());
+
+            var ep3 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""Stuff"":""things""}" };
+            Assert.IsNull(ep3.GetHttpCustomTlsCert());
+
+            var ep4 = new Endpoint { Kind = Endpoint.EndpointKind.Http, JsonConfig = @"{""CustomTlsCertificate"":""asdf""}" };
+            Assert.AreEqual("asdf", ep4.GetHttpCustomTlsCert());
         }
     }
 }

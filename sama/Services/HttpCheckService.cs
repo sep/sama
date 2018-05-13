@@ -11,11 +11,13 @@ namespace sama.Services
     public class HttpCheckService : ICheckService
     {
         private readonly SettingsService _settingsService;
+        private readonly CertificateValidationService _certService;
         private readonly IServiceProvider _serviceProvider;
 
-        public HttpCheckService(SettingsService settingsService, IServiceProvider serviceProvider)
+        public HttpCheckService(SettingsService settingsService, CertificateValidationService certService, IServiceProvider serviceProvider)
         {
             _settingsService = settingsService;
+            _certService = certService;
             _serviceProvider = serviceProvider;
         }
 
@@ -32,6 +34,8 @@ namespace sama.Services
             using (var client = new HttpClient(httpHandler, false))
             using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.GetHttpLocation()))
             {
+                httpHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+
                 var statusCodes = endpoint.GetHttpStatusCodes() ?? new List<int>();
                 if (statusCodes.Count > 0)
                     httpHandler.AllowAutoRedirect = false;

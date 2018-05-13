@@ -61,14 +61,7 @@ namespace sama
             services.AddSingleton<INotificationService, GraphiteNotificationService>();
             services.AddSingleton<AggregateNotificationService>();
 
-            services.AddTransient(provider => new System.Net.Http.HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-                {
-                    // Ignore SSL/TLS errors (for now)
-                    return true;
-                }
-            });
+            services.AddTransient<System.Net.Http.HttpClientHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
