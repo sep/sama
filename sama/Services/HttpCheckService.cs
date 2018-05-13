@@ -34,7 +34,11 @@ namespace sama.Services
             using (var client = new HttpClient(httpHandler, false))
             using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.GetHttpLocation()))
             {
-                httpHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+                httpHandler.ServerCertificateCustomValidationCallback = (msg, certificate, chain, sslPolicyErrors) =>
+                {
+                    _certService.ValidateHttpEndpoint(endpoint, chain, sslPolicyErrors);
+                    return true;
+                };
 
                 var statusCodes = endpoint.GetHttpStatusCodes() ?? new List<int>();
                 if (statusCodes.Count > 0)

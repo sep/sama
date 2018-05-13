@@ -15,14 +15,14 @@ namespace sama.Models
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             var certString = value as string;
-            if (certString == null)
+            if (value != null && certString == null)
             {
+                // It's not a string... somehow?
                 return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             }
 
             if (string.IsNullOrWhiteSpace(certString))
             {
-                // Can only be whitespace here, which is fine
                 return ValidationResult.Success;
             }
 

@@ -39,3 +39,7 @@ textarea {
 .global-flash-alert {
     margin: 16px 0 0;
 }
+
+.validation-summary-errors ul li {
+    white-space: pre-wrap;
+}

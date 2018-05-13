@@ -59,6 +59,10 @@ namespace sama.Services
                 var msg = failureMessage.Trim();
                 if (!msg.EndsWith('.') && !msg.EndsWith('!') && !msg.EndsWith('?'))
                     failureMessage = failureMessage.Trim() + '.';
+
+                if (reason is SslException sslEx){
+                    failureMessage += "\n Details: ```\n" + sslEx.Details + "```";
+                }
             }
 
             SendNotification($"The endpoint '{endpoint.Name}' is down: {failureMessage}");

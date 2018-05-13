@@ -1,4 +1,5 @@
-﻿using System;
+﻿using sama.Extensions;
+using System;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -26,7 +27,7 @@ namespace sama.Services
                 if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) || sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
                 {
                     // Unacceptable errors are present; throw
-                    throw GetAppropriateException(chain, sslPolicyErrors, false);
+                    throw GetAppropriateException(true, chain, sslPolicyErrors, false);
                 }
                 foreach (var el in chain.ChainElements)
                 {
@@ -37,14 +38,14 @@ namespace sama.Services
                             if (status.Status != X509ChainStatusFlags.NoError && status.Status != X509ChainStatusFlags.UntrustedRoot)
                             {
                                 // Unacceptable errors are present; throw
-                                throw GetAppropriateException(chain, sslPolicyErrors, false);
+                                throw GetAppropriateException(true, chain, sslPolicyErrors, false);
                             }
                         }
                     }
                 }
 
                 // Everything looks good so far; load the custom cert
-                var cert = LoadCert(_settingsService.Ldap_SslValidCert);
+                var cert = LoadCert(true, _settingsService.Ldap_SslValidCert);
 
                 foreach (var el in chain.ChainElements)
                 {
@@ -55,7 +56,7 @@ namespace sama.Services
                     }
                 }
 
-                throw GetAppropriateException(chain, sslPolicyErrors, true);
+                throw GetAppropriateException(true, chain, sslPolicyErrors, true);
             }
             else
             {
@@ -64,11 +65,66 @@ namespace sama.Services
                 {
                     return; // OK
                 }
-                throw GetAppropriateException(chain, sslPolicyErrors, false);
+                throw GetAppropriateException(true, chain, sslPolicyErrors, false);
             }
         }
 
-        private X509Certificate2 LoadCert(string pemCert)
+        public virtual void ValidateHttpEndpoint(Models.Endpoint endpoint, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (endpoint.GetHttpIgnoreTlsCerts())
+            {
+                return; // Everything is OK
+            }
+
+            var customCertPem = endpoint.GetHttpCustomTlsCert();
+            if (!string.IsNullOrWhiteSpace(customCertPem))
+            {
+                if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) || sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
+                {
+                    // Unacceptable errors are present; throw
+                    throw GetAppropriateException(false, chain, sslPolicyErrors, false);
+                }
+                foreach (var el in chain.ChainElements)
+                {
+                    if (el.ChainElementStatus != null && el.ChainElementStatus.Length > 0)
+                    {
+                        foreach (var status in el.ChainElementStatus)
+                        {
+                            if (status.Status != X509ChainStatusFlags.NoError && status.Status != X509ChainStatusFlags.UntrustedRoot)
+                            {
+                                // Unacceptable errors are present; throw
+                                throw GetAppropriateException(false, chain, sslPolicyErrors, false);
+                            }
+                        }
+                    }
+                }
+
+                // Everything looks good so far; load the custom cert
+                var cert = LoadCert(false, customCertPem);
+
+                foreach (var el in chain.ChainElements)
+                {
+                    if (el.Certificate.Thumbprint.Equals(cert.Thumbprint))
+                    {
+                        // Got a matching cert; everything is okay
+                        return;
+                    }
+                }
+
+                throw GetAppropriateException(false, chain, sslPolicyErrors, true);
+            }
+            else
+            {
+                // Use existing status information
+                if (sslPolicyErrors == SslPolicyErrors.None)
+                {
+                    return; // OK
+                }
+                throw GetAppropriateException(false, chain, sslPolicyErrors, false);
+            }
+        }
+
+        private X509Certificate2 LoadCert(bool ldap, string pemCert)
         {
             try
             {
@@ -84,35 +140,35 @@ namespace sama.Services
             }
             catch (Exception ex)
             {
-                throw new SslException($"The custom certificate could not be loaded: {ex.Message}");
+                throw SslException.CreateException(ldap, $"The custom certificate could not be loaded: {ex.Message}");
             }
         }
 
-        private Exception GetAppropriateException(X509Chain chain, SslPolicyErrors sslPolicyErrors, bool customCertMismatch)
+        private Exception GetAppropriateException(bool ldap, X509Chain chain, SslPolicyErrors sslPolicyErrors, bool customCertMismatch)
         {
             var stb = new StringBuilder();
             if (customCertMismatch)
             {
-                stb.Append(" ✯ The certificate chain does not contain the custom certificate:");
+                stb.Append("\r\n✯ The certificate chain does not contain the custom certificate:");
                 foreach (var el in chain.ChainElements)
                 {
-                    stb.Append($" → Subject=\"{el.Certificate.Subject}\" (Thumbprint={el.Certificate.Thumbprint}) ");
+                    stb.Append($"\r\n  → Subject=\"{el.Certificate.Subject}\" (Thumbprint={el.Certificate.Thumbprint}) ");
                 }
             }
             if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch))
             {
-                stb.Append(" ✯ The certificate name is mismatched");
+                stb.Append("\r\n✯ The certificate name is mismatched");
             }
             if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
             {
-                stb.Append(" ✯ The certificate is unavailable");
+                stb.Append("\r\n✯ The certificate is unavailable");
             }
             if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors) && !customCertMismatch)
             {
-                stb.Append(" ✯ The certificate chain has errors:");
+                stb.Append("\r\n✯ The certificate chain has errors:");
                 foreach (var el in chain.ChainElements)
                 {
-                    stb.Append($" → Subject=\"{el.Certificate.Subject}\" (Thumbprint={el.Certificate.Thumbprint}) ");
+                    stb.Append($"\r\n  → Subject=\"{el.Certificate.Subject}\" (Thumbprint={el.Certificate.Thumbprint}) ");
                     if (el.ChainElementStatus == null || el.ChainElementStatus.Length == 0)
                     {
                         stb.Append("[OK]");
@@ -121,13 +177,13 @@ namespace sama.Services
                     {
                         foreach (var status in el.ChainElementStatus)
                         {
-                            stb.Append($"[{status.StatusInformation}]");
+                            stb.Append($"[{status.StatusInformation.Trim()}]");
                         }
                     }
                 }
             }
 
-            return new SslException(stb.ToString());
+            return SslException.CreateException(ldap, stb.ToString().Trim());
         }
     }
 }

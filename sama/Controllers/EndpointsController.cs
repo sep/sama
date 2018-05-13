@@ -109,7 +109,7 @@ namespace sama.Controllers
                 NotifyEvent(endpoint, NotificationType.EndpointAdded);
                 return RedirectToAction(nameof(List));
             }
-            return View(vm);
+            return View(nameof(Create), vm);
         }
 
         // POST: Endpoints/CreateIcmp
@@ -126,7 +126,7 @@ namespace sama.Controllers
                 NotifyEvent(endpoint, NotificationType.EndpointAdded);
                 return RedirectToAction(nameof(List));
             }
-            return View(vm);
+            return View(nameof(Create), vm);
         }
 
         // GET: Endpoints/Edit/5
@@ -181,7 +181,7 @@ namespace sama.Controllers
                 }
                 return RedirectToAction(nameof(List));
             }
-            return View(vm);
+            return View(nameof(Edit), vm);
         }
 
         // POST: Endpoints/EditIcmp/5
@@ -218,7 +218,7 @@ namespace sama.Controllers
                 }
                 return RedirectToAction(nameof(List));
             }
-            return View(vm);
+            return View(nameof(Edit), vm);
         }
 
         // GET: Endpoints/Delete/5

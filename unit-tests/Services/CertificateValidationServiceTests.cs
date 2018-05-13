@@ -1,6 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama;
+using sama.Extensions;
+using sama.Models;
 using sama.Services;
 using System;
 using System.Collections.Generic;
@@ -106,7 +108,7 @@ wDSiIIWIWJiJGbEeIO0TIFwEVWTOnbNl/faPXpk5IRXicapqiII="));
             _settingsService.Ldap_SslIgnoreValidity.Returns(false);
             _settingsService.Ldap_SslValidCert.Returns(EXAMPLE_CERT_PEM);
 
-            AssertSslException(() => _service.ValidateLdap(null, System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch), "certificate name is mismatched");
+            AssertSslException(() => _service.ValidateLdap(null, System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch), true, "certificate name is mismatched");
         }
 
         [TestMethod]
@@ -119,7 +121,7 @@ wDSiIIWIWJiJGbEeIO0TIFwEVWTOnbNl/faPXpk5IRXicapqiII="));
             chain.ChainPolicy.VerificationTime = new DateTime(2019, 1, 1);
             chain.Build(EXAMPLE_CERT);
 
-            AssertSslException(() => _service.ValidateLdap(chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), "certificate is not within its validity period");
+            AssertSslException(() => _service.ValidateLdap(chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), true, "certificate is not within its validity period");
         }
 
         [TestMethod]
@@ -137,16 +139,56 @@ wDSiIIWIWJiJGbEeIO0TIFwEVWTOnbNl/faPXpk5IRXicapqiII="));
         }
 
         [TestMethod]
-        public void ValidateLdapShouldReturnWhenUsingStandardValidationAndNoPolicyErrorsExist()
+        public void ValidateHttpEndpointShouldReturnWhenIgnoreOptionIsSet()
         {
-            _settingsService.Ldap_SslIgnoreValidity.Returns(true);
-            _settingsService.Ldap_SslValidCert.Returns("");
+            var ep = CreateTestEndpoint(true, null);
 
             // Should not throw:
-            _service.ValidateLdap(null, System.Net.Security.SslPolicyErrors.None);
+            _service.ValidateHttpEndpoint(ep, null, System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch);
         }
 
-        private void AssertSslException(Action action, string partialDetailsText)
+        [TestMethod]
+        public void ValidateHttpEndpointShouldThrowWhenUsingCustomCertAndNonChainPolicyErrorsExist()
+        {
+            var ep = CreateTestEndpoint(false, EXAMPLE_CERT_PEM);
+
+            AssertSslException(() => _service.ValidateHttpEndpoint(ep, null, System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch), false, "certificate name is mismatched");
+        }
+
+        [TestMethod]
+        public void ValidateHttpEndpointShouldThrowWhenUsingCustomCertAndUnacceptableChainErrorsExist()
+        {
+            var ep = CreateTestEndpoint(false, EXAMPLE_CERT_PEM);
+
+            var chain = new X509Chain();
+            chain.ChainPolicy.VerificationTime = new DateTime(2019, 1, 1);
+            chain.Build(EXAMPLE_CERT);
+
+            AssertSslException(() => _service.ValidateHttpEndpoint(ep, chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), false, "certificate is not within its validity period");
+        }
+
+        [TestMethod]
+        public void ValidateHttpEndpointShouldReturnWhenUsingCustomCertWithoutUnacceptableChainErrors()
+        {
+            var ep = CreateTestEndpoint(false, EXAMPLE_CERT_PEM);
+
+            var chain = new X509Chain();
+            chain.ChainPolicy.VerificationTime = new DateTime(2018, 1, 1);
+            chain.Build(EXAMPLE_CERT);
+
+            // Should not throw:
+            _service.ValidateHttpEndpoint(ep, chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors);
+        }
+
+        private Endpoint CreateTestEndpoint(bool ignoreCerts, string customCert)
+        {
+            var ep = new Endpoint { Name = "test1", Kind = Endpoint.EndpointKind.Http };
+            ep.SetHttpIgnoreTlsCerts(ignoreCerts);
+            ep.SetHttpCustomTlsCert(customCert);
+            return ep;
+        }
+
+        private void AssertSslException(Action action, bool ldap, string partialDetailsText)
         {
             try
             {
@@ -155,6 +197,7 @@ wDSiIIWIWJiJGbEeIO0TIFwEVWTOnbNl/faPXpk5IRXicapqiII="));
             }
             catch (SslException sslEx)
             {
+                StringAssert.Contains(sslEx.Message, ldap ? "LDAP" : "HTTPS");
                 StringAssert.Contains(sslEx.Details, partialDetailsText);
             }
         }

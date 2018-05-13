@@ -6,10 +6,16 @@ namespace sama
     {
         public string Details { get; private set; }
 
-        public SslException(string details)
-            : base("Could not establish a secure LDAP connection")
+        private SslException(string message, string details)
+            : base(message)
         {
             Details = details;
+        }
+
+        public static SslException CreateException(bool isLdap, string details)
+        {
+            var type = (isLdap ? "LDAP" : "HTTPS");
+            return new SslException($"Could not establish a secure {type} connection", details);
         }
     }
 }

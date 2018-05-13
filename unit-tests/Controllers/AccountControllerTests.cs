@@ -111,7 +111,7 @@ namespace TestSama.Controllers
         {
             var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "user" };
             _ldapService.When(ls => ls.Authenticate("user", "pass"))
-                .Do(ci => throw new sama.SslException("asdf"));
+                .Do(ci => throw sama.SslException.CreateException(true, "asdf"));
 
             var result = await _controller.Login(new LoginViewModel { Username = "user", Password = "pass", IsLocal = false });
 
