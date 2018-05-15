@@ -12,6 +12,7 @@ namespace TestSama.Services
     {
         private INotificationService _notifier1;
         private INotificationService _notifier2;
+        private BackgroundExecutionWrapper _bgExec;
         private AggregateNotificationService _service;
 
         [TestInitialize]
@@ -19,7 +20,15 @@ namespace TestSama.Services
         {
             _notifier1 = Substitute.For<INotificationService>();
             _notifier2 = Substitute.For<INotificationService>();
-            _service = new AggregateNotificationService(new List<INotificationService> { _notifier1, _notifier2 });
+            _bgExec = Substitute.For<BackgroundExecutionWrapper>();
+            _service = new AggregateNotificationService(new List<INotificationService> { _notifier1, _notifier2 }, _bgExec);
+
+            _bgExec.When(bgx => bgx.Execute(Arg.Any<Action>()))
+                .Do(ci =>
+                {
+                    var action = ci.Arg<Action>();
+                    action.Invoke();
+                });
         }
 
         [TestMethod]
@@ -30,6 +39,7 @@ namespace TestSama.Services
 
             _service.NotifySingleResult(ep, ecr);
 
+            _bgExec.Received(1).Execute(Arg.Any<Action>());
             _notifier1.Received().NotifySingleResult(ep, ecr);
             _notifier2.Received().NotifySingleResult(ep, ecr);
         }
@@ -42,6 +52,7 @@ namespace TestSama.Services
 
             _service.NotifyUp(ep, dao);
 
+            _bgExec.Received(1).Execute(Arg.Any<Action>());
             _notifier1.Received().NotifyUp(ep, dao);
             _notifier2.Received().NotifyUp(ep, dao);
         }
@@ -55,6 +66,7 @@ namespace TestSama.Services
 
             _service.NotifyDown(ep, dao, reason);
 
+            _bgExec.Received(1).Execute(Arg.Any<Action>());
             _notifier1.Received().NotifyDown(ep, dao, reason);
             _notifier2.Received().NotifyDown(ep, dao, reason);
         }
@@ -67,6 +79,7 @@ namespace TestSama.Services
 
             _service.NotifyMisc(ep, type);
 
+            _bgExec.Received(1).Execute(Arg.Any<Action>());
             _notifier1.Received().NotifyMisc(ep, type);
             _notifier2.Received().NotifyMisc(ep, type);
         }

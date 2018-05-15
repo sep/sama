@@ -34,7 +34,7 @@ namespace TestSama.Controllers
             _testDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             _stateService = Substitute.For<StateService>(_provider, null);
             _userService = Substitute.For<UserManagementService>(null, null);
-            _notifier = Substitute.For<AggregateNotificationService>(new List<INotificationService>());
+            _notifier = Substitute.For<AggregateNotificationService>(new List<INotificationService>(), null);
             _controller = new EndpointsController(_scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), _stateService, _userService, _notifier);
 
             SeedHttpEndpoints();

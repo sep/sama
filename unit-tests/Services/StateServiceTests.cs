@@ -25,7 +25,7 @@ namespace TestSama.Services
         public void Setup()
         {
             _provider = TestUtility.InitDI();
-            _notifier = Substitute.For<AggregateNotificationService>(new List<INotificationService>());
+            _notifier = Substitute.For<AggregateNotificationService>(new List<INotificationService>(), null);
             _service = new StateService(_provider, _notifier);
 
             using (var scope = _provider.CreateScope())
