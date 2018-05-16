@@ -5,45 +5,80 @@
     var upEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == true).OrderBy(e => e.Name.ToLowerInvariant());
     var downEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == false).OrderBy(e => e.Name.ToLowerInvariant());
     var indeterminateEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == null).OrderBy(e => e.Name.ToLowerInvariant());
+
+    var allOrderedEndpoints = new List<sama.Models.EndpointViewModel>(downEndpoints);
+    allOrderedEndpoints.AddRange(upEndpoints);
+    allOrderedEndpoints.AddRange(indeterminateEndpoints);
 }
 
 <h2>Overview (@downEndpoints.Count() down)</h2>
 <hr />
-<div class="row overview-blocks">
-    @foreach (var item in downEndpoints)
-    {
-        <div class="col-sm-4 endpoint-state endpoint-down">
-            <div class="endpoint-child">
-                <span>
-                    @item.Name
-                    <br />
-                    <i>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Error?.Message</i>
-                </span>
-            </div>
-        </div>
-    }
-    @foreach (var item in upEndpoints)
-    {
-        <div class="col-sm-4 endpoint-state endpoint-up">
-            <div class="endpoint-child">
-                <span>@item.Name</span>
-            </div>
-        </div>
-    }
-    @foreach (var item in indeterminateEndpoints)
-    {
-        <div class="col-sm-4 endpoint-state endpoint-indeterminate">
-            <div class="endpoint-child">
-                <span>
-                    @item.Name
-                    @if (!item.Enabled)
-                    {
-                        <br /><i>(Disabled)</i>
-                    }
-                </span>
-            </div>
-        </div>
-    }
+<div class="row">
+    <div class="col-sm-8">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Name)
+                    </th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in allOrderedEndpoints)
+                {
+                    <tr>
+                        <td>
+                            @{
+                                var state = states.FirstOrDefault(kvp => kvp.Key.Id == item.Id).Value ?? new sama.Models.EndpointStatus();
+
+                                if (state.IsUp == true)
+                                {
+                                    <span class="label label-success" title="last updated at @state.LastUpdated.ToLocalTime().ToString("g")">Up</span>
+                                }
+                                else if (state.IsUp == false)
+                                {
+                                    <span class="label label-danger" title="last updated at @state.LastUpdated.ToLocalTime().ToString("g")">Down</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-default">N/A</span>
+                                }
+                            }
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @if (state.IsUp == false)
+                            {
+                                @:@state.Error.Message
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-sm-4">
+        <h4 class="text-center">Alerts</h4>
+        <hr/>
+        @if (downEndpoints.Any())
+        {
+            foreach (var item in downEndpoints)
+            {
+                <div class="alert alert-danger">
+                    <div><u><strong>@item.Name</strong> is down</u></div>
+                    <div>@states.FirstOrDefault(s => s.Key.Id == item.Id).Value?.Error?.Message</div>
+                </div>
+            }
+        }
+        else
+        {
+            <h5>No alerts</h5>
+        }
+    </div>
 </div>
 <p class="refreshed-on">
     Last updated on <span id="last-refresh-time"></span>

@@ -4,56 +4,6 @@
     ViewData["Title"] = "Overview";
 }
 
-<style type="text/css">
-    .overview-blocks .endpoint-state {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .overview-blocks .endpoint-state .endpoint-child {
-        align-items: center;
-        border-radius: 8px;
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        font-weight: bold;
-        justify-content: center;
-        margin-bottom: 2em;
-        min-height: 6em;
-        padding: 6px;
-        text-align: center;
-    }
-
-    .overview-blocks .endpoint-state .endpoint-child > span {
-        max-width: 100%;
-    }
-
-    .endpoint-child span a {
-        color: #fff;
-    }
-
-    .endpoint-child span i {
-        font-weight: normal;
-    }
-
-    .endpoint-down .endpoint-child {
-        background-color: #d9534f;
-    }
-
-    .endpoint-up .endpoint-child {
-        background-color: #5cb85c;
-    }
-
-    .endpoint-indeterminate .endpoint-child {
-        background-color: #777;
-    }
-
-    .refreshed-on {
-        text-align: right;
-    }
-</style>
-
 <section id="main-endpoints-section">
     @Html.Partial("_IndexEndpointsPartial")
 </section>
