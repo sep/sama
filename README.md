@@ -44,3 +44,11 @@ The `appsettings.json` file has default settings for SAMA. They should be modifi
 ## License
 
 This software is released under the ISC License.
+
+---
+
+[![Powered by SEP logo](https://raw.githubusercontent.com/sep/assets/master/images/powered-by-sep.svg?sanitize=true)](https://www.sep.com)
+
+SAMA is supported by SEP: a Software Product Design + Development company. If you'd like to [join our team](https://www.sep.com/careers/open-positions/), don't hesitate to get in touch!
+
+
