@@ -1,11 +1,11 @@
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using sama.Extensions;
 using sama.Models;
 using sama.Services;
-using Microsoft.AspNetCore.Authorization;
-using sama.Extensions;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace sama.Controllers
 {
@@ -44,7 +44,7 @@ namespace sama.Controllers
         {
             ViewData.Add("CurrentStates", _stateService.GetAll());
 
-            var endpoints = await _context.Endpoints.ToListAsync();
+            var endpoints = await _context.Endpoints.AsQueryable().ToListAsync();
             return View(endpoints.Select(e => e.ToEndpointViewModel()));
         }
 
@@ -54,7 +54,7 @@ namespace sama.Controllers
         {
             ViewData.Add("CurrentStates", _stateService.GetAll());
 
-            var endpoints = await _context.Endpoints.ToListAsync();
+            var endpoints = await _context.Endpoints.AsQueryable().ToListAsync();
             return PartialView("_IndexEndpointsPartial", endpoints.Select(e => e.ToEndpointViewModel()));
         }
 
@@ -63,7 +63,7 @@ namespace sama.Controllers
         {
             ViewData.Add("CurrentStates", _stateService.GetAll());
 
-            var endpoints = await _context.Endpoints.ToListAsync();
+            var endpoints = await _context.Endpoints.AsQueryable().ToListAsync();
             return View(endpoints.Select(e => e.ToEndpointViewModel()));
         }
 
@@ -75,7 +75,7 @@ namespace sama.Controllers
                 return NotFound();
             }
 
-            var endpoint = await _context.Endpoints
+            var endpoint = await _context.Endpoints.AsQueryable()
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (endpoint == null)
             {
@@ -137,7 +137,7 @@ namespace sama.Controllers
                 return NotFound();
             }
 
-            var endpoint = await _context.Endpoints.SingleOrDefaultAsync(m => m.Id == id);
+            var endpoint = await _context.Endpoints.AsQueryable().SingleOrDefaultAsync(m => m.Id == id);
             if (endpoint == null)
             {
                 return NotFound();
@@ -229,7 +229,7 @@ namespace sama.Controllers
                 return NotFound();
             }
 
-            var endpoint = await _context.Endpoints
+            var endpoint = await _context.Endpoints.AsQueryable()
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (endpoint == null)
             {
@@ -244,7 +244,7 @@ namespace sama.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var endpoint = await _context.Endpoints.SingleOrDefaultAsync(m => m.Id == id);
+            var endpoint = await _context.Endpoints.AsQueryable().SingleOrDefaultAsync(m => m.Id == id);
             _context.Endpoints.Remove(endpoint);
             await _context.SaveChangesAsync();
             _stateService.RemoveStatus(id);

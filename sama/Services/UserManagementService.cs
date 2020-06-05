@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Konscious.Security.Cryptography;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using sama.Models;
 using System;
-using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using Konscious.Security.Cryptography;
-using System.Text;
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace sama.Services
 {
@@ -32,7 +33,7 @@ namespace sama.Services
         {
             using(var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.AnyAsync();
+                return await dbContext.Users.AsQueryable().AnyAsync();
             }
         }
 
@@ -40,7 +41,7 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.FirstOrDefaultAsync(u => u.UserName.ToLowerInvariant() == username.Trim().ToLowerInvariant());
+                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.UserName.ToLowerInvariant() == username.Trim().ToLowerInvariant());
             }
         }
 
@@ -63,7 +64,7 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                if (!await dbContext.Users.AnyAsync())
+                if (!await dbContext.Users.AsQueryable().AnyAsync())
                 {
                     if (CreatePasswordHash(password, out string hash, out string metadata))
                     {
@@ -98,7 +99,7 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.ToListAsync();
+                return await dbContext.Users.AsQueryable().ToListAsync();
             }
         }
 
@@ -106,7 +107,7 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.FirstOrDefaultAsync(u => u.Id.ToString("D") == userId);
+                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId);
             }
         }
 
@@ -114,7 +115,7 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                var user = await dbContext.Users.FirstAsync(u => u.Id == id);
+                var user = await dbContext.Users.AsQueryable().FirstAsync(u => u.Id == id);
                 if (CreatePasswordHash(password, out string hash, out string metadata))
                 {
                     user.PasswordHash = hash;

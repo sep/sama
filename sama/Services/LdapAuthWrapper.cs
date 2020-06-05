@@ -21,19 +21,19 @@ namespace sama.Services
                 if (certValidator != null)
                     ldap.UserDefinedServerCertValidationDelegate += certValidator;
                 ldap.Connect(host, port);
-                ldap.Bind(LdapConnection.Ldap_V3, bindDn, bindPassword);
+                ldap.Bind(LdapConnection.LdapV3, bindDn, bindPassword);
 
                 var results = ldap.Search(searchBaseDn,
-                    LdapConnection.SCOPE_SUB,
+                    LdapConnection.ScopeSub,
                     searchFilter,
                     new[] { nameAttribute },
                     false);
-                var entry = results.next();
+                var entry = results.Next();
 
                 return new LdapUser
                 {
-                    DistinguishedName = entry.DN,
-                    DisplayName = entry.getAttribute(nameAttribute).StringValue
+                    DistinguishedName = entry.Dn,
+                    DisplayName = entry.GetAttribute(nameAttribute).StringValue
                 };
             }
         }

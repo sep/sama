@@ -49,15 +49,15 @@ namespace TestSama.Services
 
             var result1 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "fdsa"));
             Assert.IsFalse(result1.Success);
-            Assert.AreEqual("The ping request timed out.", result1.Error.Message);
+            Assert.AreEqual("The ping request timed out", result1.Error.Message);
 
             var result2 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "asdf"));
             Assert.IsFalse(result2.Success);
-            Assert.AreEqual("The destination host is unreachable.", result2.Error.Message);
+            Assert.AreEqual("The destination host is unreachable", result2.Error.Message);
 
             var result3 = _service.Check(TestUtility.CreateIcmpEndpoint("A", icmpAddress: "asdffdsa"));
             Assert.IsFalse(result3.Success);
-            Assert.AreEqual("Unable to ping: OH NO.", result3.Error.Message);
+            Assert.AreEqual("Unable to ping: OH NO", result3.Error.Message);
         }
     }
 }

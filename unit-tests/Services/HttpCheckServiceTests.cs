@@ -51,7 +51,7 @@ namespace TestSama.Services
             var result = _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpResponseMatch: "theKEY"));
 
             Assert.IsFalse(result.Success);
-            Assert.AreEqual("The keyword match was not found.", result.Error.Message);
+            Assert.AreEqual("The keyword match was not found", result.Error.Message);
         }
 
         [TestMethod]

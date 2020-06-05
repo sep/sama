@@ -56,7 +56,7 @@ namespace sama.Services
             using (var scope = _provider.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                var endpoints = dbContext.Endpoints.Where(e => e.Enabled).ToList();
+                var endpoints = dbContext.Endpoints.AsQueryable().Where(e => e.Enabled).ToList();
                 Parallel.ForEach(endpoints, TplOptions, e => _processService.ProcessEndpoint(e, 0));
             }
         }

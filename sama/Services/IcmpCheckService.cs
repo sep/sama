@@ -47,7 +47,7 @@ namespace sama.Services
                 if (ex.GetType() == typeof(PingException) && ex.InnerException != null)
                     ex = ex.InnerException;
 
-                checkResult.Error = new Exception($"Unable to ping: {ex.Message}.", ex);
+                checkResult.Error = new Exception($"Unable to ping: {ex.Message}", ex);
                 checkResult.Success = false;
                 checkResult.Stop = DateTimeOffset.UtcNow;
                 checkResult.ResponseTime = null;
@@ -60,45 +60,45 @@ namespace sama.Services
             switch (status)
             {
                 case IPStatus.BadDestination:
-                    return "The destination IP address cannot receive ping requests.";
+                    return "The destination IP address cannot receive ping requests";
                 case IPStatus.BadHeader:
-                    return "The ping request header is invalid.";
+                    return "The ping request header is invalid";
                 case IPStatus.BadOption:
-                    return "The ping request contains an invalid option.";
+                    return "The ping request contains an invalid option";
                 case IPStatus.BadRoute:
-                    return "There is no valid route to the destination.";
+                    return "There is no valid route to the destination";
                 case IPStatus.DestinationHostUnreachable:
-                    return "The destination host is unreachable.";
+                    return "The destination host is unreachable";
                 case IPStatus.DestinationNetworkUnreachable:
-                    return "The destination network is unreachable.";
+                    return "The destination network is unreachable";
                 case IPStatus.DestinationPortUnreachable:
-                    return "The destination port is unreachable.";
+                    return "The destination port is unreachable";
                 case IPStatus.DestinationProhibited:
-                    return "Contact with the destination host is prohibited.";
+                    return "Contact with the destination host is prohibited";
                 case IPStatus.DestinationScopeMismatch:
-                    return "The destination host is in a different scope.";
+                    return "The destination host is in a different scope";
                 case IPStatus.DestinationUnreachable:
-                    return "The destination is unreachable.";
+                    return "The destination is unreachable";
                 case IPStatus.HardwareError:
-                    return "A hardware error has occurred.";
+                    return "A hardware error has occurred";
                 case IPStatus.IcmpError:
-                    return "A protocol error hs occurred.";
+                    return "A protocol error hs occurred";
                 case IPStatus.NoResources:
-                    return "Insufficient network resources.";
+                    return "Insufficient network resources";
                 case IPStatus.PacketTooBig:
-                    return "The packet is too big.";
+                    return "The packet is too big";
                 case IPStatus.ParameterProblem:
-                    return "A node has encountered a problem while processing the packet header.";
+                    return "A node has encountered a problem while processing the packet header";
                 case IPStatus.SourceQuench:
-                    return "The ping request was discarded.";
+                    return "The ping request was discarded";
                 case IPStatus.TimedOut:
-                    return "The ping request timed out.";
+                    return "The ping request timed out";
                 case IPStatus.TimeExceeded:
-                    return "The ping request TTL was exceeded.";
+                    return "The ping request TTL was exceeded";
                 case IPStatus.TtlExpired:
-                    return "The ping request TTL expired.";
+                    return "The ping request TTL expired";
                 default:
-                    return "An unknown error occurred.";
+                    return "An unknown error occurred";
             }
         }
     }

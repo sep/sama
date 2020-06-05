@@ -93,7 +93,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Http).Count());
+            Assert.AreEqual(1, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Http).Count());
 
             _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "Q"), NotificationType.EndpointAdded);
         }
@@ -105,7 +105,7 @@ namespace TestSama.Controllers
 
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Icmp).Count());
+            Assert.AreEqual(1, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "Q" && e.Kind == Endpoint.EndpointKind.Icmp).Count());
 
             _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "Q"), NotificationType.EndpointAdded);
         }
@@ -118,7 +118,7 @@ namespace TestSama.Controllers
             var result = await _controller.Create(new HttpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Http }) as ViewResult;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "Q").Count());
+            Assert.AreEqual(0, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "Q").Count());
         }
 
         [TestMethod]
@@ -129,21 +129,21 @@ namespace TestSama.Controllers
             var result = await _controller.Create(new IcmpEndpointViewModel { Name = "Q", Kind = Endpoint.EndpointKind.Icmp }) as ViewResult;
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "Q").Count());
+            Assert.AreEqual(0, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "Q").Count());
         }
 
         [TestMethod]
         public async Task EditShouldUpdateHttpEndpointAndResetStateWhenModelIsValid()
         {
-            var endpoint = _testDbContext.Endpoints.Where(e => e.Name == "A").Single();
+            var endpoint = _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "A").Single();
             endpoint.Name = "W";
             _testDbContext.Entry(endpoint).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
 
             var result = await _controller.Edit(1, (HttpEndpointViewModel)endpoint.ToEndpointViewModel()) as RedirectToActionResult;
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
-            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
+            Assert.AreEqual(1, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "W").Count());
+            Assert.AreEqual(0, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "A").Count());
             _stateService.Received().RemoveStatus(endpoint.Id);
 
             _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "W"), NotificationType.EndpointReconfigured);
@@ -152,15 +152,15 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task EditShouldUpdateIcmpEndpointAndResetStateWhenModelIsValid()
         {
-            var endpoint = _testDbContext.Endpoints.Where(e => e.Name == "E").Single();
+            var endpoint = _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "E").Single();
             endpoint.Name = "W";
             _testDbContext.Entry(endpoint).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
 
             var result = await _controller.Edit(3, (IcmpEndpointViewModel)endpoint.ToEndpointViewModel()) as RedirectToActionResult;
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "W").Count());
-            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "E").Count());
+            Assert.AreEqual(1, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "W").Count());
+            Assert.AreEqual(0, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "E").Count());
             _stateService.Received().RemoveStatus(endpoint.Id);
 
             _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "W"), NotificationType.EndpointReconfigured);
@@ -169,13 +169,13 @@ namespace TestSama.Controllers
         [TestMethod]
         public async Task ShouldDeleteEndpoint()
         {
-            Assert.AreEqual(1, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
+            Assert.AreEqual(1, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "A").Count());
 
             var result = await _controller.DeleteConfirmed(1) as RedirectToActionResult;
 
             Assert.IsNotNull(result);
             Assert.AreEqual("List", result.ActionName);
-            Assert.AreEqual(0, _testDbContext.Endpoints.Where(e => e.Name == "A").Count());
+            Assert.AreEqual(0, _testDbContext.Endpoints.AsQueryable().Where(e => e.Name == "A").Count());
             _stateService.Received().RemoveStatus(1);
 
             _notifier.Received().NotifyMisc(Arg.Is<Endpoint>(ep => ep.Name == "A"), NotificationType.EndpointRemoved);

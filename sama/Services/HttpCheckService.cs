@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using sama.Models;
-using System.Net.Http;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using sama.Extensions;
+using sama.Models;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace sama.Services
 {
@@ -60,7 +60,7 @@ namespace sama.Services
                     if (ex is HttpRequestException && ex.InnerException != null)
                         ex = ex.InnerException;
                     if (ex is TaskCanceledException)
-                        ex = new Exception($"The request timed out after {ClientTimeout.TotalSeconds} sec.");
+                        ex = new Exception($"The request timed out after {ClientTimeout.TotalSeconds} sec");
 
                     SetFailure(result, ex);
                     return result;
@@ -69,7 +69,7 @@ namespace sama.Services
                 var response = task.Result;
                 if (!IsExpectedStatusCode(endpoint, response))
                 {
-                    SetFailure(result, new Exception($"HTTP status code is {(int)response.StatusCode}."));
+                    SetFailure(result, new Exception($"HTTP status code is {(int)response.StatusCode}"));
                     return result;
                 }
 
@@ -86,14 +86,14 @@ namespace sama.Services
                 }
                 catch (Exception ex)
                 {
-                    SetFailure(result, new Exception($"Failed to read HTTP content: {ex.Message}.", ex));
+                    SetFailure(result, new Exception($"Failed to read HTTP content: {ex.Message}", ex));
                     return result;
                 }
 
                 var index = contentTask.Result.IndexOf(endpoint.GetHttpResponseMatch());
                 if (index < 0)
                 {
-                    SetFailure(result, new Exception("The keyword match was not found."));
+                    SetFailure(result, new Exception("The keyword match was not found"));
                     return result;
                 }
                 else
