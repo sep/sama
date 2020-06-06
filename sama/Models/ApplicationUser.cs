@@ -7,6 +7,7 @@ namespace sama.Models
     public class ApplicationUser
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public Guid Id { get; set; }
 
         [Required]

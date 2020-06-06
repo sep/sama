@@ -68,7 +68,7 @@ namespace sama.Services
                 {
                     if (CreatePasswordHash(password, out string hash, out string metadata))
                     {
-                        var user = new ApplicationUser { UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
+                        var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
                         dbContext.Users.Add(user);
                         await dbContext.SaveChangesAsync();
                         return user;
@@ -85,7 +85,7 @@ namespace sama.Services
             {
                 if (CreatePasswordHash(password, out string hash, out string metadata))
                 {
-                    var user = new ApplicationUser { UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
+                    var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
                     dbContext.Users.Add(user);
                     await dbContext.SaveChangesAsync();
                     return user;

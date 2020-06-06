@@ -24,7 +24,7 @@ namespace sama.Services
 
             if (!string.IsNullOrWhiteSpace(_settingsService.Ldap_SslValidCert))
             {
-                if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) || sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
+                if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
                 {
                     // Unacceptable errors are present; throw
                     throw GetAppropriateException(true, chain, sslPolicyErrors, false);
@@ -35,7 +35,8 @@ namespace sama.Services
                     {
                         foreach (var status in el.ChainElementStatus)
                         {
-                            if (status.Status != X509ChainStatusFlags.NoError && status.Status != X509ChainStatusFlags.UntrustedRoot)
+                            if (status.Status == X509ChainStatusFlags.NoError) continue;
+                            if (status.Status.HasFlag(X509ChainStatusFlags.Cyclic) || status.Status.HasFlag(X509ChainStatusFlags.ExplicitDistrust) || status.Status.HasFlag(X509ChainStatusFlags.NotSignatureValid) || status.Status.HasFlag(X509ChainStatusFlags.Revoked))
                             {
                                 // Unacceptable errors are present; throw
                                 throw GetAppropriateException(true, chain, sslPolicyErrors, false);
@@ -79,7 +80,7 @@ namespace sama.Services
             var customCertPem = endpoint.GetHttpCustomTlsCert();
             if (!string.IsNullOrWhiteSpace(customCertPem))
             {
-                if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) || sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
+                if (sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable))
                 {
                     // Unacceptable errors are present; throw
                     throw GetAppropriateException(false, chain, sslPolicyErrors, false);
@@ -90,7 +91,8 @@ namespace sama.Services
                     {
                         foreach (var status in el.ChainElementStatus)
                         {
-                            if (status.Status != X509ChainStatusFlags.NoError && status.Status != X509ChainStatusFlags.UntrustedRoot)
+                            if (status.Status == X509ChainStatusFlags.NoError) continue;
+                            if (status.Status.HasFlag(X509ChainStatusFlags.Cyclic) || status.Status.HasFlag(X509ChainStatusFlags.ExplicitDistrust) || status.Status.HasFlag(X509ChainStatusFlags.NotSignatureValid) || status.Status.HasFlag(X509ChainStatusFlags.Revoked))
                             {
                                 // Unacceptable errors are present; throw
                                 throw GetAppropriateException(false, chain, sslPolicyErrors, false);

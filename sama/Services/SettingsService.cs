@@ -176,7 +176,7 @@ namespace sama.Services
                 }
                 else if (!string.IsNullOrWhiteSpace(valueString))
                 {
-                    setting = new Models.Setting { Section = section.ToLowerInvariant(), Name = name.ToLowerInvariant(), Value = valueString };
+                    setting = new Models.Setting { Id = Guid.NewGuid(), Section = section.ToLowerInvariant(), Name = name.ToLowerInvariant(), Value = valueString };
                     dbContext.Settings.Add(setting);
                 }
 
