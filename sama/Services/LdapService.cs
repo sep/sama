@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace sama.Services
 {
-    public class LdapService : IDisposable
+    public class LdapService
     {
         private readonly SettingsService _settingsService;
         private readonly CertificateValidationService _certificateValidationService;
@@ -48,10 +48,6 @@ namespace sama.Services
         public virtual bool IsLdapEnabled()
         {
             return _settingsService.Ldap_Enable;
-        }
-
-        public void Dispose()
-        {
         }
 
         private bool Ldap_UserDefinedServerCertValidationDelegate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)

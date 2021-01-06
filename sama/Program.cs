@@ -1,9 +1,7 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace sama
 {
@@ -11,7 +9,7 @@ namespace sama
     {
         public static void Main(string[] args)
         {
-            var host = BuildWebHost(args);
+            var host = CreateHostBuilder(args).Build();
 
             using (var scope = host.Services.CreateScope())
             {
@@ -24,20 +22,13 @@ namespace sama
             host.Run();
         }
 
-        public static IWebHost BuildWebHost(string[] args)
+        public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("hosting.json", optional: true)
-                .AddCommandLine(args)
-                .Build();
-
-            return WebHost.CreateDefaultBuilder(args)
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
-                .UseConfiguration(config)
-                .UseStartup<Startup>()
-                .Build();
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(whb =>
+                {
+                    whb.UseStartup<Startup>();
+                });
         }
     }
 }

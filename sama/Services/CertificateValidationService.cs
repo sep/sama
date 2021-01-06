@@ -126,7 +126,7 @@ namespace sama.Services
             }
         }
 
-        private X509Certificate2 LoadCert(bool ldap, string pemCert)
+        private static X509Certificate2 LoadCert(bool ldap, string pemCert)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace sama.Services
                 var start = pemCert.IndexOf(certStart) + certStart.Length;
                 var end = pemCert.IndexOf(certEnd, start);
 
-                var certData = Convert.FromBase64String(pemCert.Substring(start, end - start));
+                var certData = Convert.FromBase64String(pemCert[start..end]);
 
                 return new X509Certificate2(certData);
             }
@@ -146,7 +146,7 @@ namespace sama.Services
             }
         }
 
-        private Exception GetAppropriateException(bool ldap, X509Chain chain, SslPolicyErrors sslPolicyErrors, bool customCertMismatch)
+        private static Exception GetAppropriateException(bool ldap, X509Chain chain, SslPolicyErrors sslPolicyErrors, bool customCertMismatch)
         {
             var stb = new StringBuilder();
             if (customCertMismatch)

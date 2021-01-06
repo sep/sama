@@ -15,27 +15,24 @@ namespace sama.Services
 
         public virtual LdapUser Authenticate(string host, int port, bool useSsl, string bindDn, string bindPassword, string searchBaseDn, string searchFilter, string nameAttribute, RemoteCertificateValidationCallback certValidator)
         {
-            using (var ldap = new LdapConnection())
+            using var ldap = new LdapConnection() { SecureSocketLayer = useSsl };
+            if (certValidator != null)
+                ldap.UserDefinedServerCertValidationDelegate += certValidator;
+            ldap.Connect(host, port);
+            ldap.Bind(LdapConnection.LdapV3, bindDn, bindPassword);
+
+            var results = ldap.Search(searchBaseDn,
+                LdapConnection.ScopeSub,
+                searchFilter,
+                new[] { nameAttribute },
+                false);
+            var entry = results.Next();
+
+            return new LdapUser
             {
-                ldap.SecureSocketLayer = useSsl;
-                if (certValidator != null)
-                    ldap.UserDefinedServerCertValidationDelegate += certValidator;
-                ldap.Connect(host, port);
-                ldap.Bind(LdapConnection.LdapV3, bindDn, bindPassword);
-
-                var results = ldap.Search(searchBaseDn,
-                    LdapConnection.ScopeSub,
-                    searchFilter,
-                    new[] { nameAttribute },
-                    false);
-                var entry = results.Next();
-
-                return new LdapUser
-                {
-                    DistinguishedName = entry.Dn,
-                    DisplayName = entry.GetAttribute(nameAttribute).StringValue
-                };
-            }
+                DistinguishedName = entry.Dn,
+                DisplayName = entry.GetAttribute(nameAttribute).StringValue
+            };
         }
     }
 }

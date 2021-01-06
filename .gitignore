@@ -260,9 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 
-# Environment-specific settings
-appsettings.*.json
-
 # VS Code
 .vscode/
 

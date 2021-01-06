@@ -18,10 +18,10 @@
     "sama": {
       "commandName": "Project",
       "launchBrowser": true,
+      "dotnetRunMessages": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "http://localhost:50048"
+      }
     }
   }
 }
