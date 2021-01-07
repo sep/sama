@@ -19,17 +19,17 @@ namespace sama.Services
             _tcpWrapper = tcpWrapper;
         }
 
-        public void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
         {
             // Ignore.
         }
 
-        public void NotifyMisc(Endpoint endpoint, NotificationType type)
+        public virtual void NotifyMisc(Endpoint endpoint, NotificationType type)
         {
             // Ignore.
         }
 
-        public void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
+        public virtual void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
         {
             var host = _settings.Notifications_Graphite_Host;
             var port = _settings.Notifications_Graphite_Port;
@@ -61,7 +61,7 @@ namespace sama.Services
             }
         }
 
-        public void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf)
+        public virtual void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf)
         {
             // Ignore.
         }

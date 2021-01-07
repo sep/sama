@@ -4,35 +4,37 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using sama.Models;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace sama.Services
 {
     public class SlackNotificationService : INotificationService
     {
-        private static int NotifyUpQueueDelaySeconds = 2;
+        private const int NOTIFY_UP_QUEUE_DELAY_MILLISECONDS = 2500;
 
         private readonly ILogger<SlackNotificationService> _logger;
         private readonly SettingsService _settings;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ConcurrentBag<Endpoint> _delayNotifyUpEndpoints;
-        private readonly Timer _delayNotifyUpTimer;
+        private readonly BackgroundExecutionWrapper _bgExec;
 
-        public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, IServiceProvider serviceProvider)
+        private readonly List<Endpoint> _delayNotifyUpEndpoints;
+        private readonly List<Task> _delayTasks;
+
+        public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, IServiceProvider serviceProvider, BackgroundExecutionWrapper bgExec)
         {
             _logger = logger;
             _settings = settings;
             _serviceProvider = serviceProvider;
+            _bgExec = bgExec;
 
-            _delayNotifyUpEndpoints = new ConcurrentBag<Endpoint>();
-            _delayNotifyUpTimer = new Timer(_ => SendDelayedNotification());
+            _delayNotifyUpEndpoints = new List<Endpoint>();
+            _delayTasks = new List<Task>();
         }
 
-        public void NotifyMisc(Endpoint endpoint, NotificationType type)
+        public virtual void NotifyMisc(Endpoint endpoint, NotificationType type)
         {
             switch (type)
             {
@@ -56,12 +58,12 @@ namespace sama.Services
             }
         }
 
-        public void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
+        public virtual void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
         {
             // Ignore this notification type.
         }
 
-        public void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
         {
             var failureMessage = reason?.Message;
 
@@ -79,7 +81,7 @@ namespace sama.Services
             SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} is down: {failureMessage}");
         }
 
-        public void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf)
+        public virtual void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf)
         {
             if (downAsOf.HasValue)
             {
@@ -88,12 +90,11 @@ namespace sama.Services
             }
             else
             {
-                //SendNotification($"The endpoint '{endpoint.Name}' is up. Hooray!");
                 EnqueueDelayedUpNotification(endpoint);
             }
         }
 
-        private void SendNotification(string message)
+        protected virtual void SendNotification(string message)
         {
             var url = _settings.Notifications_Slack_WebHook;
             if (string.IsNullOrWhiteSpace(url)) return;
@@ -113,18 +114,30 @@ namespace sama.Services
             }
         }
 
-        private void EnqueueDelayedUpNotification(Endpoint endpoint)
+        protected virtual void EnqueueDelayedUpNotification(Endpoint endpoint)
         {
-            _delayNotifyUpEndpoints.Add(endpoint);
-            _delayNotifyUpTimer.Change(TimeSpan.FromSeconds(NotifyUpQueueDelaySeconds), Timeout.InfiniteTimeSpan);
+            lock(_delayNotifyUpEndpoints)
+            {
+                _delayNotifyUpEndpoints.Add(endpoint);
+                _delayTasks.Add(_bgExec.ExecuteDelayed(() => SendDelayedNotification(), NOTIFY_UP_QUEUE_DELAY_MILLISECONDS));
+            }
         }
 
-        private void SendDelayedNotification()
+        protected virtual void SendDelayedNotification()
         {
             var endpoints = new List<Endpoint>();
-            while (_delayNotifyUpEndpoints.TryTake(out var endpoint))
+            lock (_delayNotifyUpEndpoints)
             {
-                endpoints.Add(endpoint);
+                if (_delayTasks.Count > 0) _delayTasks.RemoveAt(0);
+
+                if (_delayTasks.Count > 0)
+                {
+                    // Wait until the last task to do the notification.
+                    return;
+                }
+
+                endpoints.AddRange(_delayNotifyUpEndpoints);
+                _delayNotifyUpEndpoints.Clear();
             }
 
             if (endpoints.Count < 1)
@@ -142,6 +155,6 @@ namespace sama.Services
             }
         }
 
-        private string FormatEndpointName(string rawName) => $"`{rawName.Replace("`", "")}`";
+        protected virtual string FormatEndpointName(string rawName) => $"`{rawName.Replace("`", "")}`";
     }
 }

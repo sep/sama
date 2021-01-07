@@ -1,10 +1,12 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Sockets;
 
 namespace sama.Services
 {
     /// <summary>
     /// This is a wrapper around TcpClient, which cannot be (easily) tested.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class TcpClientWrapper
     {
         public virtual void SendData(string address, int port, byte[] data)
