@@ -25,7 +25,7 @@ namespace sama.Services
             _endpointStates.AddOrUpdate(endpointId, new EndpointStatus { InProgressResults = new List<EndpointCheckResult>() }, (id, oldStatus) =>
             {
                 var newStatus = oldStatus.DeepClone();
-                newStatus.InProgressResults = (newStatus.InProgressResults ?? new List<EndpointCheckResult>());
+                newStatus.InProgressResults ??= new List<EndpointCheckResult>();
                 return newStatus;
             });
         }
@@ -56,13 +56,10 @@ namespace sama.Services
 
         public virtual IReadOnlyDictionary<Endpoint, EndpointStatus> GetAll()
         {
-            List<Endpoint> endpoints;
-            using (var scope = _provider.CreateScope())
-            using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
-            {
-                endpoints = dbContext.Endpoints.ToList();
-            }
+            using var scope = _provider.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+            var endpoints = dbContext.Endpoints.ToList();
             var states = endpoints.ToDictionary((e) => e, (e) => GetStatus(e.Id));
             return new ReadOnlyDictionary<Endpoint, EndpointStatus>(states);
         }
@@ -99,17 +96,15 @@ namespace sama.Services
             }
             else
             {
-                status.DownAsOf = status.DownAsOf ?? status.LastFinishedResults?.FirstOrDefault(r => !r.Success)?.Start;
+                status.DownAsOf ??= status.LastFinishedResults?.FirstOrDefault(r => !r.Success)?.Start;
             }
         }
 
         private Endpoint GetEndpointById(int endpointId)
         {
-            using (var scope = _provider.CreateScope())
-            using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
-            {
-                return dbContext.Endpoints.FirstOrDefault(ep => ep.Id == endpointId);
-            }
+            using var scope = _provider.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            return dbContext.Endpoints.FirstOrDefault(ep => ep.Id == endpointId);
         }
 
         private void NotifyNewestCheckResult(Endpoint endpoint, EndpointCheckResult endpointCheckResult)
@@ -121,12 +116,12 @@ namespace sama.Services
         {
             if (status.InProgressResults.Last().Success)
             {
-                if (status.IsUp == false)
+                if (status.IsUp == false || status.IsUp == null)
                 {
                     // Endpoint has just come up
                     _notifier.NotifyUp(endpoint, status.DownAsOf);
                 }
-                // If old status is true or null, don't notify that it's up
+                // If old status is true, don't notify that it's up
             }
             else
             {

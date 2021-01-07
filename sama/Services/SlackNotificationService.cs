@@ -4,21 +4,32 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using sama.Models;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Threading;
 
 namespace sama.Services
 {
     public class SlackNotificationService : INotificationService
     {
+        private static int NotifyUpQueueDelaySeconds = 2;
+
         private readonly ILogger<SlackNotificationService> _logger;
         private readonly SettingsService _settings;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ConcurrentBag<Endpoint> _delayNotifyUpEndpoints;
+        private readonly Timer _delayNotifyUpTimer;
 
         public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _settings = settings;
             _serviceProvider = serviceProvider;
+
+            _delayNotifyUpEndpoints = new ConcurrentBag<Endpoint>();
+            _delayNotifyUpTimer = new Timer(_ => SendDelayedNotification());
         }
 
         public void NotifyMisc(Endpoint endpoint, NotificationType type)
@@ -26,19 +37,19 @@ namespace sama.Services
             switch (type)
             {
                 case NotificationType.EndpointAdded:
-                    SendNotification($"The endpoint '{endpoint.Name}' has been added.");
+                    SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} has been added and will be checked shortly.");
                     break;
                 case NotificationType.EndpointRemoved:
-                    SendNotification($"The endpoint '{endpoint.Name}' has been removed.");
+                    SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} has been removed.");
                     break;
                 case NotificationType.EndpointEnabled:
-                    SendNotification($"The endpoint '{endpoint.Name}' has been enabled.");
+                    SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} has been enabled and will be checked shortly.");
                     break;
                 case NotificationType.EndpointDisabled:
-                    SendNotification($"The endpoint '{endpoint.Name}' has been disabled.");
+                    SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} has been disabled.");
                     break;
                 case NotificationType.EndpointReconfigured:
-                    SendNotification($"The endpoint '{endpoint.Name}' has been reconfigured.");
+                    SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} has been reconfigured and will be checked shortly.");
                     break;
                 default:
                     return;
@@ -65,7 +76,7 @@ namespace sama.Services
                 }
             }
 
-            SendNotification($"The endpoint '{endpoint.Name}' is down: {failureMessage}");
+            SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} is down: {failureMessage}");
         }
 
         public void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf)
@@ -73,11 +84,12 @@ namespace sama.Services
             if (downAsOf.HasValue)
             {
                 var downLength = DateTimeOffset.UtcNow - downAsOf.Value;
-                SendNotification($"The endpoint '{endpoint.Name}' is up after being down for {downLength.Humanize()}. Hooray!");
+                SendNotification($"The endpoint {FormatEndpointName(endpoint.Name)} is up after being down for {downLength.Humanize()}. Hooray!");
             }
             else
             {
-                SendNotification($"The endpoint '{endpoint.Name}' is up. Hooray!");
+                //SendNotification($"The endpoint '{endpoint.Name}' is up. Hooray!");
+                EnqueueDelayedUpNotification(endpoint);
             }
         }
 
@@ -100,5 +112,36 @@ namespace sama.Services
                 _logger.LogError(0, "Unable to send Slack notification", ex);
             }
         }
+
+        private void EnqueueDelayedUpNotification(Endpoint endpoint)
+        {
+            _delayNotifyUpEndpoints.Add(endpoint);
+            _delayNotifyUpTimer.Change(TimeSpan.FromSeconds(NotifyUpQueueDelaySeconds), Timeout.InfiniteTimeSpan);
+        }
+
+        private void SendDelayedNotification()
+        {
+            var endpoints = new List<Endpoint>();
+            while (_delayNotifyUpEndpoints.TryTake(out var endpoint))
+            {
+                endpoints.Add(endpoint);
+            }
+
+            if (endpoints.Count < 1)
+            {
+                return;
+            }
+            else if (endpoints.Count == 1)
+            {
+                SendNotification($"The endpoint {FormatEndpointName(endpoints.First().Name)} is up. Hooray!");
+            }
+            else
+            {
+                var stringifiedEndpoints = string.Join(", ", endpoints.Select(ep => FormatEndpointName(ep.Name)));
+                SendNotification($"The following endpoints are up: {stringifiedEndpoints}. Hooray!");
+            }
+        }
+
+        private string FormatEndpointName(string rawName) => $"`{rawName.Replace("`", "")}`";
     }
 }

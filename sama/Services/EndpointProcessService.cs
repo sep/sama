@@ -42,6 +42,7 @@ namespace sama.Services
 
             try
             {
+                SetEndpointInProgress(endpoint);
                 var result = service.Check(endpoint);
                 if (result.Success)
                 {
@@ -74,6 +75,13 @@ namespace sama.Services
             }
 
             return null;
+        }
+
+        private void SetEndpointInProgress(Endpoint endpoint)
+        {
+            if (!IsEndpointCurrent(endpoint)) return;
+
+            _stateService.SetEndpointCheckInProgress(endpoint.Id);
         }
 
         private void SetEndpointSuccess(Endpoint endpoint, EndpointCheckResult result)
