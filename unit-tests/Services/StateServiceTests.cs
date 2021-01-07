@@ -17,9 +17,9 @@ namespace TestSama.Services
         private AggregateNotificationService _notifier;
         private StateService _service;
 
-        private Endpoint _ep1 = new Endpoint { Id = 100, Name = "A", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
-        private Endpoint _ep2 = new Endpoint { Id = 200, Name = "B", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
-        private Endpoint _ep3 = new Endpoint { Id = 300, Name = "C", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
+        private readonly Endpoint _ep1 = new Endpoint { Id = 100, Name = "A", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
+        private readonly Endpoint _ep2 = new Endpoint { Id = 200, Name = "B", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
+        private readonly Endpoint _ep3 = new Endpoint { Id = 300, Name = "C", Kind = Endpoint.EndpointKind.Http, JsonConfig = "{}" };
 
         [TestInitialize]
         public void Setup()
@@ -92,7 +92,7 @@ namespace TestSama.Services
             AssertResultNotification(_ep2.Id, result);
             AssertNoUpNotifications();
             AssertNoDownNotifications();
-            
+
             _service.AddEndpointCheckResult(_ep3.Id, result, true);
             AssertResultNotification(_ep3.Id, result);
             AssertUpNotification(_ep3.Id);
@@ -159,7 +159,7 @@ namespace TestSama.Services
             Assert.AreEqual(0, GetAllNonNull().Count);
         }
 
-        private void AssertStateEquality(bool? expectedIsUp, string expectedMessage, EndpointStatus actualStatus)
+        private static void AssertStateEquality(bool? expectedIsUp, string expectedMessage, EndpointStatus actualStatus)
         {
             Assert.AreEqual(expectedIsUp, actualStatus?.IsUp);
             Assert.AreEqual(expectedMessage, actualStatus?.Error?.Message);
@@ -172,7 +172,7 @@ namespace TestSama.Services
 
         private void AssertResultNotification(int endpointId, EndpointCheckResult result)
         {
-            _notifier.Received(1).NotifySingleResult(Arg.Is<Endpoint>(ep => ep.Id == endpointId), Arg.Any<EndpointCheckResult>());
+            _notifier.Received(1).NotifySingleResult(Arg.Is<Endpoint>(ep => ep.Id == endpointId), result);
         }
 
         private void AssertNoResultNotifications()

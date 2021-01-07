@@ -11,11 +11,9 @@ namespace sama.Services
     {
         public virtual void SendData(string address, int port, byte[] data)
         {
-            using (var client = new TcpClient(address, port))
-            using (var stream = client.GetStream())
-            {
-                stream.Write(data, 0, data.Length);
-            }
+            using var client = new TcpClient(address, port);
+            using var stream = client.GetStream();
+            stream.Write(data, 0, data.Length);
         }
     }
 }

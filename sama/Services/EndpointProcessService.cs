@@ -109,12 +109,10 @@ namespace sama.Services
 
         private bool IsEndpointCurrent(Endpoint endpoint)
         {
-            using (var scope = _provider.CreateScope())
-            using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
-            {
-                var latest = dbContext.Endpoints.FirstOrDefault(e => e.Id == endpoint.Id);
-                return latest?.LastUpdated == endpoint.LastUpdated;
-            }
+            using var scope = _provider.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var latest = dbContext.Endpoints.FirstOrDefault(e => e.Id == endpoint.Id);
+            return latest?.LastUpdated == endpoint.LastUpdated;
         }
 
         private int MaxRetries

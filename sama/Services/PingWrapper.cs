@@ -12,11 +12,9 @@ namespace sama.Services
     {
         public virtual (IPStatus, TimeSpan) SendPing(string address)
         {
-            using(var ping = new Ping())
-            {
-                var result = ping.Send(address);
-                return (result.Status, TimeSpan.FromMilliseconds(result.RoundtripTime));
-            }
+            using var ping = new Ping();
+            var result = ping.Send(address);
+            return (result.Status, TimeSpan.FromMilliseconds(result.RoundtripTime));
         }
     }
 }
