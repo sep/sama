@@ -7,8 +7,8 @@
     <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
     <AssetTargetFallback>$(AssetTargetFallback);portable-net45+win8+wp8+wpa81;</AssetTargetFallback>
     <UserSecretsId>aspnet-WebApplication1-1C1369D5-B3C7-4414-ADD2-629BA88766C5</UserSecretsId>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyyyMMdd-HHmm`))</VersionSuffix>
   </PropertyGroup>
 
