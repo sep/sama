@@ -36,10 +36,8 @@ namespace sama
                 builder.AddDebug();
             });
 
-            services.AddMvc(options =>
-            {
-                options.EnableEndpointRouting = false;
-            });
+            services.AddControllersWithViews()
+                .AddRazorRuntimeCompilation();
 
             // Adds a default in-memory implementation of IDistributedCache.
             services.AddDistributedMemoryCache();
@@ -63,6 +61,7 @@ namespace sama
             services.AddSingleton<SettingsService>();
             services.AddSingleton<PingWrapper>();
             services.AddSingleton<TcpClientWrapper>();
+            services.AddSingleton<SqlConnectionWrapper>();
             services.AddSingleton<CertificateValidationService>();
             services.AddSingleton<BackgroundExecutionWrapper>();
 
@@ -71,6 +70,7 @@ namespace sama
 
             services.AddSingleton<INotificationService, SlackNotificationService>();
             services.AddSingleton<INotificationService, GraphiteNotificationService>();
+            services.AddSingleton<INotificationService, SqlServerNotificationService>();
             services.AddSingleton<AggregateNotificationService>();
 
             services.AddTransient<System.Net.Http.HttpClientHandler>();
@@ -90,9 +90,13 @@ namespace sama
 
             app.UseStaticFiles();
 
+            app.UseRouting();
+
             app.UseSession(new SessionOptions { IdleTimeout = TimeSpan.FromMinutes(30) });
 
             app.UseAuthentication();
+
+            app.UseAuthorization();
 
             var behindReverseProxy = Configuration.GetSection("SAMA").GetValue<bool>("BehindReverseProxy");
             if (behindReverseProxy)
@@ -103,11 +107,9 @@ namespace sama
                 });
             }
 
-            app.UseMvc(routes =>
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
+                endpoints.MapControllerRoute("default", "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
             });
         }
     }

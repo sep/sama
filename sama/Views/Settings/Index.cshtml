@@ -52,7 +52,7 @@
                 <label asp-for="SlackWebHook" class="control-label"></label>
                 <input asp-for="SlackWebHook" class="form-control" />
                 <span asp-validation-for="SlackWebHook" class="text-danger"></span>
-                <p class="text-left">To enable Slack notifications, paste the <a href="https://api.slack.com/custom-integrations/incoming-webhooks">Webhook URL</a> into this field.</p>
+                <p class="text-left">To enable Slack notifications, paste the <a href="https://api.slack.com/legacy/custom-integrations/messaging/webhooks">Webhook URL</a> into this field.</p>
             </div>
 
             <h4>Graphite</h4>
@@ -69,6 +69,27 @@
                 <p class="text-left">2003 is a commonly used port.</p>
             </div>
 
+            <h4>SQL Server</h4>
+            <p class="text-left">Up and down events can be logged to SQL Server. The configured table will be created if it doesn't exist, assuming permissions allow.</p>
+            <div class="text-left">
+                <a class="btn btn-xs btn-info" role="button" data-toggle="collapse" href="#sqlServerCodeBlock"><span class="glyphicon glyphicon-console"></span> Show/hide example <code>CREATE</code> script</a>
+                <div class="collapse" id="sqlServerCodeBlock">
+                    <div class="well well-sm collapsible-code-block"><code>@(string.Format(Model.SqlServerCreateTableScript, "dbo.SamaEvents"))</code></div>
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label asp-for="SqlServerConnection" class="control-label"></label>
+                <input asp-for="SqlServerConnection" class="form-control" />
+                <span asp-validation-for="SqlServerConnection" class="text-danger"></span>
+                <p class="text-left">See <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlconnection.connectionstring?view=sqlclient-dotnet-core-2.1#remarks">documentation</a> for details</p>
+            </div>
+            <div class="form-group">
+                <label asp-for="SqlServerTable" class="control-label"></label>
+                <input asp-for="SqlServerTable" class="form-control" />
+                <span asp-validation-for="SqlServerTable" class="text-danger"></span>
+                <p class="text-left">Example: <code>dbo.SamaEvents</code></p>
+            </div>
         </div>
         <div class="col-xs-12 col-sm-4">
             <h3>LDAP</h3>

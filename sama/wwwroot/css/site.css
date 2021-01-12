@@ -43,3 +43,13 @@ textarea {
 .validation-summary-errors ul li {
     white-space: pre-wrap;
 }
+
+.collapsible-code-block {
+    margin-top: 4px;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.collapsible-code-block code {
+    padding: 0;
+}

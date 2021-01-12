@@ -37,6 +37,18 @@ namespace sama.Services
             set { SetSetting("GraphiteNotifications", "ServerPort", value); }
         }
 
+        public virtual string Notifications_SqlServer_Connection
+        {
+            get { return GetSetting("SqlServerNotifications", "Connection", ""); }
+            set { SetSetting("SqlServerNotifications", "Connection", value); }
+        }
+
+        public virtual string Notifications_SqlServer_TableName
+        {
+            get { return GetSetting("SqlServerNotifications", "TableName", ""); }
+            set { SetSetting("SqlServerNotifications", "TableName", value); }
+        }
+
         public virtual int Monitor_IntervalSeconds
         {
             get { return GetSetting("Monitor", "IntervalSeconds", 90); }

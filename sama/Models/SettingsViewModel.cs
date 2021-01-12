@@ -27,9 +27,18 @@ namespace sama.Models
 
         [Display(Name = "Graphite server hostname")]
         public string GraphiteHost { get; set; }
-        
+
         [Range(0, 65535), Display(Name = "Graphite server port")]
         public int GraphitePort { get; set; }
+
+
+        [Display(Name = "SQL Server connection string")]
+        public string SqlServerConnection { get; set; }
+
+        [Display(Name = "SQL Server table name")]
+        public string SqlServerTable { get; set; }
+
+        public string SqlServerCreateTableScript { get; set; }
 
 
         [Display(Name = "Enable LDAP")]

@@ -26,6 +26,8 @@ namespace TestSama.Services
             Assert.AreEqual("", _service.Notifications_Slack_WebHook);
             Assert.AreEqual("", _service.Notifications_Graphite_Host);
             Assert.AreEqual(0, _service.Notifications_Graphite_Port);
+            Assert.AreEqual("", _service.Notifications_SqlServer_Connection);
+            Assert.AreEqual("", _service.Notifications_SqlServer_TableName);
             Assert.AreEqual(90, _service.Monitor_IntervalSeconds);
             Assert.AreEqual(1, _service.Monitor_MaxRetries);
             Assert.AreEqual(15, _service.Monitor_RequestTimeoutSeconds);
@@ -48,6 +50,8 @@ namespace TestSama.Services
             _service.Notifications_Slack_WebHook = "a";
             _service.Notifications_Graphite_Host = "abc";
             _service.Notifications_Graphite_Port = 5000;
+            _service.Notifications_SqlServer_Connection = "sqlConn1";
+            _service.Notifications_SqlServer_TableName = "sqlTable1";
             _service.Monitor_IntervalSeconds = 100;
             _service.Monitor_MaxRetries = 200;
             _service.Monitor_RequestTimeoutSeconds = 300;
@@ -66,6 +70,8 @@ namespace TestSama.Services
             Assert.AreEqual("a", _service.Notifications_Slack_WebHook);
             Assert.AreEqual("abc", _service.Notifications_Graphite_Host);
             Assert.AreEqual(5000, _service.Notifications_Graphite_Port);
+            Assert.AreEqual("sqlConn1", _service.Notifications_SqlServer_Connection);
+            Assert.AreEqual("sqlTable1", _service.Notifications_SqlServer_TableName);
             Assert.AreEqual(100, _service.Monitor_IntervalSeconds);
             Assert.AreEqual(200, _service.Monitor_MaxRetries);
             Assert.AreEqual(300, _service.Monitor_RequestTimeoutSeconds);

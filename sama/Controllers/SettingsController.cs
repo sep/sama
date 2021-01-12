@@ -35,6 +35,10 @@ namespace sama.Controllers
                 GraphiteHost = _settingsService.Notifications_Graphite_Host,
                 GraphitePort = _settingsService.Notifications_Graphite_Port,
 
+                SqlServerConnection = _settingsService.Notifications_SqlServer_Connection,
+                SqlServerTable = _settingsService.Notifications_SqlServer_TableName,
+                SqlServerCreateTableScript = SqlServerNotificationService.CREATE_TABLE_SCRIPT.Trim(),
+
                 LdapEnable = _settingsService.Ldap_Enable,
                 LdapHost = _settingsService.Ldap_Host,
                 LdapPort = _settingsService.Ldap_Port,
@@ -84,6 +88,9 @@ namespace sama.Controllers
 
                 _settingsService.Notifications_Graphite_Host = vm.GraphiteHost;
                 _settingsService.Notifications_Graphite_Port = vm.GraphitePort;
+
+                _settingsService.Notifications_SqlServer_Connection = vm.SqlServerConnection;
+                _settingsService.Notifications_SqlServer_TableName = vm.SqlServerTable;
 
                 _settingsService.Ldap_Enable = vm.LdapEnable;
                 _settingsService.Ldap_Host = vm.LdapHost;
