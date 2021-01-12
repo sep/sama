@@ -16,6 +16,7 @@ namespace sama
     {
         public Startup(IWebHostEnvironment env)
         {
+            Env = env;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -23,6 +24,8 @@ namespace sama
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
+
+        public IWebHostEnvironment Env { get; }
 
         public IConfigurationRoot Configuration { get; }
 
@@ -36,8 +39,11 @@ namespace sama
                 builder.AddDebug();
             });
 
-            services.AddControllersWithViews()
-                .AddRazorRuntimeCompilation();
+            var mvcBuilder = services.AddControllersWithViews();
+            if (Env.IsDevelopment())
+            {
+                mvcBuilder.AddRazorRuntimeCompilation();
+            }
 
             // Adds a default in-memory implementation of IDistributedCache.
             services.AddDistributedMemoryCache();
