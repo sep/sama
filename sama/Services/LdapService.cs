@@ -21,14 +21,14 @@ namespace sama.Services
         public virtual ApplicationUser Authenticate(string username, string password)
         {
             var ldapUser = _ldapWrapper.Authenticate(
-                    _settingsService.Ldap_Host,
+                    _settingsService.Ldap_Host!,
                     _settingsService.Ldap_Port,
                     _settingsService.Ldap_Ssl,
-                    string.Format(_settingsService.Ldap_BindDnFormat, username),
+                    string.Format(_settingsService.Ldap_BindDnFormat!, username),
                     password,
-                    _settingsService.Ldap_SearchBaseDn,
-                    string.Format(_settingsService.Ldap_SearchFilterFormat, username),
-                    _settingsService.Ldap_NameAttribute,
+                    _settingsService.Ldap_SearchBaseDn!,
+                    string.Format(_settingsService.Ldap_SearchFilterFormat!, username),
+                    _settingsService.Ldap_NameAttribute!,
                     Ldap_UserDefinedServerCertValidationDelegate
                 );
 

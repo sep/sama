@@ -19,13 +19,13 @@ namespace sama.Models
 
         [Required]
         [StringLength(64, MinimumLength = 1)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
         public EndpointKind Kind { get; set; }
 
         [Required]
-        public string JsonConfig { get; set; }
+        public string? JsonConfig { get; set; }
 
         [Required]
         public DateTimeOffset LastUpdated { get; set; }

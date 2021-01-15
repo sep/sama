@@ -55,7 +55,7 @@ namespace sama.Services
                 }
                 catch (Exception ex)
                 {
-                    if (ex is AggregateException)
+                    if (ex is AggregateException && ex.InnerException != null)
                         ex = ex.InnerException;
                     if (ex is HttpRequestException && ex.InnerException != null)
                         ex = ex.InnerException;
@@ -73,7 +73,8 @@ namespace sama.Services
                     return result;
                 }
 
-                if (string.IsNullOrWhiteSpace(endpoint.GetHttpResponseMatch()))
+                var responseMatch = endpoint.GetHttpResponseMatch();
+                if (string.IsNullOrWhiteSpace(responseMatch))
                 {
                     SetSuccess(result);
                     return result;
@@ -90,7 +91,7 @@ namespace sama.Services
                     return result;
                 }
 
-                var index = contentTask.Result.IndexOf(endpoint.GetHttpResponseMatch());
+                var index = contentTask.Result.IndexOf(responseMatch);
                 if (index < 0)
                 {
                     SetFailure(result, new Exception("The keyword match was not found"));

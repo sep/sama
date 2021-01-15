@@ -12,8 +12,8 @@ namespace sama.Models
 
         [Required]
         [StringLength(64, MinimumLength = 1)]
-        public string Name { get; set; }
-        
+        public string? Name { get; set; }
+
         public Endpoint.EndpointKind Kind { get; set; }
 
         public string KindString { get { return Utility.KindString(Kind); } }

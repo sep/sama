@@ -32,41 +32,39 @@ namespace sama.Services
 
         public virtual void AddEndpointCheckResult(int endpointId, EndpointCheckResult result, bool isFinal)
         {
-            EndpointStatus status = null;
-
-            _endpointStates.AddOrUpdate(endpointId, (id) =>
+            var status = _endpointStates.AddOrUpdate(endpointId, (id) =>
             {
-                status = new EndpointStatus();
-                status.InProgressResults = new List<EndpointCheckResult> { result };
-                return status;
+                var es = new EndpointStatus();
+                es.InProgressResults = new List<EndpointCheckResult> { result };
+                return es;
             },
             (id, oldStatus) =>
             {
-                status = oldStatus.DeepClone();
+                var es = oldStatus.DeepClone();
 
-                if (status.InProgressResults == null)
-                    status.InProgressResults = new List<EndpointCheckResult>();
+                if (es.InProgressResults == null)
+                    es.InProgressResults = new List<EndpointCheckResult>();
 
-                status.InProgressResults.Add(result);
-                return status;
+                es.InProgressResults.Add(result);
+                return es;
             });
 
             PostProcessStatus(endpointId, status, isFinal);
         }
 
-        public virtual IReadOnlyDictionary<Endpoint, EndpointStatus> GetAll()
+        public virtual IReadOnlyDictionary<Endpoint, EndpointStatus?> GetAll()
         {
             using var scope = _provider.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             var endpoints = dbContext.Endpoints.ToList();
             var states = endpoints.ToDictionary((e) => e, (e) => GetStatus(e.Id));
-            return new ReadOnlyDictionary<Endpoint, EndpointStatus>(states);
+            return new ReadOnlyDictionary<Endpoint, EndpointStatus?>(states);
         }
 
-        public virtual EndpointStatus GetStatus(int id)
+        public virtual EndpointStatus? GetStatus(int id)
         {
-            if (_endpointStates.TryGetValue(id, out EndpointStatus status))
+            if (_endpointStates.TryGetValue(id, out EndpointStatus? status))
             {
                 return status.DeepClone();
             }
@@ -81,6 +79,8 @@ namespace sama.Services
         private void PostProcessStatus(int endpointId, EndpointStatus status, bool finalizeResults)
         {
             var endpoint = GetEndpointById(endpointId);
+            if (endpoint == null) return;
+
             NotifyNewestCheckResult(endpoint, status.InProgressResults?.LastOrDefault());
 
             if (finalizeResults)
@@ -100,20 +100,24 @@ namespace sama.Services
             }
         }
 
-        private Endpoint GetEndpointById(int endpointId)
+        private Endpoint? GetEndpointById(int endpointId)
         {
             using var scope = _provider.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             return dbContext.Endpoints.FirstOrDefault(ep => ep.Id == endpointId);
         }
 
-        private void NotifyNewestCheckResult(Endpoint endpoint, EndpointCheckResult endpointCheckResult)
+        private void NotifyNewestCheckResult(Endpoint endpoint, EndpointCheckResult? endpointCheckResult)
         {
+            if (endpointCheckResult == null) return;
+
             _notifier.NotifySingleResult(endpoint, endpointCheckResult);
         }
 
         private void NotifyUpDown(Endpoint endpoint, EndpointStatus status)
         {
+            if (status.InProgressResults == null || !status.InProgressResults.Any()) return;
+
             if (status.InProgressResults.Last().Success)
             {
                 if (status.IsUp == false || status.IsUp == null)

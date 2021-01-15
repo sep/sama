@@ -19,13 +19,13 @@ namespace sama.Services
 
 
 
-        public virtual string Notifications_Slack_WebHook
+        public virtual string? Notifications_Slack_WebHook
         {
             get { return GetSetting("SlackNotifications", "WebHook", ""); }
             set { SetSetting("SlackNotifications", "WebHook", value); }
         }
 
-        public virtual string Notifications_Graphite_Host
+        public virtual string? Notifications_Graphite_Host
         {
             get { return GetSetting("GraphiteNotifications", "ServerHost", ""); }
             set { SetSetting("GraphiteNotifications", "ServerHost", value); }
@@ -37,13 +37,13 @@ namespace sama.Services
             set { SetSetting("GraphiteNotifications", "ServerPort", value); }
         }
 
-        public virtual string Notifications_SqlServer_Connection
+        public virtual string? Notifications_SqlServer_Connection
         {
             get { return GetSetting("SqlServerNotifications", "Connection", ""); }
             set { SetSetting("SqlServerNotifications", "Connection", value); }
         }
 
-        public virtual string Notifications_SqlServer_TableName
+        public virtual string? Notifications_SqlServer_TableName
         {
             get { return GetSetting("SqlServerNotifications", "TableName", ""); }
             set { SetSetting("SqlServerNotifications", "TableName", value); }
@@ -79,7 +79,7 @@ namespace sama.Services
             set { SetSetting("LDAP", "Enable", value); }
         }
 
-        public virtual string Ldap_Host
+        public virtual string? Ldap_Host
         {
             get { return GetSetting("LDAP", "ServerHost", ""); }
             set { SetSetting("LDAP", "ServerHost", value); }
@@ -97,25 +97,25 @@ namespace sama.Services
             set { SetSetting("LDAP", "SSL", value); }
         }
 
-        public virtual string Ldap_BindDnFormat
+        public virtual string? Ldap_BindDnFormat
         {
             get { return GetSetting("LDAP", "BindDNFormat", ""); }
             set { SetSetting("LDAP", "BindDNFormat", value); }
         }
 
-        public virtual string Ldap_SearchBaseDn
+        public virtual string? Ldap_SearchBaseDn
         {
             get { return GetSetting("LDAP", "SearchBaseDN", ""); }
             set { SetSetting("LDAP", "SearchBaseDN", value); }
         }
 
-        public virtual string Ldap_SearchFilterFormat
+        public virtual string? Ldap_SearchFilterFormat
         {
             get { return GetSetting("LDAP", "SearchFilterFormat", ""); }
             set { SetSetting("LDAP", "SearchFilterFormat", value); }
         }
 
-        public virtual string Ldap_NameAttribute
+        public virtual string? Ldap_NameAttribute
         {
             get { return GetSetting("LDAP", "NameAttribute", ""); }
             set { SetSetting("LDAP", "NameAttribute", value); }
@@ -127,7 +127,7 @@ namespace sama.Services
             set { SetSetting("LDAP", "SSLIgnoreValidity", value); }
         }
 
-        public virtual string Ldap_SslValidCert
+        public virtual string? Ldap_SslValidCert
         {
             get { return GetSetting("LDAP", "SSLValidCert", ""); }
             set { SetSetting("LDAP", "SSLValidCert", value); }
@@ -137,7 +137,7 @@ namespace sama.Services
 
         private T GetSetting<T>(string section, string name, T defaultValue)
         {
-            if (_cache.TryGetValue(section + CACHE_NAME_SEPARATOR + name, out object value))
+            if (_cache.TryGetValue(section + CACHE_NAME_SEPARATOR + name, out object? value))
             {
                 return (T)value;
             }
@@ -148,7 +148,7 @@ namespace sama.Services
                 var setting = dbContext.Settings.FirstOrDefault(s => s.Section == section.ToLowerInvariant() && s.Name == name.ToLowerInvariant());
                 if (setting != null)
                 {
-                    var returnValue = Convert.ChangeType(setting.Value, typeof(T));
+                    var returnValue = Convert.ChangeType(setting.Value, typeof(T))!;
                     _cache.AddOrUpdate(section + CACHE_NAME_SEPARATOR + name, returnValue, (key, oldValue) => returnValue);
                     return (T)returnValue;
                 }
@@ -159,7 +159,7 @@ namespace sama.Services
 
         private void SetSetting<T>(string section, string name, T value)
         {
-            var valueString = (string)Convert.ChangeType(value, TypeCode.String);
+            var valueString = (string?)Convert.ChangeType(value, TypeCode.String);
 
             if (string.IsNullOrWhiteSpace(valueString))
             {
@@ -167,7 +167,7 @@ namespace sama.Services
             }
             else
             {
-                _cache.AddOrUpdate(section + CACHE_NAME_SEPARATOR + name, value, (key, oldValue) => value);
+                _cache.AddOrUpdate(section + CACHE_NAME_SEPARATOR + name, value!, (key, oldValue) => value!);
             }
 
             using (var scope = _provider.CreateScope())

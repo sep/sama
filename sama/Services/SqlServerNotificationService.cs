@@ -35,7 +35,7 @@ END
             _sqlConnectionWrapper = sqlConnectionWrapper;
         }
 
-        public void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        public void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception? reason)
         {
             SendToDb(new DbModel
             {
@@ -87,15 +87,15 @@ END
 
             try
             {
-                using var dbConnection = _sqlConnectionWrapper.GetSqlConnection(_settings.Notifications_SqlServer_Connection);
+                using var dbConnection = _sqlConnectionWrapper.GetSqlConnection(_settings.Notifications_SqlServer_Connection!);
                 dbConnection.Execute(insertScript, model);
             }
             catch (Exception)
             {
                 try
                 {
-                    using var dbConnection = _sqlConnectionWrapper.GetSqlConnection(_settings.Notifications_SqlServer_Connection);
-                    CreateDb(dbConnection, _settings.Notifications_SqlServer_TableName);
+                    using var dbConnection = _sqlConnectionWrapper.GetSqlConnection(_settings.Notifications_SqlServer_Connection!);
+                    CreateDb(dbConnection, _settings.Notifications_SqlServer_TableName!);
                     dbConnection.Execute(insertScript, model);
                 }
                 catch (Exception ex)
@@ -107,7 +107,7 @@ END
 
         private bool IsConfigured() => !string.IsNullOrWhiteSpace(_settings.Notifications_SqlServer_Connection) && !string.IsNullOrWhiteSpace(_settings.Notifications_SqlServer_TableName);
 
-        private static string GenerateJsonMetadata(Endpoint endpoint, NotificationType? type, DateTimeOffset? downAsOf, Exception downReason)
+        private static string GenerateJsonMetadata(Endpoint endpoint, NotificationType? type, DateTimeOffset? downAsOf, Exception? downReason)
         {
             return System.Text.Json.JsonSerializer.Serialize(new
             {
@@ -119,17 +119,17 @@ END
             });
         }
 
-        private static string FormatScript(string script, string tableName) => string.Format(script, tableName.Replace("\"", "").Replace("'", ""));
+        private static string FormatScript(string script, string? tableName) => string.Format(script, tableName?.Replace("\"", "")?.Replace("'", ""));
 
         private static void CreateDb(DbConnection connection, string tableName) => connection.Execute(FormatScript(CREATE_TABLE_SCRIPT, tableName));
 
         public record DbModel
         {
             public int EndpointId { get; init; }
-            public string EndpointName { get; init; }
+            public string? EndpointName { get; init; }
             public bool? IsUp { get; init; }
             public int? RecordedDowntimeMinutes { get; init; }
-            public string JsonMetadata { get; init; }
+            public string? JsonMetadata { get; init; }
         }
     }
 }

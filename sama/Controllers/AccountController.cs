@@ -29,7 +29,7 @@ namespace sama.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(string returnUrl = null)
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -42,7 +42,7 @@ namespace sama.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel vm, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             ViewData["LdapEnabled"] = _ldapService.IsLdapEnabled();
@@ -50,8 +50,8 @@ namespace sama.Controllers
             {
                 if (vm.IsLocal)
                 {
-                    var user = await _userService.FindUserByUsername(vm.Username);
-                    if (user != null && _userService.ValidateCredentials(user, vm.Password))
+                    var user = await _userService.FindUserByUsername(vm.Username!);
+                    if (user != null && _userService.ValidateCredentials(user, vm.Password!))
                     {
                         await _signInManager.SignInAsync(user, false);
                         return (string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(EndpointsController.List), "Endpoints") : RedirectToLocal(returnUrl));
@@ -61,7 +61,7 @@ namespace sama.Controllers
                 {
                     try
                     {
-                        var user = _ldapService.Authenticate(vm.Username, vm.Password);
+                        var user = _ldapService.Authenticate(vm.Username!, vm.Password!);
                         if (user != null)
                         {
                             await _signInManager.SignInAsync(user, false);
@@ -108,7 +108,7 @@ namespace sama.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userService.CreateInitial(vm.Username, vm.Password);
+                var user = await _userService.CreateInitial(vm.Username!, vm.Password!);
                 if (user != null)
                 {
                     await _signInManager.SignInAsync(user, false);
@@ -137,7 +137,7 @@ namespace sama.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userService.Create(vm.Username, vm.Password);
+                var user = await _userService.Create(vm.Username!, vm.Password!);
                 if (user != null)
                 {
                     return RedirectToAction(nameof(AccountController.List), "Account");
@@ -196,7 +196,7 @@ namespace sama.Controllers
 
             if (ModelState.IsValid)
             {
-                await _userService.ResetUserPassword(id, vm.Password);
+                await _userService.ResetUserPassword(id, vm.Password!);
                 return RedirectToAction(nameof(List));
             }
             return View(vm);
@@ -232,7 +232,7 @@ namespace sama.Controllers
             return RedirectToAction(nameof(List));
         }
 
-        private IActionResult RedirectToLocal(string returnUrl)
+        private IActionResult RedirectToLocal(string? returnUrl)
         {
             if (Url.IsLocalUrl(returnUrl))
             {

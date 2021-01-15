@@ -11,8 +11,8 @@ namespace sama.Services
     {
         public class LdapUser
         {
-            public string DistinguishedName { get; set; }
-            public string DisplayName { get; set; }
+            public string? DistinguishedName { get; set; }
+            public string? DisplayName { get; set; }
         }
 
         public virtual LdapUser Authenticate(string host, int port, bool useSsl, string bindDn, string bindPassword, string searchBaseDn, string searchFilter, string nameAttribute, RemoteCertificateValidationCallback certValidator)

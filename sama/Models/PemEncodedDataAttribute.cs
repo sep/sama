@@ -5,14 +5,14 @@ namespace sama.Models
 {
     public class PemEncodedDataAttribute : ValidationAttribute
     {
-        private string _sectionName;
+        private readonly string _sectionName;
 
         public PemEncodedDataAttribute(string sectionName)
         {
             _sectionName = sectionName;
         }
 
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             var certString = value as string;
             if (value != null && certString == null)

@@ -12,19 +12,19 @@ namespace sama.Extensions
     {
         private static JsonSerializerSettings JsonSettings = new JsonSerializerSettings { ContractResolver = new DefaultContractResolver() };
 
-        public static string GetHttpLocation(this Endpoint endpoint) =>
+        public static string? GetHttpLocation(this Endpoint endpoint) =>
             GetValue<string>(endpoint, "Location");
 
-        public static void SetHttpLocation(this Endpoint endpoint, string location) =>
+        public static void SetHttpLocation(this Endpoint endpoint, string? location) =>
             SetValue(endpoint, "Location", location);
 
-        public static string GetHttpResponseMatch(this Endpoint endpoint) =>
+        public static string? GetHttpResponseMatch(this Endpoint endpoint) =>
             GetValue<string>(endpoint, "ResponseMatch");
 
-        public static void SetHttpResponseMatch(this Endpoint endpoint, string responseMatch) =>
+        public static void SetHttpResponseMatch(this Endpoint endpoint, string? responseMatch) =>
             SetValue(endpoint, "ResponseMatch", responseMatch);
 
-        public static List<int> GetHttpStatusCodes(this Endpoint endpoint) =>
+        public static List<int>? GetHttpStatusCodes(this Endpoint endpoint) =>
             GetValueList<int>(endpoint, "StatusCodes");
 
         public static void SetHttpStatusCodes(this Endpoint endpoint, List<int> codes) =>
@@ -36,14 +36,14 @@ namespace sama.Extensions
         public static void SetHttpIgnoreTlsCerts(this Endpoint endpoint, bool ignore) =>
             SetValue(endpoint, "IgnoreTlsCertificates", ignore);
 
-        public static string GetHttpCustomTlsCert(this Endpoint endpoint) =>
+        public static string? GetHttpCustomTlsCert(this Endpoint endpoint) =>
             GetValue<string>(endpoint, "CustomTlsCertificate");
 
-        public static void SetHttpCustomTlsCert(this Endpoint endpoint, string pemEncodedCert) =>
+        public static void SetHttpCustomTlsCert(this Endpoint endpoint, string? pemEncodedCert) =>
             SetValue(endpoint, "CustomTlsCertificate", pemEncodedCert);
 
 
-        private static List<T> GetValueList<T>(Endpoint endpoint, string name, List<T> defaultValue = null)
+        private static List<T>? GetValueList<T>(Endpoint endpoint, string name, List<T>? defaultValue = null)
         {
             var list = GetValue<List<object>>(endpoint, name);
             if (list == null)
@@ -53,7 +53,7 @@ namespace sama.Extensions
             return list.Select(o => (T)Convert.ChangeType(o, typeof(T))).ToList();
         }
 
-        private static T GetValue<T>(Endpoint endpoint, string name, T defaultValue = default(T))
+        private static T? GetValue<T>(Endpoint endpoint, string name, T? defaultValue = default(T))
         {
             EnsureHttp(endpoint);
             if (string.IsNullOrWhiteSpace(endpoint.JsonConfig)) return defaultValue;
@@ -70,13 +70,13 @@ namespace sama.Extensions
             return (T)obj[name];
         }
 
-        private static void SetValue<T>(Endpoint endpoint, string name, T value)
+        private static void SetValue<T>(Endpoint endpoint, string name, T? value)
         {
             EnsureHttp(endpoint);
 
             var json = (string.IsNullOrWhiteSpace(endpoint.JsonConfig) ? "{}" : endpoint.JsonConfig);
-            var obj = JsonConvert.DeserializeObject<ExpandoObject>(json, JsonSettings);
-            obj.Remove(name, out object _);
+            var obj = JsonConvert.DeserializeObject<ExpandoObject>(json, JsonSettings) ?? throw new ArgumentException($"Unable to deserialize '{name}'");
+            obj!.Remove(name, out object _);
             if (!obj.TryAdd(name, value))
             {
                 throw new ArgumentException($"Unable to set value for '{name}'");

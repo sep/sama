@@ -6,20 +6,20 @@ namespace sama.Models
     {
         [Required]
         [RegularExpression(@"^http[s]?://.+$", ErrorMessage = "The Location field must start with http:// or https:// and contain a host.")]
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
         [Display(Name = "Keyword Match")]
-        public string ResponseMatch { get; set; }
+        public string? ResponseMatch { get; set; }
 
         [Display(Name = "Status Codes")]
         [RegularExpression(@"^([0-9]{3}, ?)*[0-9]{3}$", ErrorMessage = "The Status Codes field must be a comma-separated list of HTTP status codes.")]
-        public string StatusCodes { get; set; }
+        public string? StatusCodes { get; set; }
 
         [Display(Name = "Ignore TLS Certificates")]
         public bool IgnoreCerts { get; set; }
 
         [Display(Name = "Custom TLS Certificate")]
         [PemEncodedData("CERTIFICATE")]
-        public string CustomCert { get; set; }
+        public string? CustomCert { get; set; }
     }
 }

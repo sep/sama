@@ -59,8 +59,8 @@
         @RenderBody()
         <hr />
         <footer>
-            @{ var version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; }
-            <p>Service Availability Monitoring and Alerting v@(version.ToString())</p>
+            @{ var version = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion; }
+            <p>Service Availability Monitoring and Alerting v@(version?.ToString())</p>
         </footer>
     </div>
 

@@ -67,7 +67,7 @@ namespace sama.Services
             }
         }
 
-        private ICheckService GetCheckService(Endpoint endpoint)
+        private ICheckService? GetCheckService(Endpoint endpoint)
         {
             foreach (var service in _checkServices)
             {

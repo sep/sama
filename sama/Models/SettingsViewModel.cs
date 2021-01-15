@@ -22,30 +22,30 @@ namespace sama.Models
 
 
         [Display(Name = "Slack Webhook URL")]
-        public string SlackWebHook { get; set; }
+        public string? SlackWebHook { get; set; }
 
 
         [Display(Name = "Graphite server hostname")]
-        public string GraphiteHost { get; set; }
+        public string? GraphiteHost { get; set; }
 
         [Range(0, 65535), Display(Name = "Graphite server port")]
         public int GraphitePort { get; set; }
 
 
         [Display(Name = "SQL Server connection string")]
-        public string SqlServerConnection { get; set; }
+        public string? SqlServerConnection { get; set; }
 
         [Display(Name = "SQL Server table name")]
-        public string SqlServerTable { get; set; }
+        public string? SqlServerTable { get; set; }
 
-        public string SqlServerCreateTableScript { get; set; }
+        public string? SqlServerCreateTableScript { get; set; }
 
 
         [Display(Name = "Enable LDAP")]
         public bool LdapEnable { get; set; }
 
         [Display(Name = "LDAP server hostname")]
-        public string LdapHost { get; set; }
+        public string? LdapHost { get; set; }
 
         [Range(0, 65535), Display(Name = "LDAP server port")]
         public int LdapPort { get; set; }
@@ -54,21 +54,21 @@ namespace sama.Models
         public bool LdapSsl { get; set; }
 
         [RegularExpression(@"^.*\{0\}.*$", ErrorMessage = "The string replacement token must be present."), Display(Name = "Bind DN format")]
-        public string LdapBindDnFormat { get; set; }
+        public string? LdapBindDnFormat { get; set; }
 
         [Display(Name = "Base DN for user search")]
-        public string LdapSearchBaseDn { get; set; }
+        public string? LdapSearchBaseDn { get; set; }
 
         [RegularExpression(@"^.*\{0\}.*$", ErrorMessage = "The string replacement token must be present."), Display(Name = "LDAP search filter format")]
-        public string LdapSearchFilterFormat { get; set; }
+        public string? LdapSearchFilterFormat { get; set; }
 
         [Display(Name = "LDAP name attribute")]
-        public string LdapNameAttribute { get; set; }
+        public string? LdapNameAttribute { get; set; }
 
         [Display(Name = "Ignore SSL errors for LDAP")]
         public bool LdapSslIgnoreValidity { get; set; }
 
         [PemEncodedData("CERTIFICATE", ErrorMessage = "The \"BEGIN CERTIFICATE\" and \"END CERTIFICATE\" PEM encoding strings must be present."), Display(Name = "Custom LDAP SSL certificate")]
-        public string LdapSslValidCert { get; set; }
+        public string? LdapSslValidCert { get; set; }
     }
 }

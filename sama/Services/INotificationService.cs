@@ -18,7 +18,7 @@ namespace sama.Services
 
         void NotifyUp(Endpoint endpoint, DateTimeOffset? downAsOf);
 
-        void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason);
+        void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception? reason);
 
         void NotifyMisc(Endpoint endpoint, NotificationType type);
     }

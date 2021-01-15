@@ -10,8 +10,13 @@ namespace sama.Services
     [ExcludeFromCodeCoverage]
     public class PingWrapper
     {
-        public virtual (IPStatus, TimeSpan) SendPing(string address)
+        public virtual (IPStatus, TimeSpan) SendPing(string? address)
         {
+            if (address == null)
+            {
+                throw new ArgumentNullException(nameof(address), "Ping address is not configured");
+            }
+
             using var ping = new Ping();
             var result = ping.Send(address);
             return (result.Status, TimeSpan.FromMilliseconds(result.RoundtripTime));

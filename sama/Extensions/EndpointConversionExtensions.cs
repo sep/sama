@@ -13,11 +13,11 @@ namespace sama.Extensions
             {
                 vm = new HttpEndpointViewModel
                 {
-                    Location = endpoint.GetHttpLocation(),
-                    ResponseMatch = endpoint.GetHttpResponseMatch(),
+                    Location = endpoint.GetHttpLocation() ?? "",
+                    ResponseMatch = endpoint.GetHttpResponseMatch() ?? "",
                     StatusCodes = string.Join(',', endpoint.GetHttpStatusCodes()?.Select(c => c.ToString()) ?? new string[0]),
                     IgnoreCerts = endpoint.GetHttpIgnoreTlsCerts(),
-                    CustomCert = endpoint.GetHttpCustomTlsCert()
+                    CustomCert = endpoint.GetHttpCustomTlsCert() ?? ""
                 };
             }
             else if (endpoint.Kind == Endpoint.EndpointKind.Icmp)

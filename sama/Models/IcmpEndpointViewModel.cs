@@ -6,6 +6,6 @@ namespace sama.Models
     {
         [Required]
         [RegularExpression(@"^[a-zA-Z0-9-\.]{2,}$", ErrorMessage = "The Address field must contain a host or IP address (not a URL).")]
-        public string Address { get; set; }
+        public string? Address { get; set; }
     }
 }

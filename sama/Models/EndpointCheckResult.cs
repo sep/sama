@@ -8,7 +8,7 @@ namespace sama.Models
         public DateTimeOffset Stop { get; set; }
         public TimeSpan? ResponseTime { get; set; }
         public bool Success { get; set; }
-        public Exception Error { get; set; }
+        public Exception? Error { get; set; }
 
         public EndpointCheckResult Clone()
         {

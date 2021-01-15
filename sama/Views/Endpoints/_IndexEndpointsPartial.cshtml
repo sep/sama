@@ -2,9 +2,9 @@
 
 @{
     var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Models.EndpointStatus>)ViewData["CurrentStates"];
-    var upEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == true).OrderBy(e => e.Name.ToLowerInvariant());
-    var downEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == false).OrderBy(e => e.Name.ToLowerInvariant());
-    var indeterminateEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == null).OrderBy(e => e.Name.ToLowerInvariant());
+    var upEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == true).OrderBy(e => e.Name!.ToLowerInvariant());
+    var downEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == false).OrderBy(e => e.Name!.ToLowerInvariant());
+    var indeterminateEndpoints = Model.Where(e => states.FirstOrDefault(kvp => kvp.Key.Id == e.Id).Value?.IsUp == null).OrderBy(e => e.Name!.ToLowerInvariant());
 
     var allOrderedEndpoints = new List<sama.Models.EndpointViewModel>(downEndpoints);
     allOrderedEndpoints.AddRange(upEndpoints);
@@ -53,7 +53,7 @@
                         <td>
                             @if (state.IsUp == false)
                             {
-                                @:@state.Error.Message
+                                @:@state?.Error?.Message
                             }
                         </td>
                     </tr>

@@ -28,7 +28,7 @@ namespace sama.Services
                 .ForEach(ns => ns.NotifyUp(endpoint, downAsOf)));
         }
 
-        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception? reason)
         {
             _bgExec.Execute(() => _notificationServices
                 .ForEach(ns => ns.NotifyDown(endpoint, downAsOf, reason)));

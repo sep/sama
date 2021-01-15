@@ -19,7 +19,7 @@ namespace sama.Services
             _tcpWrapper = tcpWrapper;
         }
 
-        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception? reason)
         {
             // Ignore.
         }
@@ -35,7 +35,7 @@ namespace sama.Services
             var port = _settings.Notifications_Graphite_Port;
             if (string.IsNullOrWhiteSpace(host) || port < 1) return;
 
-            var filteredEndpointName = Regex.Replace(endpoint.Name, @"[^a-zA-Z0-9-]+", "-").Trim('-');
+            var filteredEndpointName = Regex.Replace(endpoint.Name!, @"[^a-zA-Z0-9-]+", "-").Trim('-');
             if (string.IsNullOrWhiteSpace(filteredEndpointName)) filteredEndpointName = "none";
             var epoch = result.Start.ToUnixTimeSeconds();
             var successMetric = (result.Success ? 1 : 0);

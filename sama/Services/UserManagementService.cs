@@ -37,11 +37,11 @@ namespace sama.Services
             }
         }
 
-        public virtual async Task<ApplicationUser> FindUserByUsername(string username)
+        public virtual async Task<ApplicationUser?> FindUserByUsername(string username)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.UserName.ToLowerInvariant() == username.Trim().ToLowerInvariant());
+                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.UserName?.ToLowerInvariant() == username.Trim().ToLowerInvariant());
             }
         }
 
@@ -50,29 +50,27 @@ namespace sama.Services
             return Task.FromResult(user.Id.ToString("D"));
         }
 
-        public virtual Task<string> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
+        public virtual Task<string?> GetUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.UserName);
         }
 
         public virtual bool ValidateCredentials(ApplicationUser user, string password)
         {
-            return VerifyPasswordHash(password, user.PasswordHash, user.PasswordHashMetadata);
+            return VerifyPasswordHash(password, user.PasswordHash!, user.PasswordHashMetadata!);
         }
 
-        public virtual async Task<ApplicationUser> CreateInitial(string username, string password)
+        public virtual async Task<ApplicationUser?> CreateInitial(string username, string password)
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
                 if (!await dbContext.Users.AsQueryable().AnyAsync())
                 {
-                    if (CreatePasswordHash(password, out string hash, out string metadata))
-                    {
-                        var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
-                        dbContext.Users.Add(user);
-                        await dbContext.SaveChangesAsync();
-                        return user;
-                    }
+                    CreatePasswordHash(password, out string hash, out string metadata);
+                    var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
+                    dbContext.Users.Add(user);
+                    await dbContext.SaveChangesAsync();
+                    return user;
                 }
 
                 return null;
@@ -83,15 +81,11 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                if (CreatePasswordHash(password, out string hash, out string metadata))
-                {
-                    var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
-                    dbContext.Users.Add(user);
-                    await dbContext.SaveChangesAsync();
-                    return user;
-                }
-
-                return null;
+                CreatePasswordHash(password, out string hash, out string metadata);
+                var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
+                dbContext.Users.Add(user);
+                await dbContext.SaveChangesAsync();
+                return user;
             }
         }
 
@@ -107,7 +101,7 @@ namespace sama.Services
         {
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
-                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId);
+                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId) ?? throw new ArgumentException("User does not exist", nameof(userId));
             }
         }
 
@@ -116,13 +110,11 @@ namespace sama.Services
             using (var dbContext = new ApplicationDbContext(_dbContextOptions))
             {
                 var user = await dbContext.Users.AsQueryable().FirstAsync(u => u.Id == id);
-                if (CreatePasswordHash(password, out string hash, out string metadata))
-                {
-                    user.PasswordHash = hash;
-                    user.PasswordHashMetadata = metadata;
-                    dbContext.Update(user);
-                    await dbContext.SaveChangesAsync();
-                }
+                CreatePasswordHash(password, out string hash, out string metadata);
+                user.PasswordHash = hash;
+                user.PasswordHashMetadata = metadata;
+                dbContext.Update(user);
+                await dbContext.SaveChangesAsync();
             }
         }
 
@@ -141,7 +133,10 @@ namespace sama.Services
         {
             try
             {
-                dynamic metadataObject = JsonConvert.DeserializeObject(metadata);
+                var obj = JsonConvert.DeserializeObject(metadata);
+                if (obj == null) return false;
+
+                dynamic metadataObject = obj;
                 if (metadataObject.HashType != "Argon2d") return false;
 
                 var passwordBytes = Encoding.UTF8.GetBytes(password);
@@ -163,46 +158,35 @@ namespace sama.Services
             }
         }
 
-        private bool CreatePasswordHash(string password, out string hash, out string metadata)
+        private void CreatePasswordHash(string password, out string hash, out string metadata)
         {
-            try
+            byte[] salt = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
             {
-                byte[] salt = new byte[32];
-                using (var rng = RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(salt);
-                }
-
-                var metadataObject = new
-                {
-                    HashType = "Argon2d",
-                    DegreeOfParallelism = 2,
-                    MemorySize = 65536,
-                    Iterations = 10,
-                    Salt = salt
-                };
-                metadata = JsonConvert.SerializeObject(metadataObject);
-
-                var passwordBytes = Encoding.UTF8.GetBytes(password);
-                var argon = new Argon2d(passwordBytes)
-                {
-                    DegreeOfParallelism = metadataObject.DegreeOfParallelism,
-                    MemorySize = metadataObject.MemorySize,
-                    Iterations = metadataObject.Iterations,
-                    Salt = metadataObject.Salt
-                };
-
-                var hashBytes = argon.GetBytes(64);
-                hash = Convert.ToBase64String(hashBytes);
-
-                return true;
+                rng.GetBytes(salt);
             }
-            catch (Exception)
+
+            var metadataObject = new
             {
-                hash = null;
-                metadata = null;
-                return false;
-            }
+                HashType = "Argon2d",
+                DegreeOfParallelism = 2,
+                MemorySize = 65536,
+                Iterations = 10,
+                Salt = salt
+            };
+            metadata = JsonConvert.SerializeObject(metadataObject);
+
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+            var argon = new Argon2d(passwordBytes)
+            {
+                DegreeOfParallelism = metadataObject.DegreeOfParallelism,
+                MemorySize = metadataObject.MemorySize,
+                Iterations = metadataObject.Iterations,
+                Salt = metadataObject.Salt
+            };
+
+            var hashBytes = argon.GetBytes(64);
+            hash = Convert.ToBase64String(hashBytes);
         }
 
         private bool CompareSlowly(byte[] b1, byte[] b2)
@@ -248,7 +232,7 @@ namespace sama.Services
         {
             throw new NotImplementedException();
         }
-        
+
         Task<IdentityResult> IRoleStore<IdentityRole>.CreateAsync(IdentityRole role, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

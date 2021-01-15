@@ -11,12 +11,12 @@ namespace sama.Models
         public Guid Id { get; set; }
 
         [Required]
-        public string Section { get; set; }
+        public string? Section { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
-        public string Value { get; set; }
+        public string? Value { get; set; }
     }
 }

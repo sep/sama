@@ -12,13 +12,13 @@ namespace sama.Models
 
         [Required]
         [Display(Name = "User name")]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; }
+        public string? PasswordHash { get; set; }
 
         [Required]
-        public string PasswordHashMetadata { get; set; }
+        public string? PasswordHashMetadata { get; set; }
 
         [NotMapped]
         public bool IsRemote { get; set; }

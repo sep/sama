@@ -70,13 +70,14 @@ namespace sama.Services
             }
         }
 
-        public virtual void ValidateHttpEndpoint(Models.Endpoint endpoint, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        public virtual void ValidateHttpEndpoint(Models.Endpoint endpoint, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             if (endpoint.GetHttpIgnoreTlsCerts())
             {
                 return; // Everything is OK
             }
 
+            chain ??= new X509Chain();
             var customCertPem = endpoint.GetHttpCustomTlsCert();
             if (!string.IsNullOrWhiteSpace(customCertPem))
             {

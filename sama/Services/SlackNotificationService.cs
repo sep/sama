@@ -63,7 +63,7 @@ namespace sama.Services
             // Ignore this notification type.
         }
 
-        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception reason)
+        public virtual void NotifyDown(Endpoint endpoint, DateTimeOffset downAsOf, Exception? reason)
         {
             var failureMessage = reason?.Message;
 
@@ -153,6 +153,6 @@ namespace sama.Services
             }
         }
 
-        protected virtual string FormatEndpointName(string rawName) => $"`{rawName.Replace("`", "")}`";
+        protected virtual string FormatEndpointName(string? rawName) => $"`{rawName?.Replace("`", "")}`";
     }
 }

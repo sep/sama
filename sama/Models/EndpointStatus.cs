@@ -15,14 +15,14 @@ namespace sama.Models
         /// <summary>
         /// If null, then no endpoint checks are currently (effectively) in progress.
         /// Otherwise, this stores check status(es), including any intermediate failures
-        /// before the endpoing is actually reported as "down".
+        /// before the endpoint is actually reported as "down".
         /// </summary>
-        public List<EndpointCheckResult> InProgressResults { get; set; }
+        public List<EndpointCheckResult>? InProgressResults { get; set; }
 
         /// <summary>
         /// This gets the data from <see cref="InProgressResults"/> after result finalization
         /// </summary>
-        public List<EndpointCheckResult> LastFinishedResults { get; set; }
+        public List<EndpointCheckResult>? LastFinishedResults { get; set; }
 
         public EndpointStatus DeepClone()
         {
@@ -50,7 +50,7 @@ namespace sama.Models
             }
         }
 
-        public Exception Error
+        public Exception? Error
         {
             get
             {
