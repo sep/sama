@@ -245,10 +245,13 @@ namespace sama.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var endpoint = await _context.Endpoints.AsQueryable().SingleOrDefaultAsync(m => m.Id == id);
-            _context.Endpoints.Remove(endpoint);
-            await _context.SaveChangesAsync();
-            _stateService.RemoveStatus(id);
-            NotifyEvent(endpoint, NotificationType.EndpointRemoved);
+            if (endpoint != null)
+            {
+                _context.Endpoints.Remove(endpoint);
+                await _context.SaveChangesAsync();
+                _stateService.RemoveStatus(id);
+                NotifyEvent(endpoint, NotificationType.EndpointRemoved);
+            }
             return RedirectToAction(nameof(List));
         }
 
