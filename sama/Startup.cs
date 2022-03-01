@@ -20,8 +20,12 @@ namespace sama
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+            if (env.EnvironmentName == "Docker")
+            {
+                builder.AddJsonFile("/opt/sama-docker/appsettings.json", optional: true);
+            }
+            builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
 
