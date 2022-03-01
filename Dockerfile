@@ -26,3 +26,9 @@ ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=false
 
 # Change this to bind to a specific interface or different port, if needed:
 ENV ASPNETCORE_URLS="http://*:80"
+
+# HTTPS example -- these variables can be specified on the CLI or via docker-compose:
+#ENV ASPNETCORE_URLS="https://*:443"
+#ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/opt/sama-docker/ssl.pem
+#ENV ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/opt/sama-docker/ssl.key
+#ENV ASPNETCORE_Kestrel__EndpointDefaults__Protocols=Http1AndHttp2
