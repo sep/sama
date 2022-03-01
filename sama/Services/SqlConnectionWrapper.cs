@@ -1,5 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Data.Common;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 
 namespace sama.Services
@@ -10,9 +10,10 @@ namespace sama.Services
     [ExcludeFromCodeCoverage]
     public class SqlConnectionWrapper
     {
-        public virtual DbConnection GetSqlConnection(string connectionString)
+        public virtual int Execute(string connectionString, string sql, object? model = null)
         {
-            return new SqlConnection(connectionString);
+            using var sqlConnection = new SqlConnection(connectionString);
+            return sqlConnection.Execute(sql, model);
         }
     }
 }

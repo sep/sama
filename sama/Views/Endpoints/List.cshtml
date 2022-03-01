@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Endpoints";
-    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Models.EndpointStatus>)ViewData["CurrentStates"];
+    var states = (IReadOnlyDictionary<sama.Models.Endpoint, sama.Models.EndpointStatus>)ViewData["CurrentStates"]!;
 }
 
 <h2>Endpoints</h2>

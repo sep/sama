@@ -21,9 +21,6 @@ namespace TestSama.Services
         private SqlConnectionWrapper _sqlConnectionWrapper;
         private SqlServerNotificationService _service;
 
-        private DbConnection _dbConnection;
-        private DbCommand _dbCommand;
-
         [TestInitialize]
         public void Setup()
         {
@@ -35,82 +32,81 @@ namespace TestSama.Services
 
             _settings.Notifications_SqlServer_Connection.Returns("conn1");
             _settings.Notifications_SqlServer_TableName.Returns("ta'bl\"e1");
-
-            _dbConnection = Substitute.ForPartsOf<TestDbConnection>();
-            _sqlConnectionWrapper.GetSqlConnection("conn1").Returns(_dbConnection);
-            _dbCommand = Substitute.ForPartsOf<TestDbConnection.TestDbCommand>();
-            _dbConnection.CreateCommand().Returns(_dbCommand);
         }
 
         [TestMethod]
         public void NotifyMiscShouldSaveRecord()
         {
+            SqlServerNotificationService.DbModel model = new();
+            _sqlConnectionWrapper.Execute(Arg.Any<string>(), Arg.Any<string>(), Arg.Do<object>(o => model = (SqlServerNotificationService.DbModel)o));
+
             _service.NotifyMisc(new Endpoint { Id = 1, Enabled = true, Name = "ep1", Kind = Endpoint.EndpointKind.Icmp }, NotificationType.EndpointAdded);
 
-            _dbCommand.Received().CommandText = string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1");
-            _dbCommand.Received(5).CreateParameter();
-            _dbCommand.Received(1).ExecuteNonQuery();
-            Assert.AreEqual(1, _dbCommand.Parameters["EndpointId"].Value);
-            Assert.AreEqual("ep1", _dbCommand.Parameters["EndpointName"].Value);
-            Assert.AreEqual(@"{""enabled"":true,""endpointType"":""Icmp"",""event"":""EndpointAdded"",""downAsOf"":null,""downReason"":null}", _dbCommand.Parameters["JsonMetadata"].Value);
+            _sqlConnectionWrapper.Received(1).Execute("conn1", string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1"), Arg.Any<object>());
+            Assert.AreEqual(1, model.EndpointId);
+            Assert.AreEqual("ep1", model.EndpointName);
+            Assert.AreEqual(@"{""enabled"":true,""endpointType"":""Icmp"",""event"":""EndpointAdded"",""downAsOf"":null,""downReason"":null}", model.JsonMetadata);
         }
 
         [TestMethod]
         public void NotifyUpShouldSaveRecordWithoutDowntime()
         {
+            SqlServerNotificationService.DbModel model = new();
+            _sqlConnectionWrapper.Execute(Arg.Any<string>(), Arg.Any<string>(), Arg.Do<object>(o => model = (SqlServerNotificationService.DbModel)o));
+
             _service.NotifyUp(new Endpoint { Id = 1, Enabled = true, Name = "ep1", Kind = Endpoint.EndpointKind.Icmp }, null);
 
-            _dbCommand.Received().CommandText = string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1");
-            _dbCommand.Received(5).CreateParameter();
-            _dbCommand.Received(1).ExecuteNonQuery();
-            Assert.AreEqual(1, _dbCommand.Parameters["EndpointId"].Value);
-            Assert.AreEqual("ep1", _dbCommand.Parameters["EndpointName"].Value);
-            Assert.AreEqual(true, _dbCommand.Parameters["IsUp"].Value);
-            Assert.AreEqual(@"{""enabled"":true,""endpointType"":""Icmp"",""event"":null,""downAsOf"":null,""downReason"":null}", _dbCommand.Parameters["JsonMetadata"].Value);
+            _sqlConnectionWrapper.Received(1).Execute("conn1", string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1"), Arg.Any<object>());
+            Assert.AreEqual(1, model.EndpointId);
+            Assert.AreEqual("ep1", model.EndpointName);
+            Assert.IsTrue(model.IsUp);
+            Assert.AreEqual(@"{""enabled"":true,""endpointType"":""Icmp"",""event"":null,""downAsOf"":null,""downReason"":null}", model.JsonMetadata);
         }
 
         [TestMethod]
         public void NotifyUpShouldSaveRecordWithDowntime()
         {
+            SqlServerNotificationService.DbModel model = new();
+            _sqlConnectionWrapper.Execute(Arg.Any<string>(), Arg.Any<string>(), Arg.Do<object>(o => model = (SqlServerNotificationService.DbModel)o));
+
             _service.NotifyUp(new Endpoint { Id = 1, Enabled = true, Name = "ep1", Kind = Endpoint.EndpointKind.Icmp }, DateTimeOffset.Now.AddMinutes(-5));
 
-            _dbCommand.Received().CommandText = string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1");
-            _dbCommand.Received(5).CreateParameter();
-            _dbCommand.Received(1).ExecuteNonQuery();
-            Assert.AreEqual(1, _dbCommand.Parameters["EndpointId"].Value);
-            Assert.AreEqual("ep1", _dbCommand.Parameters["EndpointName"].Value);
-            Assert.AreEqual(true, _dbCommand.Parameters["IsUp"].Value);
-            Assert.AreEqual(5, _dbCommand.Parameters["RecordedDowntimeMinutes"].Value);
+            _sqlConnectionWrapper.Received(1).Execute("conn1", string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1"), Arg.Any<object>());
+            Assert.AreEqual(1, model.EndpointId);
+            Assert.AreEqual("ep1", model.EndpointName);
+            Assert.IsTrue(model.IsUp);
+            Assert.AreEqual(5, model.RecordedDowntimeMinutes);
         }
 
         [TestMethod]
         public void NotifyDownShouldSaveRecord()
         {
+            SqlServerNotificationService.DbModel model = new();
+            _sqlConnectionWrapper.Execute(Arg.Any<string>(), Arg.Any<string>(), Arg.Do<object>(o => model = (SqlServerNotificationService.DbModel)o));
+
             _service.NotifyDown(new Endpoint { Id = 1, Enabled = true, Name = "ep1", Kind = Endpoint.EndpointKind.Icmp }, DateTimeOffset.Now, new Exception("Test Error Message"));
 
-            _dbCommand.Received().CommandText = string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1");
-            _dbCommand.Received(5).CreateParameter();
-            _dbCommand.Received(1).ExecuteNonQuery();
-            Assert.AreEqual(1, _dbCommand.Parameters["EndpointId"].Value);
-            Assert.AreEqual("ep1", _dbCommand.Parameters["EndpointName"].Value);
-            Assert.AreEqual(false, _dbCommand.Parameters["IsUp"].Value);
-            StringAssert.Contains((string)_dbCommand.Parameters["JsonMetadata"].Value, @"""downReason"":""Test Error Message""");
+            _sqlConnectionWrapper.Received(1).Execute("conn1", string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1"), Arg.Any<object>());
+            Assert.AreEqual(1, model.EndpointId);
+            Assert.AreEqual("ep1", model.EndpointName);
+            Assert.IsFalse(model.IsUp);
+            StringAssert.Contains(model.JsonMetadata, @"""downReason"":""Test Error Message""");
         }
 
         [TestMethod]
         public void ShouldCreateTable()
         {
-            _dbCommand.ExecuteNonQuery().Returns(x => { throw new Exception("ex1"); }, x => 1);
+            _sqlConnectionWrapper.Execute("", "", null)
+                .ReturnsForAnyArgs(x => { throw new Exception("ex1"); }, x => 1);
 
             _service.NotifyMisc(new Endpoint { Id = 1, Enabled = true, Name = "ep1", Kind = Endpoint.EndpointKind.Icmp }, NotificationType.EndpointAdded);
 
-            _dbCommand.Received(3).ExecuteNonQuery();
-
+            _sqlConnectionWrapper.ReceivedWithAnyArgs(3).Execute("", "", null);
             Received.InOrder(() =>
             {
-                _dbCommand.CommandText = string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1");
-                _dbCommand.CommandText = string.Format(SqlServerNotificationService.CREATE_TABLE_SCRIPT, "table1");
-                _dbCommand.CommandText = string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1");
+                _sqlConnectionWrapper.Execute("conn1", string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1"), Arg.Any<object>());
+                _sqlConnectionWrapper.Execute("conn1", string.Format(SqlServerNotificationService.CREATE_TABLE_SCRIPT, "table1"), Arg.Any<object>());
+                _sqlConnectionWrapper.Execute("conn1", string.Format(SqlServerNotificationService.INSERT_SCRIPT, "table1"), Arg.Any<object>());
             });
         }
 
@@ -127,7 +123,7 @@ namespace TestSama.Services
 
             _service.NotifyMisc(new Endpoint { Id = 1, Enabled = true, Name = "ep1", Kind = Endpoint.EndpointKind.Icmp }, NotificationType.EndpointAdded);
 
-            _dbConnection.DidNotReceiveWithAnyArgs().CreateCommand();
+            _sqlConnectionWrapper.DidNotReceiveWithAnyArgs().Execute("", "", null);
         }
     }
 }

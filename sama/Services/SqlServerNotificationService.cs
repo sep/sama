@@ -87,16 +87,14 @@ END
 
             try
             {
-                using var dbConnection = _sqlConnectionWrapper.GetSqlConnection(_settings.Notifications_SqlServer_Connection!);
-                dbConnection.Execute(insertScript, model);
+                _sqlConnectionWrapper.Execute(_settings.Notifications_SqlServer_Connection!, insertScript, model);
             }
             catch (Exception)
             {
                 try
                 {
-                    using var dbConnection = _sqlConnectionWrapper.GetSqlConnection(_settings.Notifications_SqlServer_Connection!);
-                    CreateDb(dbConnection, _settings.Notifications_SqlServer_TableName!);
-                    dbConnection.Execute(insertScript, model);
+                    CreateDb(_settings.Notifications_SqlServer_TableName!);
+                    _sqlConnectionWrapper.Execute(_settings.Notifications_SqlServer_Connection!, insertScript, model);
                 }
                 catch (Exception ex)
                 {
@@ -106,6 +104,8 @@ END
         }
 
         private bool IsConfigured() => !string.IsNullOrWhiteSpace(_settings.Notifications_SqlServer_Connection) && !string.IsNullOrWhiteSpace(_settings.Notifications_SqlServer_TableName);
+
+        private void CreateDb(string tableName) => _sqlConnectionWrapper.Execute(_settings.Notifications_SqlServer_Connection!, FormatScript(CREATE_TABLE_SCRIPT, tableName));
 
         private static string GenerateJsonMetadata(Endpoint endpoint, NotificationType? type, DateTimeOffset? downAsOf, Exception? downReason)
         {
@@ -120,8 +120,6 @@ END
         }
 
         private static string FormatScript(string script, string? tableName) => string.Format(script, tableName?.Replace("\"", "")?.Replace("'", ""));
-
-        private static void CreateDb(DbConnection connection, string tableName) => connection.Execute(FormatScript(CREATE_TABLE_SCRIPT, tableName));
 
         public record DbModel
         {

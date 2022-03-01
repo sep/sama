@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RuntimeIdentifiers>win-x64;linux-arm;linux-x64</RuntimeIdentifiers>
     <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
@@ -14,20 +14,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.78" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="FluentScheduler" Version="5.5.1" />
     <PackageReference Include="Humanizer" Version="2.8.26" />
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.2.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.1" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Novell.Directory.Ldap.NETStandard" Version="3.5.2" />
     <PackageReference Include="Microsoft.Composition" Version="1.0.31" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.1" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.1" PrivateAssets="All" />
-    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.2" PrivateAssets="All" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 </Project>

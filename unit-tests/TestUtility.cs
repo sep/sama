@@ -17,7 +17,7 @@ namespace TestSama
         {
             var collection = new ServiceCollection();
 
-            var sqliteConnection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source=file:testdb_{Guid.NewGuid().ToString("N")}.db?mode=memory");
+            var sqliteConnection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source=file:testdb_{Guid.NewGuid().ToString("N")}.db;Mode=Memory;Cache=Shared");
             sqliteConnection.Open();
 
             collection.AddDbContext<ApplicationDbContext>(options =>

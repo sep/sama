@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Details";
-    var state = (sama.Models.EndpointStatus)ViewData["State"] ?? new sama.Models.EndpointStatus();
+    var state = (sama.Models.EndpointStatus?)ViewData["State"] ?? new sama.Models.EndpointStatus();
 }
 
 <h2>Details</h2>
