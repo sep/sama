@@ -104,15 +104,6 @@ namespace sama
 
             app.UseAuthorization();
 
-            var behindReverseProxy = Configuration.GetSection("SAMA").GetValue<bool>("BehindReverseProxy");
-            if (behindReverseProxy)
-            {
-                app.UseForwardedHeaders(new ForwardedHeadersOptions
-                {
-                    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
-                });
-            }
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute("default", "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
