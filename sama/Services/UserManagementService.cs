@@ -99,10 +99,13 @@ namespace sama.Services
 
         public virtual async Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId) ?? throw new ArgumentException("User does not exist", nameof(userId));
-            }
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+
+            // The base method appears to be marked incorrectly for nullability. It should be returning Task<ApplicationUser?>.
+
+#pragma warning disable CS8603 // Possible null reference return.
+            return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId);
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         public virtual async Task ResetUserPassword(Guid id, string password)

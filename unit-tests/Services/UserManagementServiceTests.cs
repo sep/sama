@@ -127,7 +127,7 @@ namespace TestSama.Services
         [TestMethod]
         public async Task ShouldFindUserById()
         {
-            await Assert.ThrowsExceptionAsync<ArgumentException>(async () => await _service.FindByIdAsync("wrongId", CancellationToken.None));
+            Assert.IsNull(await _service.FindByIdAsync("wrongId", CancellationToken.None));
 
             Assert.AreEqual(_testUser.Id, (await _service.FindByIdAsync(_testUser.Id.ToString("D"), CancellationToken.None)).Id);
         }
