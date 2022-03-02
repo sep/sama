@@ -28,7 +28,7 @@ on:
         type: boolean
         description: Add "latest" tag
       is_test:
-        type:: boolean
+        type: boolean
         description: Add "test" tag
 
 jobs:
