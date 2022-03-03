@@ -61,5 +61,4 @@ jobs:
           context: .
           platforms: ${{ github.event.inputs.target_platforms }}
           #push: true
-          load: true
           tags: ${{ steps.set_tags.outputs.all-tags }}
