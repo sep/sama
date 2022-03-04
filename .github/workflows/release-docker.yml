@@ -5,7 +5,7 @@ defaults:
     shell: bash
 
 env:
-  TAG_NAME: localhost/testing/sama
+  TAG_NAME: sepinc/sama
 
 on:
   workflow_dispatch:
@@ -39,11 +39,11 @@ jobs:
       - name: Set tags
         id: set_tags
         run: |
-          export ALL_TAGS="$TAG_NAME/${{ github.event.inputs.tagged_version }}"
+          export ALL_TAGS="$TAG_NAME:${{ github.event.inputs.tagged_version }}"
           echo ${{ github.event.inputs.is_latest }}
           echo ${{ github.event.inputs.is_test }}
-          [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME/latest"
-          [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME/test"
+          [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:latest"
+          [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:test"
           echo Setting tags to: $ALL_TAGS
           echo ::set-output name=all-tags::"$ALL_TAGS"
 
