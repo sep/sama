@@ -1,4 +1,5 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+# Forcing amd64 for buildx per https://github.com/dotnet/dotnet-docker/issues/1537#issuecomment-755351628
+FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim-amd64 AS build-env
 WORKDIR /build
 
 # Copy csproj and restore as distinct layers
