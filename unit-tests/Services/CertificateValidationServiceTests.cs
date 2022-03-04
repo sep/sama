@@ -152,7 +152,14 @@ wDSiIIWIWJiJGbEeIO0TIFwEVWTOnbNl/faPXpk5IRXicbpqiII="));
             chain.ChainPolicy.VerificationTime = new DateTime(2018, 1, 1);
             chain.Build(EXAMPLE_CERT_INVALID);
 
-            AssertSslException(() => _service.ValidateLdap(chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), true, "signature of the certificate cannot be verified");
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                AssertSslException(() => _service.ValidateLdap(chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), true, "certificate signature failure");
+            }
+            else
+            {
+                AssertSslException(() => _service.ValidateLdap(chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), true, "signature of the certificate cannot be verified");
+            }
         }
 
         [TestMethod]
@@ -195,7 +202,14 @@ wDSiIIWIWJiJGbEeIO0TIFwEVWTOnbNl/faPXpk5IRXicbpqiII="));
             chain.ChainPolicy.VerificationTime = new DateTime(2018, 1, 1);
             chain.Build(EXAMPLE_CERT_INVALID);
 
-            AssertSslException(() => _service.ValidateHttpEndpoint(ep, chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), false, "signature of the certificate cannot be verified");
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                AssertSslException(() => _service.ValidateHttpEndpoint(ep, chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), false, "certificate signature failure");
+            }
+            else
+            {
+                AssertSslException(() => _service.ValidateHttpEndpoint(ep, chain, System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors), false, "signature of the certificate cannot be verified");
+            }
         }
 
         [TestMethod]
