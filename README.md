@@ -4,7 +4,7 @@
 
 SAMA is a utility service aimed toward IT use. It monitors configured services to determine whether they are up or down and sends Slack alerts when such services' statuses change.
 
-SAMA is written in C# for .NET Core. As such, it is cross-platform and can run on minimal, isolated environments, such as a Raspberry Pi.
+SAMA is written in C# for .NET 6. As such, it is cross-platform and can run on minimal, isolated environments, such as a Raspberry Pi.
 
 ## Features
 
@@ -17,7 +17,37 @@ SAMA is written in C# for .NET Core. As such, it is cross-platform and can run o
 
 ## Installation
 
-Pre-compiled binaries are not currently provided. To compile, the .NET Core 2.0 SDK needs to be installed. After that, simply running `dotnet publish` should be enough to perform a basic compilation.
+### Docker
+
+SAMA is [Dockerized](https://hub.docker.com/r/sepinc/sama). Linux-based images are available for amd64, armv7, and arm64 platforms.
+
+When running Dockerized SAMA, the following should be taken into account:
+
+- Mount the volume `/opt/sama-docker` for database persistence: `-v /my/host/location:/opt/sama-docker`
+- By default, SAMA listens on port 80: use `-p 80:80` to expose it
+- If running behind a reverse proxy, enable "forwarded"-type headers: `-e ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`
+
+SAMA has the ability to listen on other ports as well as use HTTPS. For example:
+
+```
+-e ASPNETCORE_URLS="https://*:443"
+-e ASPNETCORE_Kestrel__Certificates__Default__Path=/opt/sama-docker/ssl.pem
+-e ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/opt/sama-docker/ssl.key
+-e ASPNETCORE_Kestrel__EndpointDefaults__Protocols=Http1AndHttp2
+```
+
+If the above parameters are specified and the `ssl.pem` and `ssl.key` files exist, then SAMA will listen on port 443 with HTTPS.
+
+Basic example:
+
+```
+docker volume create sama_data
+docker run -d --name=sama --restart=unless-stopped -p 80:80 -v sama_data:/opt/sama-docker sepinc/sama:latest
+```
+
+### Manual
+
+Individual pre-compiled binaries are not currently provided. To compile, the .NET 6.0 SDK needs to be installed. After that, simply running `dotnet publish` should be enough to perform a basic compilation.
 
 There is a helper batch file (`publish-rpi.bat`) provided to ease the compilation process for the Raspberry Pi.
 
@@ -49,6 +79,4 @@ This software is released under the ISC License.
 
 [![Powered by SEP logo](https://raw.githubusercontent.com/sep/assets/master/images/powered-by-sep.svg?sanitize=true)](https://www.sep.com)
 
-SAMA is supported by SEP: a Software Product Design + Development company. If you'd like to [join our team](https://www.sep.com/careers/open-positions/), don't hesitate to get in touch!
-
-
+SAMA is supported by SEP: a Software Product Design + Development company. If you'd like to [join our team](https://sep.com/careers-at-sep/open-positions/), don't hesitate to get in touch!
