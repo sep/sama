@@ -27,11 +27,7 @@ jobs:
       - run: dotnet test
   windows_unit_tests:
     name: Unit Tests on Windows
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v2
-      - name: Set up dotnet
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.x'
       - run: dotnet test
