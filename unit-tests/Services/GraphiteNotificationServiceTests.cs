@@ -57,33 +57,33 @@ namespace TestSama.Services
         public void ShouldNotifySingleResultFailure()
         {
             var ep = new Endpoint { Name = "ep1" };
-            var result = new EndpointCheckResult { Start = DateTimeOffset.Parse("2018-01-01T12:00:00.000"), Success = false };
+            var result = new EndpointCheckResult { Start = DateTimeOffset.Parse("2018-01-01T12:00:00.000Z"), Success = false };
 
             _service.NotifySingleResult(ep, result);
 
-            Assert.AreEqual("sama.ep1.response.success 0 1514826000\n", _sentData);
+            Assert.AreEqual("sama.ep1.response.success 0 1514808000\n", _sentData);
         }
 
         [TestMethod]
         public void ShouldNotifySingleResultSuccessWithoutResponseTime()
         {
             var ep = new Endpoint { Name = "ep2" };
-            var result = new EndpointCheckResult { Start = DateTimeOffset.Parse("2018-01-01T12:00:01.000"), Success = true };
+            var result = new EndpointCheckResult { Start = DateTimeOffset.Parse("2018-01-01T12:00:01.000Z"), Success = true };
 
             _service.NotifySingleResult(ep, result);
 
-            Assert.AreEqual("sama.ep2.response.success 1 1514826001\n", _sentData);
+            Assert.AreEqual("sama.ep2.response.success 1 1514808001\n", _sentData);
         }
 
         [TestMethod]
         public void ShouldNotifySingleResultSuccessWithResponseTime()
         {
             var ep = new Endpoint { Name = "ep3" };
-            var result = new EndpointCheckResult { Start = DateTimeOffset.Parse("2018-01-01T12:00:08.000"), Success = true, ResponseTime = TimeSpan.FromMilliseconds(54321) };
+            var result = new EndpointCheckResult { Start = DateTimeOffset.Parse("2018-01-01T12:00:08.000Z"), Success = true, ResponseTime = TimeSpan.FromMilliseconds(54321) };
 
             _service.NotifySingleResult(ep, result);
 
-            Assert.AreEqual("sama.ep3.response.success 1 1514826008\nsama.ep3.response.timeMsec 54321 1514826008\n", _sentData);
+            Assert.AreEqual("sama.ep3.response.success 1 1514808008\nsama.ep3.response.timeMsec 54321 1514808008\n", _sentData);
         }
 
         [TestMethod]

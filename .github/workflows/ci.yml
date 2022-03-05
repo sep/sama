@@ -25,9 +25,3 @@ jobs:
         with:
           dotnet-version: '6.x'
       - run: dotnet test
-  windows_unit_tests:
-    name: Unit Tests on Windows
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v2
-      - run: dotnet test
