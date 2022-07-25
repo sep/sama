@@ -15,6 +15,7 @@ namespace sama
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbContext.Database.Migrate();
+                dbContext.Database.ExecuteSqlRaw("PRAGMA journal_mode=DELETE;");
             }
 
             host.Services.GetRequiredService<Services.MonitorJob>().InitializeScheduler(host.Services);
