@@ -104,7 +104,13 @@ namespace sama.Services
                 using var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>();
                 using var client = new HttpClient(httpHandler, false);
                 var data = JsonConvert.SerializeObject(new { text = message });
-                client.PostAsync(url, new StringContent(data)).Wait();
+                var content = new StringContent(data);
+                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+                using var response = client.PostAsync(url, content).Result;
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError(0, $"Unable to send Slack notification: HTTP {(int)response.StatusCode}", new Exception(response.Content.ReadAsStringAsync().Result));
+                }
             }
             catch (Exception ex)
             {
