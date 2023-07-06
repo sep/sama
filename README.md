@@ -19,7 +19,7 @@ SAMA is written in C# for .NET 6. As such, it is cross-platform and can run on m
 
 ### Docker
 
-SAMA is [Dockerized](https://hub.docker.com/r/sepinc/sama). Linux-based images are available for amd64, armv7, and arm64 platforms.
+SAMA is [Dockerized](https://github.com/sep/sama/pkgs/container/sama). Linux-based images are available for amd64, armv7, and arm64 platforms.
 
 When running Dockerized SAMA, the following should be taken into account:
 
@@ -42,7 +42,7 @@ Basic example:
 
 ```
 docker volume create sama_data
-docker run -d --name=sama --restart=unless-stopped -p 80:80 -v sama_data:/opt/sama-docker sepinc/sama:latest
+docker run -d --name=sama --restart=unless-stopped -p 80:80 -v sama_data:/opt/sama-docker ghcr.io/sep/sama:latest
 ```
 
 ### Manual
