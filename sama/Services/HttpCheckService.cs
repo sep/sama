@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using sama.Extensions;
 using sama.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace sama.Services
@@ -12,13 +14,22 @@ namespace sama.Services
     {
         private readonly SettingsService _settingsService;
         private readonly CertificateValidationService _certService;
+        private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
 
-        public HttpCheckService(SettingsService settingsService, CertificateValidationService certService, IServiceProvider serviceProvider)
+        private readonly string _appVersion;
+
+        private Version? _defaultRequestVersion;
+        private HttpVersionPolicy? _defaultVersionPolicy;
+
+        public HttpCheckService(SettingsService settingsService, CertificateValidationService certService, IConfiguration configuration, IServiceProvider serviceProvider)
         {
             _settingsService = settingsService;
             _certService = certService;
+            _configuration = configuration;
             _serviceProvider = serviceProvider;
+
+            _appVersion = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
         }
 
         public bool CanHandle(Endpoint endpoint)
@@ -40,11 +51,14 @@ namespace sama.Services
                     return true;
                 };
 
+                message.Version = GetDefaultRequestVersion();
+                message.VersionPolicy = GetDefaultVersionPolicy();
+
                 var statusCodes = endpoint.GetHttpStatusCodes() ?? new List<int>();
                 if (statusCodes.Count > 0)
                     httpHandler.AllowAutoRedirect = false;
 
-                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko");
+                message.Headers.Add("User-Agent", $"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 SAMA/{_appVersion}");
                 message.Headers.Add("Accept", "text/html, application/xhtml+xml, */*");
                 client.Timeout = ClientTimeout;
 
@@ -103,6 +117,18 @@ namespace sama.Services
                     return result;
                 }
             }
+        }
+
+        private Version GetDefaultRequestVersion()
+        {
+            _defaultRequestVersion ??= Utility.GetConfiguredHttpRequestVersion(_configuration["DefaultHttpVersion"]);
+            return _defaultRequestVersion;
+        }
+
+        private HttpVersionPolicy GetDefaultVersionPolicy()
+        {
+            _defaultVersionPolicy ??= Utility.GetConfiguredHttpVersionPolicy(_configuration["DefaultHttpVersion"]);
+            return _defaultVersionPolicy.Value;
         }
 
         private TimeSpan ClientTimeout

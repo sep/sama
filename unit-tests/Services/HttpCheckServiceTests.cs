@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using sama.Models;
@@ -16,6 +17,7 @@ namespace TestSama.Services
     public class HttpCheckServiceTests
     {
         private SettingsService _settingsService;
+        private IConfiguration _configuration;
         private CertificateValidationService _certService;
         private IServiceProvider _serviceProvider;
         private TestHttpHandler _httpHandler;
@@ -25,11 +27,12 @@ namespace TestSama.Services
         public void Setup()
         {
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
+            _configuration = Substitute.For<IConfiguration>();
             _certService = Substitute.For<CertificateValidationService>(_settingsService);
             _serviceProvider = TestUtility.InitDI();
             _httpHandler = (TestHttpHandler)_serviceProvider.GetRequiredService<HttpClientHandler>();
 
-            _service = new HttpCheckService(_settingsService, _certService, _serviceProvider);
+            _service = new HttpCheckService(_settingsService, _certService, _configuration, _serviceProvider);
 
             _settingsService.Monitor_RequestTimeoutSeconds.Returns(1);
         }

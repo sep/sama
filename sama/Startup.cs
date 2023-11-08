@@ -25,7 +25,7 @@ namespace sama
             {
                 builder.AddJsonFile("/opt/sama-docker/appsettings.json", optional: true);
             }
-            builder.AddEnvironmentVariables();
+            builder.AddEnvironmentVariables("SAMA_");
             Configuration = builder.Build();
         }
 
@@ -87,8 +87,10 @@ namespace sama
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger, IConfiguration configuration)
         {
+            logger.LogInformation("SAMA is being configured...");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -112,6 +114,10 @@ namespace sama
             {
                 endpoints.MapControllerRoute("default", "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
             });
+
+            var httpRequestVersion = Utility.GetConfiguredHttpRequestVersion(configuration["DefaultHttpVersion"]);
+            var httpRequestPolicy = Utility.GetConfiguredHttpVersionPolicy(configuration["DefaultHttpVersion"]);
+            logger.LogInformation($"SAMA configuration is complete. HTTP requests are set to use version {httpRequestVersion} with policy {httpRequestPolicy}.");
         }
     }
 }
