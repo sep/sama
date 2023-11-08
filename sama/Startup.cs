@@ -25,7 +25,6 @@ namespace sama
             {
                 builder.AddJsonFile("/opt/sama-docker/appsettings.json", optional: true);
             }
-            builder.AddEnvironmentVariables("SAMA_");
             Configuration = builder.Build();
         }
 
