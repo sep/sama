@@ -45,7 +45,29 @@ docker volume create sama_data
 docker run -d --name=sama --restart=unless-stopped -p 80:80 -v sama_data:/opt/sama-docker ghcr.io/sep/sama:latest
 ```
 
-### Manual
+### Docker Compose (recommended)
+
+Based on the above Docker information, a `/opt/sama-docker/docker-compose.yml` file might look as follows:
+
+```yaml
+version: "3.9"
+services:
+  sama:
+    image: ghcr.io/sep/sama:latest
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    environment:
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/opt/sama-docker/ssl.pem
+      - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/opt/sama-docker/ssl.key
+      - ASPNETCORE_Kestrel__EndpointDefaults__Protocols=Http1AndHttp2
+      - ASPNETCORE_URLS=https://*:443
+      - DefaultHttpVersion=11_OrHigher
+    volumes:
+      - /opt/sama-docker:/opt/sama-docker
+```
+
+### Manual compilation
 
 Individual pre-compiled binaries are not currently provided. To compile, the .NET 6.0 SDK needs to be installed. After that, simply running `dotnet publish` should be enough to perform a basic compilation.
 
@@ -58,6 +80,20 @@ The `rpi-prereqs` directory contains, among other things, a systemd service file
 Once up and running, accessing the service will redirect the browser to the Overview page. To create, modify, and delete endpoints, log in and click the Endpoints link.
 
 The `appsettings.json` file has default settings for SAMA. They should be modified to fit your needs by creating a copy of the file and naming it `appsettings.Production.json`. Modifications should go into that file.
+
+The `DefaultHttpVersion` setting, available via the app settings files and overridable via environment variables, controls how the .NET HTTP client accesses HTTP(S) endpoints. By default, it uses HTTP 1.1 with a fallback to HTTP 1.0. In some unusual circumstances, you may need to change that behavior. This setting allows such changes. The following values are supported (on most platforms):
+
+- `10_Exact`
+- `10_OrHigher`
+- `11_OrLower` (default)
+- `11_Exact`
+- `11_OrHigher`
+- `20_OrLower`
+- `20_Exact`
+- `20_OrHigher`
+- `30_OrLower`
+- `30_Exact`
+- `30_OrHigher`
 
 ## Future planned/wished-for features (PRs are welcome!)
 
