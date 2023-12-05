@@ -47,26 +47,27 @@ jobs:
           echo Setting tags to: $ALL_TAGS
           echo ::set-output name=all-tags::"$ALL_TAGS"
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile-buildx-amd64
           platforms: ${{ github.event.inputs.target_platforms }}
+          provenance: false
           push: true
           tags: ${{ steps.set_tags.outputs.all-tags }}
