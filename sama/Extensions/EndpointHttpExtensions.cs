@@ -76,7 +76,7 @@ namespace sama.Extensions
 
             var json = (string.IsNullOrWhiteSpace(endpoint.JsonConfig) ? "{}" : endpoint.JsonConfig);
             var obj = JsonConvert.DeserializeObject<ExpandoObject>(json, JsonSettings) ?? throw new ArgumentException($"Unable to deserialize '{name}'");
-            obj!.Remove(name, out object _);
+            obj!.Remove(name, out object? _);
             if (!obj.TryAdd(name, value))
             {
                 throw new ArgumentException($"Unable to set value for '{name}'");

@@ -173,7 +173,7 @@ namespace sama.Controllers
             var isRemote = (user == null && userId[0] == 0 && userId[1] == 0 && userId[2] == 0 && userId[3] == 0);
             if (isRemote)
             {
-                ViewData["IsCurrentUser"] = (id == Guid.Parse(_userManager.GetUserId(User)));
+                ViewData["IsCurrentUser"] = (id == Guid.Parse(_userManager.GetUserId(User)!));
                 return View("EditRemote");
             }
 

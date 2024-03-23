@@ -163,7 +163,7 @@ namespace sama.Services
 
             if (string.IsNullOrWhiteSpace(valueString))
             {
-                _cache.TryRemove(section + CACHE_NAME_SEPARATOR + name, out object _);
+                _cache.TryRemove(section + CACHE_NAME_SEPARATOR + name, out object? _);
             }
             else
             {

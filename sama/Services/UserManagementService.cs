@@ -97,7 +97,7 @@ namespace sama.Services
             }
         }
 
-        public virtual async Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public virtual async Task<ApplicationUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             using var dbContext = new ApplicationDbContext(_dbContextOptions);
 
@@ -206,7 +206,7 @@ namespace sama.Services
         }
 
         #region unused
-        public Task<ApplicationUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public Task<ApplicationUser?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -216,17 +216,17 @@ namespace sama.Services
             throw new NotImplementedException();
         }
 
-        public Task<string> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task SetNormalizedUserNameAsync(ApplicationUser user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(ApplicationUser user, string? normalizedName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task SetUserNameAsync(ApplicationUser user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(ApplicationUser user, string? userName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -256,32 +256,32 @@ namespace sama.Services
             throw new NotImplementedException();
         }
 
-        Task<string> IRoleStore<IdentityRole>.GetRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
+        Task<string?> IRoleStore<IdentityRole>.GetRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task IRoleStore<IdentityRole>.SetRoleNameAsync(IdentityRole role, string roleName, CancellationToken cancellationToken)
+        Task IRoleStore<IdentityRole>.SetRoleNameAsync(IdentityRole role, string? roleName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task<string> IRoleStore<IdentityRole>.GetNormalizedRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
+        Task<string?> IRoleStore<IdentityRole>.GetNormalizedRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task IRoleStore<IdentityRole>.SetNormalizedRoleNameAsync(IdentityRole role, string normalizedName, CancellationToken cancellationToken)
+        Task IRoleStore<IdentityRole>.SetNormalizedRoleNameAsync(IdentityRole role, string? normalizedName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task<IdentityRole> IRoleStore<IdentityRole>.FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        Task<IdentityRole?> IRoleStore<IdentityRole>.FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task<IdentityRole> IRoleStore<IdentityRole>.FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        Task<IdentityRole?> IRoleStore<IdentityRole>.FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

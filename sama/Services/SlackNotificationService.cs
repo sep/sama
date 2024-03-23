@@ -114,7 +114,7 @@ namespace sama.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(0, "Unable to send Slack notification", ex);
+                _logger.LogError(ex, "Unable to send Slack notification");
             }
         }
 

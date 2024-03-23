@@ -73,7 +73,7 @@ namespace sama.Services
 
         public virtual void RemoveStatus(int id)
         {
-            _endpointStates.TryRemove(id, out EndpointStatus _);
+            _endpointStates.TryRemove(id, out EndpointStatus? _);
         }
 
         private void PostProcessStatus(int endpointId, EndpointStatus status, bool finalizeResults)
