@@ -11,6 +11,7 @@
     <AssemblyVersion>1.4.0</AssemblyVersion>
     <VersionPrefix>1.4.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyyyMMdd-HHmm`))</VersionSuffix>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +24,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Novell.Directory.Ldap.NETStandard" Version="3.6.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.3" PrivateAssets="All" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />

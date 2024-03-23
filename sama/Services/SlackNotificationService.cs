@@ -1,12 +1,12 @@
 ﻿using Humanizer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using sama.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace sama.Services
@@ -103,13 +103,13 @@ namespace sama.Services
             {
                 using var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>();
                 using var client = new HttpClient(httpHandler, false);
-                var data = JsonConvert.SerializeObject(new { text = message });
+                var data = JsonSerializer.Serialize(new { text = message }).Replace("\\u0060", "`");
                 var content = new StringContent(data);
                 content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
                 using var response = client.PostAsync(url, content).Result;
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError(0, $"Unable to send Slack notification: HTTP {(int)response.StatusCode}", new Exception(response.Content.ReadAsStringAsync().Result));
+                    _logger.LogError(new Exception(response.Content.ReadAsStringAsync().Result), $"Unable to send Slack notification: HTTP {(int)response.StatusCode}");
                 }
             }
             catch (Exception ex)
