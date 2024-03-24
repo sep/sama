@@ -1,36 +1,18 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using sama.Extensions;
 using sama.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Reflection;
+using System.Net.Security;
 using System.Threading.Tasks;
 
 namespace sama.Services
 {
-    public class HttpCheckService : ICheckService
+    public class HttpCheckService(SettingsService _settingsService, CertificateValidationService _certService, IConfiguration _configuration, HttpHandlerFactory _httpHandlerFactory) : ICheckService
     {
-        private readonly SettingsService _settingsService;
-        private readonly CertificateValidationService _certService;
-        private readonly IConfiguration _configuration;
-        private readonly IServiceProvider _serviceProvider;
-
-        private readonly string _appVersion;
-
         private Version? _defaultRequestVersion;
         private HttpVersionPolicy? _defaultVersionPolicy;
-
-        public HttpCheckService(SettingsService settingsService, CertificateValidationService certService, IConfiguration configuration, IServiceProvider serviceProvider)
-        {
-            _settingsService = settingsService;
-            _certService = certService;
-            _configuration = configuration;
-            _serviceProvider = serviceProvider;
-
-            _appVersion = typeof(Startup).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
-        }
 
         public bool CanHandle(Endpoint endpoint)
         {
@@ -41,81 +23,80 @@ namespace sama.Services
         {
             var result = new EndpointCheckResult { Start = DateTimeOffset.UtcNow };
 
-            using (var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>())
-            using (var client = new HttpClient(httpHandler, false))
-            using (var message = new HttpRequestMessage(HttpMethod.Get, endpoint.GetHttpLocation()))
+            var statusCodes = endpoint.GetHttpStatusCodes() ?? [];
+            var sslOptions = new SslClientAuthenticationOptions
             {
-                httpHandler.ServerCertificateCustomValidationCallback = (msg, certificate, chain, sslPolicyErrors) =>
+                RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
                 {
                     _certService.ValidateHttpEndpoint(endpoint, chain, sslPolicyErrors);
                     return true;
-                };
-
-                message.Version = GetDefaultRequestVersion();
-                message.VersionPolicy = GetDefaultVersionPolicy();
-
-                var statusCodes = endpoint.GetHttpStatusCodes() ?? new List<int>();
-                if (statusCodes.Count > 0)
-                    httpHandler.AllowAutoRedirect = false;
-
-                message.Headers.Add("User-Agent", $"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 SAMA/{_appVersion}");
-                message.Headers.Add("Accept", "text/html, application/xhtml+xml, */*");
-                client.Timeout = ClientTimeout;
-
-                var task = client.SendAsync(message);
-                try
-                {
-                    task.Wait();
                 }
-                catch (Exception ex)
-                {
-                    if (ex is AggregateException && ex.InnerException != null)
-                        ex = ex.InnerException;
-                    if (ex is HttpRequestException && ex.InnerException != null)
-                        ex = ex.InnerException;
-                    if (ex is TaskCanceledException)
-                        ex = new Exception($"The request timed out after {ClientTimeout.TotalSeconds} sec");
+            };
 
-                    SetFailure(result, ex);
-                    return result;
-                }
+            using var httpHandler = _httpHandlerFactory.Create((statusCodes.Count == 0), sslOptions);
+            using var client = new HttpClient(httpHandler, false);
+            using var message = new HttpRequestMessage(HttpMethod.Get, endpoint.GetHttpLocation());
 
-                var response = task.Result;
-                if (!IsExpectedStatusCode(endpoint, response))
-                {
-                    SetFailure(result, new Exception($"HTTP status code is {(int)response.StatusCode}"));
-                    return result;
-                }
+            message.Version = GetDefaultRequestVersion();
+            message.VersionPolicy = GetDefaultVersionPolicy();
 
-                var responseMatch = endpoint.GetHttpResponseMatch();
-                if (string.IsNullOrWhiteSpace(responseMatch))
-                {
-                    SetSuccess(result);
-                    return result;
-                }
+            message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 SAMA/1.0");
+            message.Headers.Add("Accept", "text/html, application/xhtml+xml, */*");
+            client.Timeout = ClientTimeout;
 
-                var contentTask = response.Content.ReadAsStringAsync();
-                try
-                {
-                    contentTask.Wait();
-                }
-                catch (Exception ex)
-                {
-                    SetFailure(result, new Exception($"Failed to read HTTP content: {ex.Message}", ex));
-                    return result;
-                }
+            var task = client.SendAsync(message);
+            try
+            {
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                if (ex is AggregateException && ex.InnerException != null)
+                    ex = ex.InnerException;
+                if (ex is HttpRequestException && ex.InnerException != null)
+                    ex = ex.InnerException;
+                if (ex is TaskCanceledException)
+                    ex = new Exception($"The request timed out after {ClientTimeout.TotalSeconds} sec");
 
-                var index = contentTask.Result.IndexOf(responseMatch);
-                if (index < 0)
-                {
-                    SetFailure(result, new Exception("The keyword match was not found"));
-                    return result;
-                }
-                else
-                {
-                    SetSuccess(result);
-                    return result;
-                }
+                SetFailure(result, ex);
+                return result;
+            }
+
+            var response = task.Result;
+            if (!IsExpectedStatusCode(endpoint, response))
+            {
+                SetFailure(result, new Exception($"HTTP status code is {(int)response.StatusCode}"));
+                return result;
+            }
+
+            var responseMatch = endpoint.GetHttpResponseMatch();
+            if (string.IsNullOrWhiteSpace(responseMatch))
+            {
+                SetSuccess(result);
+                return result;
+            }
+
+            var contentTask = response.Content.ReadAsStringAsync();
+            try
+            {
+                contentTask.Wait();
+            }
+            catch (Exception ex)
+            {
+                SetFailure(result, new Exception($"Failed to read HTTP content: {ex.Message}", ex));
+                return result;
+            }
+
+            var index = contentTask.Result.IndexOf(responseMatch);
+            if (index < 0)
+            {
+                SetFailure(result, new Exception("The keyword match was not found"));
+                return result;
+            }
+            else
+            {
+                SetSuccess(result);
+                return result;
             }
         }
 

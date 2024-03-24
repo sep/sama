@@ -1,5 +1,4 @@
 ﻿using Humanizer;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using sama.Models;
 using System;
@@ -11,28 +10,12 @@ using System.Threading.Tasks;
 
 namespace sama.Services
 {
-    public class SlackNotificationService : INotificationService
+    public class SlackNotificationService(ILogger<SlackNotificationService> _logger, SettingsService _settings, HttpHandlerFactory _httpHandlerFactory, BackgroundExecutionWrapper _bgExec) : INotificationService
     {
         private const int NOTIFY_UP_QUEUE_DELAY_MILLISECONDS = 2500;
 
-        private readonly ILogger<SlackNotificationService> _logger;
-        private readonly SettingsService _settings;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly BackgroundExecutionWrapper _bgExec;
-
-        private readonly List<Endpoint> _delayNotifyUpEndpoints;
-        private readonly List<Task> _delayTasks;
-
-        public SlackNotificationService(ILogger<SlackNotificationService> logger, SettingsService settings, IServiceProvider serviceProvider, BackgroundExecutionWrapper bgExec)
-        {
-            _logger = logger;
-            _settings = settings;
-            _serviceProvider = serviceProvider;
-            _bgExec = bgExec;
-
-            _delayNotifyUpEndpoints = new List<Endpoint>();
-            _delayTasks = new List<Task>();
-        }
+        private readonly List<Endpoint> _delayNotifyUpEndpoints = new List<Endpoint>();
+        private readonly List<Task> _delayTasks = new List<Task>();
 
         public virtual void NotifyMisc(Endpoint endpoint, NotificationType type)
         {
@@ -101,7 +84,7 @@ namespace sama.Services
 
             try
             {
-                using var httpHandler = _serviceProvider.GetRequiredService<HttpClientHandler>();
+                using var httpHandler = _httpHandlerFactory.Create(true, null);
                 using var client = new HttpClient(httpHandler, false);
                 var data = JsonSerializer.Serialize(new { text = message }).Replace("\\u0060", "`");
                 var content = new StringContent(data);
