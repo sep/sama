@@ -4,7 +4,7 @@
 
 SAMA is a utility service aimed toward IT use. It monitors configured services to determine whether they are up or down and sends Slack alerts when such services' statuses change.
 
-SAMA is written in C# for .NET 6. As such, it is cross-platform and can run on minimal, isolated environments, such as a Raspberry Pi.
+SAMA is written in C# for .NET 8. As such, it is cross-platform and can run on minimal, isolated environments, such as a Raspberry Pi.
 
 ## Features
 
