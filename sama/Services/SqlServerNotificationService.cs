@@ -1,8 +1,6 @@
-﻿using Dapper;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using sama.Models;
 using System;
-using System.Data.Common;
 
 namespace sama.Services
 {

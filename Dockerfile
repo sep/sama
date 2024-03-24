@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /build
 
 # Copy csproj and restore as distinct layers
@@ -10,7 +10,7 @@ COPY sama/ ./
 RUN dotnet publish -c Release -o out --no-restore /p:MvcRazorCompileOnPublish=true
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /opt/sama
 COPY --from=build-env /build/out .
 ENTRYPOINT ["dotnet", "sama.dll"]

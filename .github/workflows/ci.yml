@@ -19,9 +19,9 @@ jobs:
     name: Unit Tests on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up dotnet
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.x'
+          dotnet-version: '8'
       - run: dotnet test

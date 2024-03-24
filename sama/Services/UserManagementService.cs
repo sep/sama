@@ -2,48 +2,34 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using sama.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace sama.Services
 {
-    public class UserManagementService : IUserStore<ApplicationUser>, IRoleStore<IdentityRole>, IDisposable
+    public class UserManagementService(ILogger<UserManagementService> _logger, DbContextOptions<ApplicationDbContext> _dbContextOptions) : IUserStore<ApplicationUser>, IRoleStore<IdentityRole>, IDisposable
     {
-        private readonly ILogger<UserManagementService> _logger;
-        private readonly DbContextOptions<ApplicationDbContext> _dbContextOptions;
-
-        public UserManagementService(ILogger<UserManagementService> logger, DbContextOptions<ApplicationDbContext> dbContextOptions)
-        {
-            _logger = logger;
-            _dbContextOptions = dbContextOptions;
-        }
-
-        public void Dispose()
-        {
-        }
+        private bool _disposedValue;
 
         public virtual async Task<bool> HasAccounts()
         {
-            using(var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                return await dbContext.Users.AsQueryable().AnyAsync();
-            }
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+            return await dbContext.Users.AsQueryable().AnyAsync();
         }
 
         public virtual async Task<ApplicationUser?> FindUserByUsername(string username)
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.UserName?.ToLowerInvariant() == username.Trim().ToLowerInvariant());
-            }
-        }
+			using var dbContext = new ApplicationDbContext(_dbContextOptions);
+			return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.UserName?.ToLowerInvariant() == username.Trim().ToLowerInvariant());
+		}
 
         public virtual Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
@@ -62,24 +48,8 @@ namespace sama.Services
 
         public virtual async Task<ApplicationUser?> CreateInitial(string username, string password)
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                if (!await dbContext.Users.AsQueryable().AnyAsync())
-                {
-                    CreatePasswordHash(password, out string hash, out string metadata);
-                    var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
-                    dbContext.Users.Add(user);
-                    await dbContext.SaveChangesAsync();
-                    return user;
-                }
-
-                return null;
-            }
-        }
-
-        public virtual async Task<ApplicationUser> Create(string username, string password)
-        {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+            if (!await dbContext.Users.AsQueryable().AnyAsync())
             {
                 CreatePasswordHash(password, out string hash, out string metadata);
                 var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
@@ -87,68 +57,72 @@ namespace sama.Services
                 await dbContext.SaveChangesAsync();
                 return user;
             }
+
+            return null;
+        }
+
+        public virtual async Task<ApplicationUser> Create(string username, string password)
+        {
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+            CreatePasswordHash(password, out string hash, out string metadata);
+            var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = username.Trim(), PasswordHash = hash, PasswordHashMetadata = metadata };
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+            return user;
         }
 
         public virtual async Task<List<ApplicationUser>> ListUsers()
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                return await dbContext.Users.AsQueryable().ToListAsync();
-            }
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+            return await dbContext.Users.AsQueryable().ToListAsync();
         }
 
-        public virtual async Task<ApplicationUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public virtual async Task<ApplicationUser?> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             using var dbContext = new ApplicationDbContext(_dbContextOptions);
-
-            // The base method appears to be marked incorrectly for nullability. It should be returning Task<ApplicationUser?>.
-
-#pragma warning disable CS8603 // Possible null reference return.
-            return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId);
-#pragma warning restore CS8603 // Possible null reference return.
+            return await dbContext.Users.AsAsyncEnumerable().FirstOrDefaultAsync(u => u.Id.ToString("D") == userId, cancellationToken: cancellationToken);
         }
 
         public virtual async Task ResetUserPassword(Guid id, string password)
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                var user = await dbContext.Users.AsQueryable().FirstAsync(u => u.Id == id);
-                CreatePasswordHash(password, out string hash, out string metadata);
-                user.PasswordHash = hash;
-                user.PasswordHashMetadata = metadata;
-                dbContext.Update(user);
-                await dbContext.SaveChangesAsync();
-            }
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+            var user = await dbContext.Users.AsQueryable().FirstAsync(u => u.Id == id);
+            CreatePasswordHash(password, out string hash, out string metadata);
+            user.PasswordHash = hash;
+            user.PasswordHashMetadata = metadata;
+            dbContext.Update(user);
+            await dbContext.SaveChangesAsync();
         }
 
         public virtual async Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
-            using (var dbContext = new ApplicationDbContext(_dbContextOptions))
-            {
-                dbContext.Users.Remove(user);
-                await dbContext.SaveChangesAsync();
+            using var dbContext = new ApplicationDbContext(_dbContextOptions);
+            dbContext.Users.Remove(user);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
-                return IdentityResult.Success;
-            }
+            return IdentityResult.Success;
         }
 
         private bool VerifyPasswordHash(string password, string storedHash, string metadata)
         {
             try
             {
-                var obj = JsonConvert.DeserializeObject(metadata);
-                if (obj == null) return false;
+                var node = JsonNode.Parse(metadata)?.AsObject();
+                if (node == null) return false;
 
-                dynamic metadataObject = obj;
-                if (metadataObject.HashType != "Argon2d") return false;
+                if ((string?)node["HashType"] != "Argon2d") return false;
+                var degreeOfParallelism = (int)node["DegreeOfParallelism"]!;
+                var memorySize = (int)node["MemorySize"]!;
+                var iterations = (int)node["Iterations"]!;
+                var salt = Convert.FromBase64String((string)node["Salt"]!);
 
                 var passwordBytes = Encoding.UTF8.GetBytes(password);
                 var argon = new Argon2d(passwordBytes)
                 {
-                    DegreeOfParallelism = metadataObject.DegreeOfParallelism,
-                    MemorySize = metadataObject.MemorySize,
-                    Iterations = metadataObject.Iterations,
-                    Salt = metadataObject.Salt
+                    DegreeOfParallelism = degreeOfParallelism,
+                    MemorySize = memorySize,
+                    Iterations = iterations,
+                    Salt = salt,
                 };
 
                 var hashBytes = argon.GetBytes(64);
@@ -157,11 +131,12 @@ namespace sama.Services
             }
             catch (Exception)
             {
+                _logger.LogWarning("Password hash verification failed!");
                 return false;
             }
         }
 
-        private void CreatePasswordHash(string password, out string hash, out string metadata)
+        private static void CreatePasswordHash(string password, out string hash, out string metadata)
         {
             byte[] salt = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
@@ -175,9 +150,9 @@ namespace sama.Services
                 DegreeOfParallelism = 2,
                 MemorySize = 65536,
                 Iterations = 10,
-                Salt = salt
+                Salt = Convert.ToBase64String(salt),
             };
-            metadata = JsonConvert.SerializeObject(metadataObject);
+            metadata = JsonSerializer.Serialize(metadataObject);
 
             var passwordBytes = Encoding.UTF8.GetBytes(password);
             var argon = new Argon2d(passwordBytes)
@@ -185,14 +160,14 @@ namespace sama.Services
                 DegreeOfParallelism = metadataObject.DegreeOfParallelism,
                 MemorySize = metadataObject.MemorySize,
                 Iterations = metadataObject.Iterations,
-                Salt = metadataObject.Salt
+                Salt = salt,
             };
 
             var hashBytes = argon.GetBytes(64);
             hash = Convert.ToBase64String(hashBytes);
         }
 
-        private bool CompareSlowly(byte[] b1, byte[] b2)
+        private static bool CompareSlowly(byte[] b1, byte[] b2)
         {
             if (b1 == null || b2 == null) return (b1 == b2);
 
@@ -205,8 +180,32 @@ namespace sama.Services
             return (val == 0);
         }
 
+        #region IDisposable pattern
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
         #region unused
-        public Task<ApplicationUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public Task<ApplicationUser?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -216,17 +215,17 @@ namespace sama.Services
             throw new NotImplementedException();
         }
 
-        public Task<string> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task SetNormalizedUserNameAsync(ApplicationUser user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(ApplicationUser user, string? normalizedName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task SetUserNameAsync(ApplicationUser user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(ApplicationUser user, string? userName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -256,35 +255,35 @@ namespace sama.Services
             throw new NotImplementedException();
         }
 
-        Task<string> IRoleStore<IdentityRole>.GetRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
+        Task<string?> IRoleStore<IdentityRole>.GetRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task IRoleStore<IdentityRole>.SetRoleNameAsync(IdentityRole role, string roleName, CancellationToken cancellationToken)
+        Task IRoleStore<IdentityRole>.SetRoleNameAsync(IdentityRole role, string? roleName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task<string> IRoleStore<IdentityRole>.GetNormalizedRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
+        Task<string?> IRoleStore<IdentityRole>.GetNormalizedRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task IRoleStore<IdentityRole>.SetNormalizedRoleNameAsync(IdentityRole role, string normalizedName, CancellationToken cancellationToken)
+        Task IRoleStore<IdentityRole>.SetNormalizedRoleNameAsync(IdentityRole role, string? normalizedName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task<IdentityRole> IRoleStore<IdentityRole>.FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        Task<IdentityRole?> IRoleStore<IdentityRole>.FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        Task<IdentityRole> IRoleStore<IdentityRole>.FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        Task<IdentityRole?> IRoleStore<IdentityRole>.FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
-#endregion
+        #endregion
     }
 }

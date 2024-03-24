@@ -10,113 +10,112 @@ using sama.Models;
 using sama.Services;
 using System;
 
-namespace sama
+namespace sama;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IWebHostEnvironment env)
     {
-        public Startup(IWebHostEnvironment env)
+        Env = env;
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(env.ContentRootPath)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+        if (env.EnvironmentName == "Docker")
         {
-            Env = env;
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
-            if (env.EnvironmentName == "Docker")
-            {
-                builder.AddJsonFile("/opt/sama-docker/appsettings.json", optional: true);
-            }
-            Configuration = builder.Build();
+            builder.AddJsonFile("/opt/sama-docker/appsettings.json", optional: true);
+        }
+        Configuration = builder.Build();
+    }
+
+    public IWebHostEnvironment Env { get; }
+
+    public IConfigurationRoot Configuration { get; }
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddLogging(builder =>
+        {
+            builder.AddConfiguration(Configuration.GetSection("Logging"));
+            builder.AddConsole();
+            builder.AddDebug();
+        });
+
+        var mvcBuilder = services.AddControllersWithViews();
+        if (Env.IsDevelopment())
+        {
+            mvcBuilder.AddRazorRuntimeCompilation();
         }
 
-        public IWebHostEnvironment Env { get; }
+        // Adds a default in-memory implementation of IDistributedCache.
+        services.AddDistributedMemoryCache();
+        services.AddSession();
 
-        public IConfigurationRoot Configuration { get; }
+        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddDefaultTokenProviders();
+        services.AddTransient<IUserStore<ApplicationUser>, UserManagementService>();
+        services.AddTransient<IRoleStore<IdentityRole>, UserManagementService>();
+        services.AddTransient<UserManagementService>();
+        services.AddTransient<LdapService>();
+        services.AddTransient<LdapAuthWrapper>();
+
+        services.AddSingleton(Configuration);
+
+        services.AddSingleton<StateService>();
+        services.AddSingleton<EndpointProcessService>();
+        services.AddSingleton<MonitorJob>();
+        services.AddSingleton<SettingsService>();
+        services.AddSingleton<PingWrapper>();
+        services.AddSingleton<TcpClientWrapper>();
+        services.AddSingleton<SqlConnectionWrapper>();
+        services.AddSingleton<CertificateValidationService>();
+        services.AddSingleton<BackgroundExecutionWrapper>();
+
+        services.AddSingleton<ICheckService, HttpCheckService>();
+        services.AddSingleton<ICheckService, IcmpCheckService>();
+
+        services.AddSingleton<INotificationService, SlackNotificationService>();
+        services.AddSingleton<INotificationService, GraphiteNotificationService>();
+        services.AddSingleton<INotificationService, SqlServerNotificationService>();
+        services.AddSingleton<AggregateNotificationService>();
+
+        services.AddSingleton<HttpHandlerFactory>();
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger, IConfiguration configuration)
+    {
+        logger.LogInformation("SAMA is being configured...");
+
+        if (env.IsDevelopment())
         {
-            services.AddLogging(builder =>
-            {
-                builder.AddConfiguration(Configuration.GetSection("Logging"));
-                builder.AddConsole();
-                builder.AddDebug();
-            });
-
-            var mvcBuilder = services.AddControllersWithViews();
-            if (Env.IsDevelopment())
-            {
-                mvcBuilder.AddRazorRuntimeCompilation();
-            }
-
-            // Adds a default in-memory implementation of IDistributedCache.
-            services.AddDistributedMemoryCache();
-            services.AddSession();
-
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddDefaultTokenProviders();
-            services.AddTransient<IUserStore<ApplicationUser>, UserManagementService>();
-            services.AddTransient<IRoleStore<IdentityRole>, UserManagementService>();
-            services.AddTransient<UserManagementService>();
-            services.AddTransient<LdapService>();
-            services.AddTransient<LdapAuthWrapper>();
-
-            services.AddSingleton(Configuration);
-
-            services.AddSingleton<StateService>();
-            services.AddSingleton<EndpointProcessService>();
-            services.AddSingleton<MonitorJob>();
-            services.AddSingleton<SettingsService>();
-            services.AddSingleton<PingWrapper>();
-            services.AddSingleton<TcpClientWrapper>();
-            services.AddSingleton<SqlConnectionWrapper>();
-            services.AddSingleton<CertificateValidationService>();
-            services.AddSingleton<BackgroundExecutionWrapper>();
-
-            services.AddSingleton<ICheckService, HttpCheckService>();
-            services.AddSingleton<ICheckService, IcmpCheckService>();
-
-            services.AddSingleton<INotificationService, SlackNotificationService>();
-            services.AddSingleton<INotificationService, GraphiteNotificationService>();
-            services.AddSingleton<INotificationService, SqlServerNotificationService>();
-            services.AddSingleton<AggregateNotificationService>();
-
-            services.AddTransient<System.Net.Http.HttpClientHandler>();
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseExceptionHandler("/Home/Error");
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger, IConfiguration configuration)
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.UseSession(new SessionOptions { IdleTimeout = TimeSpan.FromMinutes(30) });
+
+        app.UseAuthentication();
+
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
         {
-            logger.LogInformation("SAMA is being configured...");
+            endpoints.MapControllerRoute("default", "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
+        });
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
-
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseSession(new SessionOptions { IdleTimeout = TimeSpan.FromMinutes(30) });
-
-            app.UseAuthentication();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute("default", "{controller=Endpoints}/{action=IndexRedirect}/{id?}");
-            });
-
-            var httpRequestVersion = Utility.GetConfiguredHttpRequestVersion(configuration["DefaultHttpVersion"]);
-            var httpRequestPolicy = Utility.GetConfiguredHttpVersionPolicy(configuration["DefaultHttpVersion"]);
-            logger.LogInformation($"SAMA configuration is complete. HTTP requests are set to use version {httpRequestVersion} with policy {httpRequestPolicy}.");
-        }
+        var httpRequestVersion = Utility.GetConfiguredHttpRequestVersion(configuration["DefaultHttpVersion"]);
+        var httpRequestPolicy = Utility.GetConfiguredHttpVersionPolicy(configuration["DefaultHttpVersion"]);
+        logger.LogInformation($"SAMA configuration is complete. HTTP requests are set to use version {httpRequestVersion} with policy {httpRequestPolicy}.");
     }
 }

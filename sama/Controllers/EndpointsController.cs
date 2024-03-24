@@ -10,21 +10,8 @@ using System.Threading.Tasks;
 namespace sama.Controllers
 {
     [Authorize]
-    public class EndpointsController : Controller
+    public class EndpointsController(ApplicationDbContext _context, StateService _stateService, UserManagementService _userService, AggregateNotificationService _notifier) : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly StateService _stateService;
-        private readonly UserManagementService _userService;
-        private readonly AggregateNotificationService _notifier;
-
-        public EndpointsController(ApplicationDbContext context, StateService stateService, UserManagementService userService, AggregateNotificationService notifier)
-        {
-            _context = context;
-            _stateService = stateService;
-            _userService = userService;
-            _notifier = notifier;
-        }
-
         [AllowAnonymous]
         public async Task<IActionResult> IndexRedirect()
         {

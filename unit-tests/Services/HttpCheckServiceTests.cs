@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using sama;
 using sama.Models;
 using sama.Services;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace TestSama.Services
         private SettingsService _settingsService;
         private IConfiguration _configuration;
         private CertificateValidationService _certService;
-        private IServiceProvider _serviceProvider;
+        private HttpHandlerFactory _httpHandlerFactory;
         private TestHttpHandler _httpHandler;
         private HttpCheckService _service;
 
@@ -29,10 +30,11 @@ namespace TestSama.Services
             _settingsService = Substitute.For<SettingsService>((IServiceProvider)null);
             _configuration = Substitute.For<IConfiguration>();
             _certService = Substitute.For<CertificateValidationService>(_settingsService);
-            _serviceProvider = TestUtility.InitDI();
-            _httpHandler = (TestHttpHandler)_serviceProvider.GetRequiredService<HttpClientHandler>();
+            _httpHandlerFactory = Substitute.For<HttpHandlerFactory>();
+            _httpHandler = Substitute.ForPartsOf<TestHttpHandler>();
+            _httpHandlerFactory.Create(true, null).ReturnsForAnyArgs(_httpHandler);
 
-            _service = new HttpCheckService(_settingsService, _certService, _configuration, _serviceProvider);
+            _service = new HttpCheckService(_settingsService, _certService, _configuration, _httpHandlerFactory);
 
             _settingsService.Monitor_RequestTimeoutSeconds.Returns(1);
         }
@@ -86,21 +88,19 @@ namespace TestSama.Services
         [TestMethod]
         public void CheckShouldSetAllowAutoRedirectForDefaultStatusCodes()
         {
-            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
-
             _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int>()));
 
-            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
+            _httpHandlerFactory.Received(0).Create(false, Arg.Any<SslClientAuthenticationOptions>());
+            _httpHandlerFactory.Received(1).Create(true, Arg.Any<SslClientAuthenticationOptions>());
         }
 
         [TestMethod]
         public void CheckShouldDisableAllowAutoRedirectForSpecifiedStatusCodes()
         {
-            Assert.IsTrue(_httpHandler.AllowAutoRedirect);
-
             _service.Check(TestUtility.CreateHttpEndpoint("A", httpLocation: "http://asdf.example.com/fdsa", httpStatusCodes: new List<int> { 403 }));
 
-            Assert.IsFalse(_httpHandler.AllowAutoRedirect);
+            _httpHandlerFactory.Received(1).Create(false, Arg.Any<SslClientAuthenticationOptions>());
+            _httpHandlerFactory.Received(0).Create(true, Arg.Any<SslClientAuthenticationOptions>());
         }
     }
 }

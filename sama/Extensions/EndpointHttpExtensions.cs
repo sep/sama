@@ -1,17 +1,13 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using sama.Models;
+﻿using sama.Models;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace sama.Extensions
 {
     public static class EndpointHttpExtensions
     {
-        private static JsonSerializerSettings JsonSettings = new JsonSerializerSettings { ContractResolver = new DefaultContractResolver() };
-
         public static string? GetHttpLocation(this Endpoint endpoint) =>
             GetValue<string>(endpoint, "Location");
 
@@ -45,12 +41,20 @@ namespace sama.Extensions
 
         private static List<T>? GetValueList<T>(Endpoint endpoint, string name, List<T>? defaultValue = null)
         {
-            var list = GetValue<List<object>>(endpoint, name);
-            if (list == null)
+            EnsureHttp(endpoint);
+            if (string.IsNullOrWhiteSpace(endpoint.JsonConfig)) return defaultValue;
+
+            var node = JsonNode.Parse(endpoint.JsonConfig);
+            var matches = node?.AsObject().Where(kvp => kvp.Key == name);
+            if (matches?.Any() ?? false)
             {
-                return defaultValue;
+                if (matches.First().Value == null) return defaultValue;
+                var array = matches.First().Value!.AsArray();
+                if (array == null) return defaultValue;
+                return array.Select(n => n!.GetValue<T>()).ToList();
             }
-            return list.Select(o => (T)Convert.ChangeType(o, typeof(T))).ToList();
+            // else
+            return defaultValue;
         }
 
         private static T? GetValue<T>(Endpoint endpoint, string name, T? defaultValue = default(T))
@@ -58,16 +62,15 @@ namespace sama.Extensions
             EnsureHttp(endpoint);
             if (string.IsNullOrWhiteSpace(endpoint.JsonConfig)) return defaultValue;
 
-            var obj = JsonConvert.DeserializeObject<ExpandoObject>(endpoint.JsonConfig, JsonSettings) as IDictionary<string, object>;
-            if (obj == null)
+            var node = JsonNode.Parse(endpoint.JsonConfig);
+            var matches = node?.AsObject().Where(kvp => kvp.Key == name);
+            if (matches?.Any() ?? false)
             {
-                throw new ArgumentException($"Unable to get value for '{name}'");
+                if (matches.First().Value == null) return defaultValue;
+                return matches.First().Value!.GetValue<T>();
             }
-            if (!obj.ContainsKey(name))
-            {
-                return defaultValue;
-            }
-            return (T)obj[name];
+            // else
+            return defaultValue;
         }
 
         private static void SetValue<T>(Endpoint endpoint, string name, T? value)
@@ -75,13 +78,11 @@ namespace sama.Extensions
             EnsureHttp(endpoint);
 
             var json = (string.IsNullOrWhiteSpace(endpoint.JsonConfig) ? "{}" : endpoint.JsonConfig);
-            var obj = JsonConvert.DeserializeObject<ExpandoObject>(json, JsonSettings) ?? throw new ArgumentException($"Unable to deserialize '{name}'");
-            obj!.Remove(name, out object _);
-            if (!obj.TryAdd(name, value))
-            {
-                throw new ArgumentException($"Unable to set value for '{name}'");
-            }
-            endpoint.JsonConfig = JsonConvert.SerializeObject(obj, JsonSettings);
+
+            var nodeObj = JsonNode.Parse(json)?.AsObject() ?? throw new ArgumentException($"Unable to deserialize '{name}'");
+            nodeObj.Remove(name);
+            nodeObj.Add(name, JsonValue.Create(value));
+            endpoint.JsonConfig = nodeObj.ToJsonString();
         }
 
         private static void EnsureHttp(Endpoint endpoint)
