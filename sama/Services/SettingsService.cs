@@ -49,6 +49,18 @@ namespace sama.Services
             set { SetSetting("SqlServerNotifications", "TableName", value); }
         }
 
+        public virtual string? Notifications_EventGrid_TopicEndpoint
+        {
+            get { return GetSetting("EventGridNotifications", "TopicEndpoint", ""); }
+            set { SetSetting("EventGridNotifications", "TopicEndpoint", value); }
+        }
+
+        public virtual string? Notifications_EventGrid_AccessKey
+        {
+            get { return GetSetting("EventGridNotifications", "AccessKey", ""); }
+            set { SetSetting("EventGridNotifications", "AccessKey", value); }
+        }
+
         public virtual int Monitor_IntervalSeconds
         {
             get { return GetSetting("Monitor", "IntervalSeconds", 90); }

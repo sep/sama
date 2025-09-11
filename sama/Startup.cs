@@ -80,6 +80,7 @@ public class Startup
         services.AddSingleton<INotificationService, SlackNotificationService>();
         services.AddSingleton<INotificationService, GraphiteNotificationService>();
         services.AddSingleton<INotificationService, SqlServerNotificationService>();
+        services.AddSingleton<INotificationService, EventGridNotificationService>();
         services.AddSingleton<AggregateNotificationService>();
 
         services.AddSingleton<HttpHandlerFactory>();
