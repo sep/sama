@@ -276,7 +276,6 @@ namespace TestSama.Services
             );
             
             // Avoid async warning by not awaiting the result since we're testing the call was made
-            _ = result3;
         }
 
         [TestMethod]
