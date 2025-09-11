@@ -71,6 +71,7 @@ public class Startup
         services.AddSingleton<PingWrapper>();
         services.AddSingleton<TcpClientWrapper>();
         services.AddSingleton<SqlConnectionWrapper>();
+        services.AddSingleton<EventGridPublisherClientWrapper>();
         services.AddSingleton<CertificateValidationService>();
         services.AddSingleton<BackgroundExecutionWrapper>();
 

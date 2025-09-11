@@ -1,4 +1,3 @@
-using Azure;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Logging;
 using sama.Models;
@@ -12,12 +11,14 @@ namespace sama.Services
         private readonly ILogger<EventGridNotificationService> _logger;
         private readonly SettingsService _settings;
         private readonly BackgroundExecutionWrapper _bgExec;
+        private readonly EventGridPublisherClientWrapper _eventGridWrapper;
 
-        public EventGridNotificationService(ILogger<EventGridNotificationService> logger, SettingsService settings, BackgroundExecutionWrapper bgExec)
+        public EventGridNotificationService(ILogger<EventGridNotificationService> logger, SettingsService settings, BackgroundExecutionWrapper bgExec, EventGridPublisherClientWrapper eventGridWrapper)
         {
             _logger = logger;
             _settings = settings;
             _bgExec = bgExec;
+            _eventGridWrapper = eventGridWrapper;
         }
 
         private static class EventTypes
@@ -128,8 +129,7 @@ namespace sama.Services
                 }
 
                 var topicEndpoint = new Uri(_settings.Notifications_EventGrid_TopicEndpoint!);
-                var credential = new AzureKeyCredential(_settings.Notifications_EventGrid_AccessKey!);
-                var client = new EventGridPublisherClient(topicEndpoint, credential);
+                var accessKey = _settings.Notifications_EventGrid_AccessKey!;
 
                 var eventGridEvent = new EventGridEvent(
                     subject: subject,
@@ -138,7 +138,7 @@ namespace sama.Services
                     data: BinaryData.FromObjectAsJson(data)
                 );
 
-                await client.SendEventAsync(eventGridEvent);
+                await _eventGridWrapper.SendEventAsync(topicEndpoint, accessKey, eventGridEvent);
                 
                 _logger.LogDebug("Successfully sent Event Grid event: {EventType} for {Subject}", eventType, subject);
             }
