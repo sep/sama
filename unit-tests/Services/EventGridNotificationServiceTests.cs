@@ -209,7 +209,7 @@ namespace TestSama.Services
                 Arg.Is<string>(key => key == "test-access-key"),
                 Arg.Is<EventGridEvent>(evt => 
                     evt.EventType == "sama.endpoint.check.completed" &&
-                    evt.Subject == "Sama/1" &&
+                    evt.Subject == "Sama/endpoints/1" &&
                     evt.DataVersion == "1.0" &&
                     VerifyCheckCompletedEventData(evt.Data, endpoint, result)
                 )
