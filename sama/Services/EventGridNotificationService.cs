@@ -150,7 +150,7 @@ namespace sama.Services
 
         private void SendEvent(string eventType, string subject, object data)
         {
-            _bgExec.Execute(() => SendEventAsync(eventType, subject, data).Wait());
+            _bgExec.Execute(() => Task.Run(() => SendEventAsync(eventType, subject, data)));
         }
 
         private bool IsConfigured()
