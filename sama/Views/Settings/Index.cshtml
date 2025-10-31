@@ -90,6 +90,21 @@
                 <span asp-validation-for="SqlServerTable" class="text-danger"></span>
                 <p class="text-left">Example: <code>dbo.SamaEvents</code></p>
             </div>
+
+            <h4>Azure Event Grid</h4>
+            <p class="text-left">All events can be sent to Azure Event Grid. The configured topic will receive all events.</p>
+            <div class="form-group">
+                <label asp-for="EventGridAccessKey" class="control-label"></label>
+                <input asp-for="EventGridAccessKey" class="form-control" />
+                <span asp-validation-for="EventGridAccessKey" class="text-danger"></span>
+                <p class="text-left">Configured in Azure Portal in your event grid topic under "Access Keys".</p>
+            </div>
+            <div class="form-group">
+                <label asp-for="EventGridTopicEndpoint" class="control-label"></label>
+                <input asp-for="EventGridTopicEndpoint" class="form-control" />
+                <span asp-validation-for="EventGridTopicEndpoint" class="text-danger"></span>
+                <p class="text-left">Example: <code>https://your-topic-name.eastus-1.eventgrid.azure.net/api/events</code></p>
+            </div>
         </div>
         <div class="col-xs-12 col-sm-4">
             <h3>LDAP</h3>

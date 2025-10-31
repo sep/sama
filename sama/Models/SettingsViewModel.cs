@@ -40,6 +40,11 @@ namespace sama.Models
 
         public string? SqlServerCreateTableScript { get; set; }
 
+        [Display(Name = "Event Grid Access Key")]
+        public string? EventGridAccessKey { get; set; }
+        [Display(Name = "Event Grid Topic Endpoint URL")]
+        public string? EventGridTopicEndpoint { get; set; }
+
 
         [Display(Name = "Enable LDAP")]
         public bool LdapEnable { get; set; }

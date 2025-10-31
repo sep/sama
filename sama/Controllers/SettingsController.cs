@@ -39,6 +39,9 @@ namespace sama.Controllers
                 SqlServerTable = _settingsService.Notifications_SqlServer_TableName,
                 SqlServerCreateTableScript = SqlServerNotificationService.CREATE_TABLE_SCRIPT.Trim(),
 
+                EventGridAccessKey = _settingsService.Notifications_EventGrid_AccessKey,
+                EventGridTopicEndpoint = _settingsService.Notifications_EventGrid_TopicEndpoint,
+
                 LdapEnable = _settingsService.Ldap_Enable,
                 LdapHost = _settingsService.Ldap_Host,
                 LdapPort = _settingsService.Ldap_Port,
@@ -91,6 +94,9 @@ namespace sama.Controllers
 
                 _settingsService.Notifications_SqlServer_Connection = vm.SqlServerConnection;
                 _settingsService.Notifications_SqlServer_TableName = vm.SqlServerTable;
+
+                _settingsService.Notifications_EventGrid_AccessKey = vm.EventGridAccessKey;
+                _settingsService.Notifications_EventGrid_TopicEndpoint = vm.EventGridTopicEndpoint;
 
                 _settingsService.Ldap_Enable = vm.LdapEnable;
                 _settingsService.Ldap_Host = vm.LdapHost;
