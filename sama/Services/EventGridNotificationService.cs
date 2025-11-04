@@ -35,13 +35,13 @@ public class EventGridNotificationService : INotificationService
     }
 
 private static string Subject(string path) => $"Sama/{path}";
-private static string EndpointSubject(string path) => Subject($"endpoints/{path}";
+private static string EndpointSubject(string path) => Subject($"endpoints/{path}");
 
     public virtual void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
     {
         SendEvent(
             EventTypes.CheckCompleted,
-            Subject($"endpoints/{endpoint.Id}"),
+            EndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
@@ -63,7 +63,7 @@ private static string EndpointSubject(string path) => Subject($"endpoints/{path}
 
         SendEvent(
             EventTypes.StatusUp,
-            Subject($"endpoints/{endpoint.Id}"),
+            EndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
@@ -79,7 +79,7 @@ private static string EndpointSubject(string path) => Subject($"endpoints/{path}
     {
         SendEvent(
             EventTypes.StatusDown,
-            Subject($"endpoints/{endpoint.Id}"),
+            EndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
@@ -105,7 +105,7 @@ private static string EndpointSubject(string path) => Subject($"endpoints/{path}
 
         SendEvent(
             eventType,
-            Subject($"endpoints/{endpoint.Id}"),
+            EndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
