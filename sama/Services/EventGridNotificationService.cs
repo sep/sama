@@ -34,14 +34,14 @@ public class EventGridNotificationService : INotificationService
         public const string ManagementUnknown = "sama.endpoint.management.unknown";
     }
 
-private static string Subject(string path) => $"Sama/{path}";
-private static string EndpointSubject(string path) => Subject($"endpoints/{path}");
+private static string FormatSubject(string path) => $"Sama/{path}";
+private static string FormatEndpointSubject(string path) => FormatSubject($"endpoints/{path}");
 
     public virtual void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
     {
         SendEvent(
             EventTypes.CheckCompleted,
-            EndpointSubject($"{endpoint.Id}"),
+            FormatEndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
@@ -63,7 +63,7 @@ private static string EndpointSubject(string path) => Subject($"endpoints/{path}
 
         SendEvent(
             EventTypes.StatusUp,
-            EndpointSubject($"{endpoint.Id}"),
+            FormatEndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
@@ -79,7 +79,7 @@ private static string EndpointSubject(string path) => Subject($"endpoints/{path}
     {
         SendEvent(
             EventTypes.StatusDown,
-            EndpointSubject($"{endpoint.Id}"),
+            FormatEndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
@@ -105,7 +105,7 @@ private static string EndpointSubject(string path) => Subject($"endpoints/{path}
 
         SendEvent(
             eventType,
-            EndpointSubject($"{endpoint.Id}"),
+            FormatEndpointSubject($"{endpoint.Id}"),
             new
             {
                 endpointId = endpoint.Id,
