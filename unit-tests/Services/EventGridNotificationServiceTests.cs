@@ -6,6 +6,7 @@ using sama.Models;
 using sama.Services;
 using System;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace TestSama.Services
 {
@@ -124,55 +125,107 @@ namespace TestSama.Services
         }
 
         [TestMethod]
-        public void ShouldNotExecuteWhenTopicEndpointIsNotConfigured()
+        public async Task ShouldNotExecuteWhenTopicEndpointIsNotConfigured()
         {
             _settings.Notifications_EventGrid_TopicEndpoint.Returns((string)null);
             var endpoint = CreateTestHttpEndpoint();
             var result = new EndpointCheckResult { Success = true };
 
+            // Capture the action passed to background execution
+            Action capturedAction = null;
+            _bgExec.When(x => x.Execute(Arg.Any<Action>())).Do(call => capturedAction = call.Arg<Action>());
+
             _service.NotifySingleResult(endpoint, result);
 
             // Should still call Execute, but the async function inside should return early
             _bgExec.Received(1).Execute(Arg.Any<Action>());
+            
+            // Execute the captured action synchronously
+            capturedAction?.Invoke();
+
+            await _eventGridWrapper.DidNotReceive().SendEventAsync(
+                Arg.Any<Uri>(),
+                Arg.Any<string>(),
+                Arg.Any<EventGridEvent>()
+            );
         }
 
         [TestMethod]
-        public void ShouldNotExecuteWhenAccessKeyIsNotConfigured()
+        public async Task ShouldNotExecuteWhenAccessKeyIsNotConfigured()
         {
             _settings.Notifications_EventGrid_AccessKey.Returns((string)null);
             var endpoint = CreateTestHttpEndpoint();
             var result = new EndpointCheckResult { Success = true };
 
+            // Capture the action passed to background execution
+            Action capturedAction = null;
+            _bgExec.When(x => x.Execute(Arg.Any<Action>())).Do(call => capturedAction = call.Arg<Action>());
+
             _service.NotifySingleResult(endpoint, result);
 
             // Should still call Execute, but the async function inside should return early
             _bgExec.Received(1).Execute(Arg.Any<Action>());
+            
+            // Execute the captured action synchronously
+            capturedAction?.Invoke();
+
+            await _eventGridWrapper.DidNotReceive().SendEventAsync(
+                Arg.Any<Uri>(),
+                Arg.Any<string>(),
+                Arg.Any<EventGridEvent>()
+            );
         }
 
         [TestMethod]
-        public void ShouldNotExecuteWhenTopicEndpointIsEmpty()
+        public async Task ShouldNotExecuteWhenTopicEndpointIsEmpty()
         {
             _settings.Notifications_EventGrid_TopicEndpoint.Returns("");
             var endpoint = CreateTestHttpEndpoint();
             var result = new EndpointCheckResult { Success = true };
 
+            // Capture the action passed to background execution
+            Action capturedAction = null;
+            _bgExec.When(x => x.Execute(Arg.Any<Action>())).Do(call => capturedAction = call.Arg<Action>());
+
             _service.NotifySingleResult(endpoint, result);
 
             // Should still call Execute, but the async function inside should return early
             _bgExec.Received(1).Execute(Arg.Any<Action>());
+            
+            // Execute the captured action synchronously
+            capturedAction?.Invoke();
+
+            await _eventGridWrapper.DidNotReceive().SendEventAsync(
+                Arg.Any<Uri>(),
+                Arg.Any<string>(),
+                Arg.Any<EventGridEvent>()
+            );
         }
 
         [TestMethod]
-        public void ShouldNotExecuteWhenAccessKeyIsEmpty()
+        public async Task ShouldNotExecuteWhenAccessKeyIsEmpty()
         {
             _settings.Notifications_EventGrid_AccessKey.Returns("");
             var endpoint = CreateTestHttpEndpoint();
             var result = new EndpointCheckResult { Success = true };
 
+            // Capture the action passed to background execution
+            Action capturedAction = null;
+            _bgExec.When(x => x.Execute(Arg.Any<Action>())).Do(call => capturedAction = call.Arg<Action>());
+
             _service.NotifySingleResult(endpoint, result);
 
             // Should still call Execute, but the async function inside should return early
             _bgExec.Received(1).Execute(Arg.Any<Action>());
+            
+            // Execute the captured action synchronously
+            capturedAction?.Invoke();
+
+            await _eventGridWrapper.DidNotReceive().SendEventAsync(
+                Arg.Any<Uri>(),
+                Arg.Any<string>(),
+                Arg.Any<EventGridEvent>()
+            );
         }
 
         private Endpoint CreateTestHttpEndpoint()
@@ -181,7 +234,7 @@ namespace TestSama.Services
         }
 
         [TestMethod]
-        public void NotifySingleResultShouldSendCorrectEventPayload()
+        public async Task NotifySingleResultShouldSendCorrectEventPayload()
         {
             var endpoint = CreateTestHttpEndpoint();
             var startTime = DateTimeOffset.UtcNow;
@@ -204,22 +257,20 @@ namespace TestSama.Services
             // Execute the captured action synchronously to trigger the wrapper call
             capturedAction?.Invoke();
 
-            var result1 = _eventGridWrapper.Received(1).SendEventAsync(
+            await _eventGridWrapper.Received(1).SendEventAsync(
                 Arg.Is<Uri>(uri => uri.ToString() == "https://test-topic.eastus-1.eventgrid.azure.net/api/events"),
                 Arg.Is<string>(key => key == "test-access-key"),
                 Arg.Is<EventGridEvent>(evt => 
                     evt.EventType == "sama.endpoint.check.completed" &&
-                    evt.Subject == "Sama/endpoints/1" &&
+                    evt.Subject == "sama/endpoints/1" &&
                     evt.DataVersion == "1.0" &&
                     VerifyCheckCompletedEventData(evt.Data, endpoint, result)
                 )
             );
-            
-            // Avoid async warning by not awaiting the result since we're testing the call was made
         }
 
         [TestMethod]
-        public void NotifyUpShouldSendCorrectEventPayload()
+        public async Task NotifyUpShouldSendCorrectEventPayload()
         {
             var endpoint = CreateTestHttpEndpoint();
             var downAsOf = DateTimeOffset.UtcNow.AddMinutes(-10);
@@ -233,23 +284,20 @@ namespace TestSama.Services
             // Execute the captured action synchronously to trigger the wrapper call
             capturedAction?.Invoke();
 
-            var result2 = _eventGridWrapper.Received(1).SendEventAsync(
+            await _eventGridWrapper.Received(1).SendEventAsync(
                 Arg.Any<Uri>(),
                 Arg.Any<string>(),
                 Arg.Is<EventGridEvent>(evt => 
                     evt.EventType == "sama.endpoint.status.up" &&
-                    evt.Subject == "Sama/endpoints/1" &&
+                    evt.Subject == "sama/endpoints/1" &&
                     evt.DataVersion == "1.0" &&
                     VerifyUpEventData(evt.Data, endpoint, downAsOf)
                 )
             );
-            
-            // Avoid async warning by not awaiting the result since we're testing the call was made
-            _ = result2;
         }
 
         [TestMethod]
-        public void NotifyDownShouldSendCorrectEventPayload()
+        public async Task NotifyDownShouldSendCorrectEventPayload()
         {
             var endpoint = CreateTestHttpEndpoint();
             var downAsOf = DateTimeOffset.UtcNow;
@@ -264,22 +312,20 @@ namespace TestSama.Services
             // Execute the captured action synchronously to trigger the wrapper call
             capturedAction?.Invoke();
 
-            var result3 = _eventGridWrapper.Received(1).SendEventAsync(
+            await _eventGridWrapper.Received(1).SendEventAsync(
                 Arg.Any<Uri>(),
                 Arg.Any<string>(),
                 Arg.Is<EventGridEvent>(evt => 
                     evt.EventType == "sama.endpoint.status.down" &&
-                    evt.Subject == "Sama/endpoints/1" &&
+                    evt.Subject == "sama/endpoints/1" &&
                     evt.DataVersion == "1.0" &&
                     VerifyDownEventData(evt.Data, endpoint, downAsOf, exception)
                 )
             );
-            
-            // Avoid async warning by not awaiting the result since we're testing the call was made
         }
 
         [TestMethod]
-        public void NotifyMiscShouldSendCorrectEventPayloadForEndpointAdded()
+        public async Task NotifyMiscShouldSendCorrectEventPayloadForEndpointAdded()
         {
             var endpoint = CreateTestHttpEndpoint();
 
@@ -292,23 +338,21 @@ namespace TestSama.Services
             // Execute the captured action synchronously to trigger the wrapper call
             capturedAction?.Invoke();
 
-            var result4 = _eventGridWrapper.Received(1).SendEventAsync(
+            await _eventGridWrapper.Received(1).SendEventAsync(
                 Arg.Any<Uri>(),
                 Arg.Any<string>(),
                 Arg.Is<EventGridEvent>(evt => 
                     evt.EventType == "sama.endpoint.management.added" &&
-                    evt.Subject == "Sama/endpoints/1" &&
+                    evt.Subject == "sama/endpoints/1" &&
                     evt.DataVersion == "1.0" &&
                     VerifyManagementEventData(evt.Data, endpoint, NotificationType.EndpointAdded)
                 )
             );
-            
-            // Avoid async warning by not awaiting the result since we're testing the call was made
-            _ = result4;
+
         }
 
         [TestMethod]
-        public void NotifyMiscShouldSendCorrectEventPayloadForEndpointRemoved()
+        public async Task NotifyMiscShouldSendCorrectEventPayloadForEndpointRemoved()
         {
             var endpoint = CreateTestHttpEndpoint();
 
@@ -321,17 +365,15 @@ namespace TestSama.Services
             // Execute the captured action synchronously to trigger the wrapper call
             capturedAction?.Invoke();
 
-            var result = _eventGridWrapper.Received(1).SendEventAsync(
+            await _eventGridWrapper.Received(1).SendEventAsync(
                 Arg.Any<Uri>(),
                 Arg.Any<string>(),
                 Arg.Is<EventGridEvent>(evt => 
                     evt.EventType == "sama.endpoint.management.removed" &&
-                    evt.Subject == "Sama/endpoints/1" &&
+                    evt.Subject == "sama/endpoints/1" &&
                     VerifyManagementEventData(evt.Data, endpoint, NotificationType.EndpointRemoved)
                 )
             );
-            
-            // Avoid async warning by not awaiting the result since we're testing the call was made
         }
 
         private bool VerifyCheckCompletedEventData(BinaryData data, Endpoint endpoint, EndpointCheckResult result)

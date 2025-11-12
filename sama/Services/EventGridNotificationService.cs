@@ -34,7 +34,7 @@ public class EventGridNotificationService : INotificationService
         public const string ManagementUnknown = "sama.endpoint.management.unknown";
     }
 
-private static string FormatSubject(string path) => $"Sama/{path}";
+private static string FormatSubject(string path) => $"sama/{path}";
 private static string FormatEndpointSubject(string path) => FormatSubject($"endpoints/{path}");
 
     public virtual void NotifySingleResult(Endpoint endpoint, EndpointCheckResult result)
