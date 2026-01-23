@@ -212,6 +212,8 @@ builder.Services.AddScoped<AlertHandlerService>();
 builder.Services.AddScoped<EventSubscriptionService>();
 builder.Services.AddScoped<WorkspaceAuthorizationService>();
 builder.Services.AddScoped<UserPreferencesService>();
+builder.Services.AddScoped<ConfigurationExportService>();
+builder.Services.AddScoped<ConfigurationImportService>();
 
 // Register CQRS-lite query services
 builder.Services.AddScoped<WorkspaceQueryService>();
