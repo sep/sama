@@ -30,7 +30,7 @@ jobs:
   linux_integration_tests:
     name: Integration Tests on Linux
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:17
@@ -45,7 +45,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     env:
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
@@ -53,7 +53,7 @@ jobs:
       POSTGRES_USER: sama
       POSTGRES_PASSWORD: sama-test-pw
       SAMA_ENCRYPTION_KEY: test-encryption-key-for-ci-only
-    
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up dotnet
@@ -66,7 +66,7 @@ jobs:
   linux_system_tests:
     name: System Tests on Linux
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:17
@@ -81,7 +81,14 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+      smtp:
+        image: rnwood/smtp4dev:v3
+        env:
+          ServerOptions__Urls: http://*:80
+        ports:
+          - 6467:80
+          - 6468:25
+
     env:
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
@@ -89,7 +96,7 @@ jobs:
       POSTGRES_USER: sama
       POSTGRES_PASSWORD: sama-test-pw
       SAMA_ENCRYPTION_KEY: test-encryption-key-for-ci-only
-    
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up dotnet
