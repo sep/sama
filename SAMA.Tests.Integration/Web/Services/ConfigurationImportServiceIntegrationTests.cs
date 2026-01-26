@@ -114,6 +114,71 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task ImportAsyncShouldSkipExistingNotificationChannelOnMerge()
+    {
+        var existingWorkspace = new Workspace
+        {
+            Name = "Test Workspace",
+            Description = "Original",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.Workspaces.Add(existingWorkspace);
+        await DbContext.SaveChangesAsync();
+
+        var existingChannel = new NotificationChannel
+        {
+            WorkspaceId = existingWorkspace.Id,
+            Name = "Existing Channel",
+            ChannelType = ChannelTypes.Email,
+            ConfigurationJson = new Dictionary<string, JsonElement>(),
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.NotificationChannels.Add(existingChannel);
+        await DbContext.SaveChangesAsync();
+
+        var export = CreateEncryptedExport(
+        [
+            new WorkspaceExportDto
+            {
+                Name = "Test Workspace",
+                Description = "Updated",
+                IsPublic = true,
+                NotificationChannels =
+                [
+                    new NotificationChannelExportDto
+                    {
+                        ExportId = "channel_1",
+                        Name = "Existing Channel",
+                        ChannelType = ChannelTypes.Slack,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        Enabled = false
+                    }
+                ]
+            }
+        ]);
+
+        var result = await _importService.ImportAsync(export, TestPassword, ImportMergeStrategy.MergeIntoExisting);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(1, result.WorkspacesUpdated);
+        Assert.AreEqual(0, result.NotificationChannelsCreated);
+        Assert.HasCount(1, result.Warnings);
+        Assert.IsTrue(result.Warnings.Any(w => w.Contains("Existing Channel") && w.Contains("already exists")));
+
+        var workspace = await DbContext.Workspaces.FirstOrDefaultAsync(w => w.Name == "Test Workspace");
+        Assert.IsNotNull(workspace);
+
+        var channels = await DbContext.NotificationChannels.Where(c => c.WorkspaceId == workspace.Id).ToListAsync();
+        Assert.HasCount(1, channels);
+        Assert.AreEqual("Existing Channel", channels[0].Name);
+        Assert.AreEqual(ChannelTypes.Email, channels[0].ChannelType);
+        Assert.IsTrue(channels[0].Enabled);
+    }
+
+    [TestMethod]
     public async Task ImportAsyncShouldReplaceExistingWorkspace()
     {
         var existingWorkspace = new Workspace

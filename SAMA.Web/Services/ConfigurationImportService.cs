@@ -203,13 +203,21 @@ public class ConfigurationImportService(
         workspace.IsPublic = workspaceDto.IsPublic;
         workspace.UpdatedAt = DateTimeOffset.UtcNow;
 
-        // Build lookup for existing channels by ExportId (for channels we're importing)
-        // and track which ExportIds map to which entities
+        // Build lookup for existing channels by name and ExportId mapping
+        var existingChannels = workspace.NotificationChannels.ToDictionary(c => c.Name);
         var exportIdToChannel = new Dictionary<string, NotificationChannel>();
 
-        // Import new notification channels (always create - ExportId is unique per export)
+        // Import notification channels (skip existing ones with the same name)
         foreach (var channelDto in workspaceDto.NotificationChannels)
         {
+            if (existingChannels.TryGetValue(channelDto.Name, out var existingChannel))
+            {
+                // Channel already exists - map ExportId to existing channel for alert linking
+                exportIdToChannel[channelDto.ExportId] = existingChannel;
+                result.Warnings.Add($"Notification channel '{channelDto.Name}' already exists in workspace '{workspace.Name}', skipping.");
+                continue;
+            }
+
             var channel = CreateNotificationChannel(workspace.Id, channelDto);
             _dbContext.NotificationChannels.Add(channel);
             exportIdToChannel[channelDto.ExportId] = channel;
