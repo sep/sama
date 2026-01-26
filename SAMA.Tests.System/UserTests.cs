@@ -14,15 +14,8 @@ public class UserTests : SystemTestBase
         var email = "testadmin@example.com";
         var password = "SecurePassword123!";
 
-        await Page.GotoAsync(BaseUrl);
-        await Page.WaitForURLAsync($"{BaseUrl}/Setup");
+        await SetupInitialAdminAsync(email, password);
 
-        await Page.FillAsync("input[name='Input.Email']", email);
-        await Page.FillAsync("input[name='Input.Password']", password);
-        await Page.FillAsync("input[name='Input.ConfirmPassword']", password);
-        await Page.ClickAsync("button[type='submit']");
-
-        await Page.WaitForURLAsync(BaseUrl);
         var titleAfterSetup = await Page.TitleAsync();
         Assert.AreEqual("Welcome - SAMA", titleAfterSetup);
 

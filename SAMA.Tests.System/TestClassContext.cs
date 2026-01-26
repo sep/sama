@@ -20,10 +20,13 @@ internal class TestClassContext : IDisposable
 
     public string BaseUrl { get; }
 
+    public string TestRunId { get; }
+
     private TestClassContext(string schemaName, string baseUrl, Process appProcess, NpgsqlDataSource dataSource)
     {
         _schemaName = schemaName;
         BaseUrl = baseUrl;
+        TestRunId = schemaName;
         _appProcess = appProcess;
         _dataSource = dataSource;
     }

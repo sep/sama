@@ -1,4 +1,4 @@
-# This is the development compose file, so it only defines the database service.
+# This is the development compose file, so it only defines support services.
 
 services:
   db:
@@ -12,7 +12,16 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     ports:
-      - 5432:5432
+      - 127.0.0.1:5432:5432
+
+  smtp:
+    image: rnwood/smtp4dev:v3
+    restart: unless-stopped
+    environment:
+      - ServerOptions__Urls=http://*:80
+    ports:
+      - 127.0.0.1:6467:80
+      - 127.0.0.1:6468:25
 
 volumes:
   pgdata:

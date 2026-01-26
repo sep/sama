@@ -23,6 +23,8 @@ public abstract class SystemTestBase
 
     protected string BaseUrl => _context?.BaseUrl ?? throw new InvalidOperationException("Test not initialized.");
 
+    protected string TestRunId => _context?.TestRunId ?? throw new InvalidOperationException("Test not initialized.");
+
     internal static void Cleanup()
     {
         foreach (var context in _contexts.Values)
@@ -69,11 +71,35 @@ public abstract class SystemTestBase
         await Page.WaitForURLAsync($"{BaseUrl}/**");
     }
 
+    protected async Task SetupInitialAdminAsync(string email = "admin@example.com", string password = "TestPassword123!")
+    {
+        await Page.GotoAsync(BaseUrl);
+        await Page.WaitForURLAsync($"{BaseUrl}/Setup");
+
+        await Page.FillAsync("input[name='Input.Email']", email);
+        await Page.FillAsync("input[name='Input.Password']", password);
+        await Page.FillAsync("input[name='Input.ConfirmPassword']", password);
+        await Page.ClickAsync("button[type='submit']");
+
+        await Page.WaitForURLAsync(BaseUrl);
+    }
+
     protected async Task LogoutAsync()
     {
         await Page.Locator("#userDropdown").ClickAsync();
         await Page.Locator("button:has-text('Logout')").ClickAsync();
         await Page.WaitForURLAsync(BaseUrl);
+    }
+
+    protected async Task ImportSystemTestConfigurationAsync()
+    {
+        var resourcesPath = Path.Combine(AppContext.BaseDirectory, "Resources", "sama-export-system-test.json");
+
+        await Page.GotoAsync($"{BaseUrl}/Admin/Settings");
+        await Page.Locator("input[name='ImportInput.File']").SetInputFilesAsync(resourcesPath);
+        await Page.FillAsync("input[name='ImportInput.Password']", "system-test-password");
+        await Page.Locator("form[action*='Import'] button[type='submit']").ClickAsync();
+        await Page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle);
     }
 
     private async Task<TestClassContext> GetOrCreateContextAsync()
