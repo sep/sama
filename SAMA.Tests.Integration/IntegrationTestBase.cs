@@ -134,7 +134,8 @@ public abstract class IntegrationTestBase
         var services = new ServiceCollection();
 
         var encryptionKey = "test-integration-key-32-chars-";
-        services.AddSingleton(new AesEncryptionService(encryptionKey));
+        services.AddSingleton(new EncryptionKeyProvider(encryptionKey));
+        services.AddSingleton<AesEncryptionService>();
 
         services.AddDbContext<SamaDbContext>(options =>
         {

@@ -10,6 +10,7 @@ namespace SAMA.Data;
 
 public class SamaDbContext(
     DbContextOptions<SamaDbContext> _options,
+    EncryptionKeyProvider _keyProvider,
     AesEncryptionService _encryptionService)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(_options)
 {
@@ -72,16 +73,16 @@ public class SamaDbContext(
         modelBuilder.Entity<NotificationChannel>()
             .Property(nc => nc.ConfigurationJson)
             .HasConversion(
-                v => _encryptionService.Encrypt(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null)),
-                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_encryptionService.Decrypt(v), (JsonSerializerOptions?)null)!,
+                v => _encryptionService.Encrypt(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null), _keyProvider.Key),
+                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_encryptionService.Decrypt(v, _keyProvider.Key), (JsonSerializerOptions?)null)!,
                 dictionaryComparer
             );
 
         modelBuilder.Entity<Check>()
             .Property(c => c.ConfigurationJson)
             .HasConversion(
-                v => _encryptionService.Encrypt(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null)),
-                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_encryptionService.Decrypt(v), (JsonSerializerOptions?)null)!,
+                v => _encryptionService.Encrypt(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null), _keyProvider.Key),
+                v => JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_encryptionService.Decrypt(v, _keyProvider.Key), (JsonSerializerOptions?)null)!,
                 dictionaryComparer
             );
     }

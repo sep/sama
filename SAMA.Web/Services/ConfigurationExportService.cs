@@ -1,24 +1,28 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SAMA.Data;
 using SAMA.Data.Entities;
+using SAMA.Data.Services;
 using SAMA.Web.Models.Export;
 
 namespace SAMA.Web.Services;
 
 /// <summary>
-/// Service for exporting SAMA configuration to a portable format.
+/// Service for exporting SAMA configuration to a portable, encrypted format.
 /// Exports workspaces, checks, notification channels, alerts.
 /// </summary>
 public class ConfigurationExportService(
     SamaDbContext _dbContext,
-    ApplicationStateService _appStateService)
+    ApplicationStateService _appStateService,
+    AesEncryptionService _encryptionService)
 {
     /// <summary>
-    /// Exports all configuration from the database.
+    /// Exports all configuration from the database, encrypted with the provided password.
     /// </summary>
+    /// <param name="password">Password used to encrypt the export data</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Complete export DTO with all workspaces</returns>
-    public virtual async Task<SamaExportDto> ExportAllAsync(CancellationToken cancellationToken = default)
+    /// <returns>Complete export DTO with encrypted workspaces</returns>
+    public virtual async Task<SamaExportDto> ExportAllAsync(string password, CancellationToken cancellationToken = default)
     {
         var workspaces = await _dbContext.Workspaces
             .AsNoTracking()
@@ -29,12 +33,16 @@ public class ConfigurationExportService(
                 .ThenInclude(nc => nc.EventSubscriptions)
             .ToListAsync(cancellationToken);
 
+        var workspaceDtos = workspaces.Select(MapWorkspace).ToList();
+        var payloadJson = JsonSerializer.Serialize(workspaceDtos);
+        var encryptedData = _encryptionService.Encrypt(payloadJson, password);
+
         return new SamaExportDto
         {
             SchemaVersion = 1,
             ExportedFromVersion = _appStateService.Version,
             ExportedAt = DateTimeOffset.UtcNow,
-            Workspaces = workspaces.Select(MapWorkspace).ToList(),
+            EncryptedData = encryptedData
         };
     }
 

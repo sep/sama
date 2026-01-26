@@ -1,7 +1,7 @@
 namespace SAMA.Web.Models.Export;
 
 /// <summary>
-/// Root export DTO containing all exportable configuration.
+/// Root export DTO containing encrypted configuration.
 /// Schema version allows backward compatibility via migration logic.
 /// </summary>
 public class SamaExportDto
@@ -22,7 +22,7 @@ public class SamaExportDto
     public DateTimeOffset ExportedAt { get; set; }
 
     /// <summary>
-    /// Gets or sets the exported workspaces with their checks, channels, alerts, and subscriptions.
+    /// Gets or sets the encrypted workspaces data. Contains AES-GCM encrypted JSON of a list of <see cref="WorkspaceExportDto"/>.
     /// </summary>
-    public List<WorkspaceExportDto> Workspaces { get; set; } = [];
+    public string EncryptedData { get; set; } = string.Empty;
 }

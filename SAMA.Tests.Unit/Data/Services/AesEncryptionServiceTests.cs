@@ -8,42 +8,33 @@ public class AesEncryptionServiceTests
 {
     private const string TestKey = "test-encryption-key-123";
     private const string TestPlainText = "Hello, World!";
+    private readonly AesEncryptionService _service = new();
 
     [TestMethod]
-    public void ConstructorShouldAcceptValidKey()
+    public void EncryptShouldThrowExceptionWhenKeyIsNull()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        Assert.IsNotNull(service);
-    }
-
-    [TestMethod]
-    public void ConstructorShouldThrowExceptionWhenKeyIsNull()
-    {
-        var exception = Assert.ThrowsExactly<ArgumentException>(() => new AesEncryptionService(null!));
+        var exception = Assert.ThrowsExactly<ArgumentException>(() => _service.Encrypt(TestPlainText, null!));
         Assert.AreEqual("key", exception.ParamName);
     }
 
     [TestMethod]
-    public void ConstructorShouldThrowExceptionWhenKeyIsEmpty()
+    public void EncryptShouldThrowExceptionWhenKeyIsEmpty()
     {
-        var exception = Assert.ThrowsExactly<ArgumentException>(() => new AesEncryptionService(string.Empty));
+        var exception = Assert.ThrowsExactly<ArgumentException>(() => _service.Encrypt(TestPlainText, string.Empty));
         Assert.AreEqual("key", exception.ParamName);
     }
 
     [TestMethod]
-    public void ConstructorShouldThrowExceptionWhenKeyIsWhitespace()
+    public void EncryptShouldThrowExceptionWhenKeyIsWhitespace()
     {
-        var exception = Assert.ThrowsExactly<ArgumentException>(() => new AesEncryptionService("   "));
+        var exception = Assert.ThrowsExactly<ArgumentException>(() => _service.Encrypt(TestPlainText, "   "));
         Assert.AreEqual("key", exception.ParamName);
     }
 
     [TestMethod]
     public void EncryptShouldReturnBase64String()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        var encrypted = service.Encrypt(TestPlainText);
+        var encrypted = _service.Encrypt(TestPlainText, TestKey);
 
         Assert.IsNotNull(encrypted);
         Assert.IsGreaterThan(0, encrypted.Length);
@@ -56,10 +47,8 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void EncryptShouldReturnDifferentValuesForSameInput()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        var encrypted1 = service.Encrypt(TestPlainText);
-        var encrypted2 = service.Encrypt(TestPlainText);
+        var encrypted1 = _service.Encrypt(TestPlainText, TestKey);
+        var encrypted2 = _service.Encrypt(TestPlainText, TestKey);
 
         Assert.AreNotEqual(encrypted1, encrypted2);
     }
@@ -67,9 +56,7 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void EncryptShouldReturnEmptyStringForEmptyInput()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        var encrypted = service.Encrypt(string.Empty);
+        var encrypted = _service.Encrypt(string.Empty, TestKey);
 
         Assert.AreEqual(string.Empty, encrypted);
     }
@@ -77,9 +64,7 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void EncryptShouldReturnNullForNullInput()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        var encrypted = service.Encrypt(null!);
+        var encrypted = _service.Encrypt(null!, TestKey);
 
         Assert.IsNull(encrypted);
     }
@@ -87,10 +72,9 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void DecryptShouldReturnOriginalPlainText()
     {
-        var service = new AesEncryptionService(TestKey);
-        var encrypted = service.Encrypt(TestPlainText);
+        var encrypted = _service.Encrypt(TestPlainText, TestKey);
 
-        var decrypted = service.Decrypt(encrypted);
+        var decrypted = _service.Decrypt(encrypted, TestKey);
 
         Assert.AreEqual(TestPlainText, decrypted);
     }
@@ -98,11 +82,10 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void DecryptShouldWorkWithLongText()
     {
-        var service = new AesEncryptionService(TestKey);
         var longText = string.Join(" ", Enumerable.Repeat("This is a longer text to test encryption.", 100));
-        var encrypted = service.Encrypt(longText);
+        var encrypted = _service.Encrypt(longText, TestKey);
 
-        var decrypted = service.Decrypt(encrypted);
+        var decrypted = _service.Decrypt(encrypted, TestKey);
 
         Assert.AreEqual(longText, decrypted);
     }
@@ -110,9 +93,7 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void DecryptShouldReturnEmptyStringForEmptyInput()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        var decrypted = service.Decrypt(string.Empty);
+        var decrypted = _service.Decrypt(string.Empty, TestKey);
 
         Assert.AreEqual(string.Empty, decrypted);
     }
@@ -120,9 +101,7 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void DecryptShouldReturnNullForNullInput()
     {
-        var service = new AesEncryptionService(TestKey);
-
-        var decrypted = service.Decrypt(null!);
+        var decrypted = _service.Decrypt(null!, TestKey);
 
         Assert.IsNull(decrypted);
     }
@@ -130,53 +109,47 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void DecryptShouldThrowExceptionForInvalidCipherText()
     {
-        var service = new AesEncryptionService(TestKey);
         var invalidCipherText = "InvalidBase64!@#$";
 
-        Assert.ThrowsExactly<FormatException>(() => service.Decrypt(invalidCipherText));
+        Assert.ThrowsExactly<FormatException>(() => _service.Decrypt(invalidCipherText, TestKey));
     }
 
     [TestMethod]
     public void DecryptShouldThrowExceptionForTooShortCipherText()
     {
-        var service = new AesEncryptionService(TestKey);
         var tooShortCipherText = Convert.ToBase64String(new byte[10]); // Less than nonce + tag
 
-        Assert.ThrowsExactly<CryptographicException>(() => service.Decrypt(tooShortCipherText));
+        Assert.ThrowsExactly<CryptographicException>(() => _service.Decrypt(tooShortCipherText, TestKey));
     }
 
     [TestMethod]
     public void DecryptShouldThrowExceptionForTamperedCipherText()
     {
-        var service = new AesEncryptionService(TestKey);
-        var encrypted = service.Encrypt(TestPlainText);
+        var encrypted = _service.Encrypt(TestPlainText, TestKey);
 
         // Tamper with the ciphertext
         var bytes = Convert.FromBase64String(encrypted);
         bytes[^1] ^= 0xFF; // Flip bits in last byte
         var tamperedCipherText = Convert.ToBase64String(bytes);
 
-        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => service.Decrypt(tamperedCipherText));
+        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => _service.Decrypt(tamperedCipherText, TestKey));
     }
 
     [TestMethod]
     public void DecryptShouldFailWithDifferentKey()
     {
-        var service1 = new AesEncryptionService(TestKey);
-        var service2 = new AesEncryptionService("different-key");
-        var encrypted = service1.Encrypt(TestPlainText);
+        var encrypted = _service.Encrypt(TestPlainText, TestKey);
 
-        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => service2.Decrypt(encrypted));
+        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => _service.Decrypt(encrypted, "different-key"));
     }
 
     [TestMethod]
     public void EncryptDecryptShouldWorkWithSpecialCharacters()
     {
-        var service = new AesEncryptionService(TestKey);
         var specialText = "Hello! 🔐 @#$%^&*()";
 
-        var encrypted = service.Encrypt(specialText);
-        var decrypted = service.Decrypt(encrypted);
+        var encrypted = _service.Encrypt(specialText, TestKey);
+        var decrypted = _service.Decrypt(encrypted, TestKey);
 
         Assert.AreEqual(specialText, decrypted);
     }
@@ -184,11 +157,10 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void EncryptDecryptShouldWorkWithMultilineText()
     {
-        var service = new AesEncryptionService(TestKey);
         var multilineText = "Line 1\nLine 2\r\nLine 3\tTabbed";
 
-        var encrypted = service.Encrypt(multilineText);
-        var decrypted = service.Decrypt(encrypted);
+        var encrypted = _service.Encrypt(multilineText, TestKey);
+        var decrypted = _service.Decrypt(encrypted, TestKey);
 
         Assert.AreEqual(multilineText, decrypted);
     }
@@ -196,12 +168,10 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void SameKeyShouldProduceSameDecryptionResult()
     {
-        var service1 = new AesEncryptionService(TestKey);
-        var service2 = new AesEncryptionService(TestKey);
-        var encrypted = service1.Encrypt(TestPlainText);
+        var encrypted = _service.Encrypt(TestPlainText, TestKey);
 
-        var decrypted1 = service1.Decrypt(encrypted);
-        var decrypted2 = service2.Decrypt(encrypted);
+        var decrypted1 = _service.Decrypt(encrypted, TestKey);
+        var decrypted2 = _service.Decrypt(encrypted, TestKey);
 
         Assert.AreEqual(decrypted1, decrypted2);
         Assert.AreEqual(TestPlainText, decrypted1);
@@ -210,8 +180,7 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void EncryptShouldProduceCiphertextLongerThanPlaintext()
     {
-        var service = new AesEncryptionService(TestKey);
-        var encrypted = service.Encrypt(TestPlainText);
+        var encrypted = _service.Encrypt(TestPlainText, TestKey);
 
         var encryptedBytes = Convert.FromBase64String(encrypted);
 
@@ -222,14 +191,11 @@ public class AesEncryptionServiceTests
     [TestMethod]
     public void DifferentKeysShouldProduceDifferentDerivedKeys()
     {
-        var service1 = new AesEncryptionService("key1");
-        var service2 = new AesEncryptionService("key2");
-
-        var encrypted1 = service1.Encrypt(TestPlainText);
-        var encrypted2 = service2.Encrypt(TestPlainText);
+        var encrypted1 = _service.Encrypt(TestPlainText, "key1");
+        var encrypted2 = _service.Encrypt(TestPlainText, "key2");
 
         // The same plaintext encrypted with different keys should not be decryptable
-        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => service1.Decrypt(encrypted2));
-        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => service2.Decrypt(encrypted1));
+        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => _service.Decrypt(encrypted2, "key1"));
+        Assert.ThrowsExactly<AuthenticationTagMismatchException>(() => _service.Decrypt(encrypted1, "key2"));
     }
 }

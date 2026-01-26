@@ -1,15 +1,18 @@
+using System.Security.Cryptography;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SAMA.Data;
 using SAMA.Data.Entities;
+using SAMA.Data.Services;
 using SAMA.Web.Models.Export;
 
 namespace SAMA.Web.Services;
 
 /// <summary>
-/// Service for importing SAMA configuration from an export file.
+/// Service for importing SAMA configuration from an encrypted export file.
 /// Supports schema version migration for backward compatibility.
 /// </summary>
-public class ConfigurationImportService(SamaDbContext _dbContext)
+public class ConfigurationImportService(SamaDbContext _dbContext, AesEncryptionService _encryptionService)
 {
     /// <summary>
     /// Current schema version supported by this import service.
@@ -39,15 +42,17 @@ public class ConfigurationImportService(SamaDbContext _dbContext)
     }
 
     /// <summary>
-    /// Imports configuration from an export DTO.
+    /// Imports configuration from an encrypted export DTO.
     /// Creates new workspaces or merges into existing ones based on name matching.
     /// </summary>
     /// <param name="export">The export data to import</param>
+    /// <param name="password">Password used to decrypt the export data</param>
     /// <param name="mergeStrategy">How to handle existing workspaces with the same name</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Result indicating success/failure and statistics</returns>
     public virtual async Task<ImportResult> ImportAsync(
         SamaExportDto export,
+        string password,
         ImportMergeStrategy mergeStrategy = ImportMergeStrategy.SkipExisting,
         CancellationToken cancellationToken = default)
     {
@@ -61,13 +66,33 @@ public class ConfigurationImportService(SamaDbContext _dbContext)
             return result;
         }
 
+        // Decrypt the payload
+        List<WorkspaceExportDto> workspaces;
+        try
+        {
+            var decryptedJson = _encryptionService.Decrypt(export.EncryptedData, password);
+            workspaces = JsonSerializer.Deserialize<List<WorkspaceExportDto>>(decryptedJson) ?? [];
+        }
+        catch (CryptographicException)
+        {
+            result.Success = false;
+            result.Errors.Add("Failed to decrypt export data. The password may be incorrect.");
+            return result;
+        }
+        catch (JsonException ex)
+        {
+            result.Success = false;
+            result.Errors.Add($"Failed to parse decrypted export data: {ex.Message}");
+            return result;
+        }
+
         if (export.SchemaVersion < CurrentSchemaVersion)
         {
-            export = MigrateExport(export, result);
+            workspaces = MigrateWorkspaces(workspaces, export.SchemaVersion, result);
         }
 
         // Import workspaces
-        foreach (var workspaceDto in export.Workspaces)
+        foreach (var workspaceDto in workspaces)
         {
             await ImportWorkspaceAsync(workspaceDto, mergeStrategy, result, cancellationToken);
         }
@@ -285,22 +310,20 @@ public class ConfigurationImportService(SamaDbContext _dbContext)
     }
 
     /// <summary>
-    /// Migrates an export from an older schema version to the current version.
+    /// Migrates workspaces from an older schema version to the current version.
     /// Add migration logic here as schema evolves.
     /// </summary>
-    private SamaExportDto MigrateExport(SamaExportDto export, ImportResult result)
+    private List<WorkspaceExportDto> MigrateWorkspaces(List<WorkspaceExportDto> workspaces, int fromVersion, ImportResult result)
     {
         // Future: Add migration logic for each schema version upgrade
         // Example:
-        // if (export.SchemaVersion == 1)
+        // if (fromVersion == 1)
         // {
         //     // Migrate from v1 to v2
-        //     export.SchemaVersion = 2;
         //     result.Warnings.Add("Migrated export from schema v1 to v2");
         // }
-        result.Warnings.Add($"Export schema version {export.SchemaVersion} migrated to version {CurrentSchemaVersion}");
-        export.SchemaVersion = CurrentSchemaVersion;
-        return export;
+        result.Warnings.Add($"Export schema version {fromVersion} migrated to version {CurrentSchemaVersion}");
+        return workspaces;
     }
 }
 

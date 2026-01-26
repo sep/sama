@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using SAMA.Data.Entities;
+using SAMA.Data.Services;
 using SAMA.Shared.Constants;
 using SAMA.Web.Constants;
 using SAMA.Web.Models.Export;
@@ -11,6 +12,7 @@ namespace SAMA.Tests.Integration.Web.Services;
 [TestClass]
 public class ConfigurationExportServiceIntegrationTests : IntegrationTestBase
 {
+    private const string TestPassword = "test-export-password-123";
     private ConfigurationExportService _exportService = null!;
 
     [TestInitialize]
@@ -18,18 +20,22 @@ public class ConfigurationExportServiceIntegrationTests : IntegrationTestBase
     {
         await base.InitializeTestAsync();
         var appStateService = new ApplicationStateService();
-        _exportService = new ConfigurationExportService(DbContext, appStateService);
+        var encryptionService = new AesEncryptionService();
+        _exportService = new ConfigurationExportService(DbContext, appStateService, encryptionService);
     }
 
     [TestMethod]
     public async Task ExportAllAsyncShouldReturnEmptyExportWhenNoData()
     {
-        var result = await _exportService.ExportAllAsync();
+        var result = await _exportService.ExportAllAsync(TestPassword);
 
         Assert.AreEqual(1, result.SchemaVersion);
         Assert.IsNotNull(result.ExportedFromVersion);
         Assert.IsTrue(result.ExportedAt <= DateTimeOffset.UtcNow);
-        Assert.IsEmpty(result.Workspaces);
+        Assert.IsFalse(string.IsNullOrEmpty(result.EncryptedData));
+
+        var payload = DecryptPayload(result.EncryptedData);
+        Assert.IsEmpty(payload);
     }
 
     [TestMethod]
@@ -96,10 +102,11 @@ public class ConfigurationExportServiceIntegrationTests : IntegrationTestBase
         DbContext.Alerts.Add(alert);
         await DbContext.SaveChangesAsync();
 
-        var result = await _exportService.ExportAllAsync();
+        var result = await _exportService.ExportAllAsync(TestPassword);
+        var payload = DecryptPayload(result.EncryptedData);
 
-        Assert.HasCount(1, result.Workspaces);
-        var exportedWorkspace = result.Workspaces[0];
+        Assert.HasCount(1, payload);
+        var exportedWorkspace = payload[0];
         Assert.AreEqual("Test Workspace", exportedWorkspace.Name);
         Assert.AreEqual("Test Description", exportedWorkspace.Description);
         Assert.IsTrue(exportedWorkspace.IsPublic);
@@ -159,9 +166,17 @@ public class ConfigurationExportServiceIntegrationTests : IntegrationTestBase
         DbContext.EventSubscriptions.Add(subscription);
         await DbContext.SaveChangesAsync();
 
-        var result = await _exportService.ExportAllAsync();
+        var result = await _exportService.ExportAllAsync(TestPassword);
+        var payload = DecryptPayload(result.EncryptedData);
 
-        Assert.HasCount(1, result.Workspaces[0].NotificationChannels[0].EventSubscriptions);
-        Assert.AreEqual("CheckCreated", result.Workspaces[0].NotificationChannels[0].EventSubscriptions[0]);
+        Assert.HasCount(1, payload[0].NotificationChannels[0].EventSubscriptions);
+        Assert.AreEqual("CheckCreated", payload[0].NotificationChannels[0].EventSubscriptions[0]);
+    }
+
+    private static List<WorkspaceExportDto> DecryptPayload(string encryptedData)
+    {
+        var encryptionService = new AesEncryptionService();
+        var decryptedJson = encryptionService.Decrypt(encryptedData, TestPassword);
+        return JsonSerializer.Deserialize<List<WorkspaceExportDto>>(decryptedJson)!;
     }
 }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SAMA.Data.Entities;
+using SAMA.Data.Services;
 using SAMA.Shared.Constants;
 using SAMA.Web.Constants;
 using SAMA.Web.Models.Export;
@@ -11,13 +12,15 @@ namespace SAMA.Tests.Integration.Web.Services;
 [TestClass]
 public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
 {
+    private const string TestPassword = "test-export-password-123";
     private ConfigurationImportService _importService = null!;
 
     [TestInitialize]
     public override async Task InitializeTestAsync()
     {
         await base.InitializeTestAsync();
-        _importService = new ConfigurationImportService(DbContext);
+        var encryptionService = new AesEncryptionService();
+        _importService = new ConfigurationImportService(DbContext, encryptionService);
     }
 
     [TestMethod]
@@ -33,10 +36,9 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         DbContext.Workspaces.Add(existingWorkspace);
         await DbContext.SaveChangesAsync();
 
-        var export = CreateBasicExport();
-        export.Workspaces[0].Description = "Updated";
+        var export = CreateEncryptedExport([new WorkspaceExportDto { Name = "Test Workspace", Description = "Updated", IsPublic = true }]);
 
-        var result = await _importService.ImportAsync(export);
+        var result = await _importService.ImportAsync(export, TestPassword);
 
         Assert.IsTrue(result.Success);
         Assert.AreEqual(0, result.WorkspacesCreated);
@@ -73,18 +75,28 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         DbContext.NotificationChannels.Add(existingChannel);
         await DbContext.SaveChangesAsync();
 
-        var export = CreateBasicExport();
-        export.Workspaces[0].Description = "Updated";
-        export.Workspaces[0].NotificationChannels.Add(new NotificationChannelExportDto
-        {
-            ExportId = "channel_1",
-            Name = "New Channel",
-            ChannelType = ChannelTypes.Slack,
-            Configuration = new Dictionary<string, JsonElement>(),
-            Enabled = true
-        });
+        var export = CreateEncryptedExport(
+        [
+            new WorkspaceExportDto
+            {
+                Name = "Test Workspace",
+                Description = "Updated",
+                IsPublic = true,
+                NotificationChannels =
+                [
+                    new NotificationChannelExportDto
+                    {
+                        ExportId = "channel_1",
+                        Name = "New Channel",
+                        ChannelType = ChannelTypes.Slack,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        Enabled = true
+                    }
+                ]
+            }
+        ]);
 
-        var result = await _importService.ImportAsync(export, ImportMergeStrategy.MergeIntoExisting);
+        var result = await _importService.ImportAsync(export, TestPassword, ImportMergeStrategy.MergeIntoExisting);
 
         Assert.IsTrue(result.Success);
         Assert.AreEqual(1, result.WorkspacesUpdated);
@@ -124,18 +136,28 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         DbContext.NotificationChannels.Add(existingChannel);
         await DbContext.SaveChangesAsync();
 
-        var export = CreateBasicExport();
-        export.Workspaces[0].Description = "Replaced";
-        export.Workspaces[0].NotificationChannels.Add(new NotificationChannelExportDto
-        {
-            ExportId = "channel_1",
-            Name = "New Channel",
-            ChannelType = ChannelTypes.Slack,
-            Configuration = new Dictionary<string, JsonElement>(),
-            Enabled = true
-        });
+        var export = CreateEncryptedExport(
+        [
+            new WorkspaceExportDto
+            {
+                Name = "Test Workspace",
+                Description = "Replaced",
+                IsPublic = true,
+                NotificationChannels =
+                [
+                    new NotificationChannelExportDto
+                    {
+                        ExportId = "channel_1",
+                        Name = "New Channel",
+                        ChannelType = ChannelTypes.Slack,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        Enabled = true
+                    }
+                ]
+            }
+        ]);
 
-        var result = await _importService.ImportAsync(export, ImportMergeStrategy.ReplaceExisting);
+        var result = await _importService.ImportAsync(export, TestPassword, ImportMergeStrategy.ReplaceExisting);
 
         Assert.IsTrue(result.Success);
         Assert.AreEqual(1, result.WorkspacesCreated);
@@ -152,10 +174,10 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     [TestMethod]
     public async Task ImportAsyncShouldRejectFutureSchemaVersion()
     {
-        var export = CreateBasicExport();
+        var export = CreateEncryptedExport([new WorkspaceExportDto { Name = "Test Workspace", IsPublic = true }]);
         export.SchemaVersion = 999;
 
-        var result = await _importService.ImportAsync(export);
+        var result = await _importService.ImportAsync(export, TestPassword);
 
         Assert.IsFalse(result.Success);
         Assert.HasCount(1, result.Errors);
@@ -163,31 +185,53 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task ImportAsyncShouldFailWithWrongPassword()
+    {
+        var export = CreateEncryptedExport([new WorkspaceExportDto { Name = "Test Workspace", IsPublic = true }]);
+
+        var result = await _importService.ImportAsync(export, "wrong-password");
+
+        Assert.IsFalse(result.Success);
+        Assert.HasCount(1, result.Errors);
+        Assert.Contains("password may be incorrect", result.Errors[0]);
+    }
+
+    [TestMethod]
     public async Task ImportAsyncShouldWarnOnUnknownChannelReference()
     {
-        var export = CreateBasicExport();
-        export.Workspaces[0].Checks.Add(new CheckExportDto
-        {
-            Name = "API Health",
-            CheckType = CheckTypes.Http,
-            Configuration = new Dictionary<string, JsonElement>(),
-            IntervalSeconds = 60,
-            TimeoutSeconds = 30,
-            Enabled = true,
-            Alerts =
-            [
-                new AlertExportDto
-                {
-                    Name = "Critical Alert",
-                    TriggerOnDown = true,
-                    FailureThreshold = 3,
-                    Enabled = true,
-                    NotificationChannelExportIds = ["nonexistent_channel"]
-                }
-            ]
-        });
+        var export = CreateEncryptedExport(
+        [
+            new WorkspaceExportDto
+            {
+                Name = "Test Workspace",
+                IsPublic = true,
+                Checks =
+                [
+                    new CheckExportDto
+                    {
+                        Name = "API Health",
+                        CheckType = CheckTypes.Http,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        IntervalSeconds = 60,
+                        TimeoutSeconds = 30,
+                        Enabled = true,
+                        Alerts =
+                        [
+                            new AlertExportDto
+                            {
+                                Name = "Critical Alert",
+                                TriggerOnDown = true,
+                                FailureThreshold = 3,
+                                Enabled = true,
+                                NotificationChannelExportIds = ["nonexistent_channel"]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]);
 
-        var result = await _importService.ImportAsync(export);
+        var result = await _importService.ImportAsync(export, TestPassword);
 
         Assert.IsTrue(result.Success);
         Assert.AreEqual(1, result.AlertsCreated);
@@ -320,13 +364,14 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         await DbContext.SaveChangesAsync();
 
         var appStateService = new ApplicationStateService();
-        var exportService = new ConfigurationExportService(DbContext, appStateService);
-        var exportData = await exportService.ExportAllAsync();
+        var encryptionService = new AesEncryptionService();
+        var exportService = new ConfigurationExportService(DbContext, appStateService, encryptionService);
+        var exportData = await exportService.ExportAllAsync(TestPassword);
 
         DbContext.Workspaces.Remove(workspace);
         await DbContext.SaveChangesAsync();
 
-        var importResult = await _importService.ImportAsync(exportData);
+        var importResult = await _importService.ImportAsync(exportData, TestPassword);
 
         Assert.IsTrue(importResult.Success);
         Assert.IsEmpty(importResult.Errors);
@@ -395,22 +440,18 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         Assert.AreEqual("Slack Notifications", importedPingAlert.NotificationChannels.First().Name);
     }
 
-    private static SamaExportDto CreateBasicExport()
+    private static SamaExportDto CreateEncryptedExport(List<WorkspaceExportDto> workspaces)
     {
+        var payloadJson = JsonSerializer.Serialize(workspaces);
+        var encryptionService = new AesEncryptionService();
+        var encryptedData = encryptionService.Encrypt(payloadJson, TestPassword);
+
         return new SamaExportDto
         {
             SchemaVersion = 1,
             ExportedFromVersion = "1.0.0",
             ExportedAt = DateTimeOffset.UtcNow,
-            Workspaces =
-            [
-                new WorkspaceExportDto
-                {
-                    Name = "Test Workspace",
-                    Description = "Test Description",
-                    IsPublic = true
-                }
-            ]
+            EncryptedData = encryptedData
         };
     }
 }
