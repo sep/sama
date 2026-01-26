@@ -21,126 +21,6 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     }
 
     [TestMethod]
-    public async Task ImportAsyncShouldCreateWorkspaceFromExport()
-    {
-        var export = CreateBasicExport();
-
-        var result = await _importService.ImportAsync(export);
-
-        Assert.IsTrue(result.Success);
-        Assert.AreEqual(1, result.WorkspacesCreated);
-        Assert.IsEmpty(result.Errors);
-
-        var workspace = await DbContext.Workspaces.FirstOrDefaultAsync(w => w.Name == "Test Workspace");
-        Assert.IsNotNull(workspace);
-        Assert.AreEqual("Test Description", workspace.Description);
-        Assert.IsTrue(workspace.IsPublic);
-    }
-
-    [TestMethod]
-    public async Task ImportAsyncShouldCreateChecksWithConfiguration()
-    {
-        var export = CreateBasicExport();
-        export.Workspaces[0].Checks.Add(new CheckExportDto
-        {
-            Name = "API Health",
-            Description = "Health check",
-            CheckType = CheckTypes.Http,
-            Configuration = new Dictionary<string, JsonElement>
-            {
-                [ConfigurationKeys.HttpCheck.Url] = JsonSerializer.SerializeToElement("https://example.com/health")
-            },
-            IntervalSeconds = 60,
-            TimeoutSeconds = 30,
-            Enabled = true
-        });
-
-        var result = await _importService.ImportAsync(export);
-
-        Assert.IsTrue(result.Success);
-        Assert.AreEqual(1, result.ChecksCreated);
-
-        var check = await DbContext.Checks.FirstOrDefaultAsync(c => c.Name == "API Health");
-        Assert.IsNotNull(check);
-        Assert.AreEqual(CheckTypes.Http, check.CheckType);
-        Assert.AreEqual(60, check.IntervalSeconds);
-    }
-
-    [TestMethod]
-    public async Task ImportAsyncShouldCreateNotificationChannels()
-    {
-        var export = CreateBasicExport();
-        export.Workspaces[0].NotificationChannels.Add(new NotificationChannelExportDto
-        {
-            ExportId = "channel_1",
-            Name = "Slack Alerts",
-            ChannelType = ChannelTypes.Slack,
-            Configuration = new Dictionary<string, JsonElement>
-            {
-                [ConfigurationKeys.Webhook.WebhookUrl] = JsonSerializer.SerializeToElement("https://hooks.slack.com/test")
-            },
-            Enabled = true
-        });
-
-        var result = await _importService.ImportAsync(export);
-
-        Assert.IsTrue(result.Success);
-        Assert.AreEqual(1, result.NotificationChannelsCreated);
-
-        var channel = await DbContext.NotificationChannels.FirstOrDefaultAsync(c => c.Name == "Slack Alerts");
-        Assert.IsNotNull(channel);
-        Assert.AreEqual(ChannelTypes.Slack, channel.ChannelType);
-    }
-
-    [TestMethod]
-    public async Task ImportAsyncShouldCreateAlertsWithChannelReferences()
-    {
-        var export = CreateBasicExport();
-        export.Workspaces[0].NotificationChannels.Add(new NotificationChannelExportDto
-        {
-            ExportId = "channel_1",
-            Name = "Slack Alerts",
-            ChannelType = ChannelTypes.Slack,
-            Configuration = new Dictionary<string, JsonElement>(),
-            Enabled = true
-        });
-        export.Workspaces[0].Checks.Add(new CheckExportDto
-        {
-            Name = "API Health",
-            CheckType = CheckTypes.Http,
-            Configuration = new Dictionary<string, JsonElement>(),
-            IntervalSeconds = 60,
-            TimeoutSeconds = 30,
-            Enabled = true,
-            Alerts =
-            [
-                new AlertExportDto
-                {
-                    Name = "Critical Alert",
-                    TriggerOnDown = true,
-                    FailureThreshold = 3,
-                    SendRecoveryNotification = true,
-                    Enabled = true,
-                    NotificationChannelExportIds = ["channel_1"]
-                }
-            ]
-        });
-
-        var result = await _importService.ImportAsync(export);
-
-        Assert.IsTrue(result.Success);
-        Assert.AreEqual(1, result.AlertsCreated);
-
-        var alert = await DbContext.Alerts
-            .Include(a => a.NotificationChannels)
-            .FirstOrDefaultAsync(a => a.Name == "Critical Alert");
-        Assert.IsNotNull(alert);
-        Assert.AreEqual(3, alert.FailureThreshold);
-        Assert.HasCount(1, alert.NotificationChannels);
-        Assert.AreEqual("Slack Alerts", alert.NotificationChannels.First().Name);
-    }
-
-    [TestMethod]
     public async Task ImportAsyncShouldSkipExistingWorkspaceByDefault()
     {
         var existingWorkspace = new Workspace
@@ -321,32 +201,198 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     }
 
     [TestMethod]
-    public async Task ImportAsyncShouldImportEventSubscriptions()
+    public async Task ImportAsyncShouldCorrectlyImportExportedData()
     {
-        var export = CreateBasicExport();
-        export.Workspaces[0].NotificationChannels.Add(new NotificationChannelExportDto
+        var workspace = new Workspace
         {
-            ExportId = "channel_1",
-            Name = "Slack Channel",
+            Name = "Export Test Workspace",
+            Description = "Full roundtrip test",
+            IsPublic = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.Workspaces.Add(workspace);
+        await DbContext.SaveChangesAsync();
+
+        var slackChannel = new NotificationChannel
+        {
+            WorkspaceId = workspace.Id,
+            Name = "Slack Notifications",
             ChannelType = ChannelTypes.Slack,
-            Configuration = new Dictionary<string, JsonElement>(),
+            ConfigurationJson = new Dictionary<string, JsonElement>
+            {
+                [ConfigurationKeys.Webhook.WebhookUrl] = JsonSerializer.SerializeToElement("https://hooks.slack.com/services/example")
+            },
             Enabled = true,
-            EventSubscriptions =
-            [
-                "CheckCreated",
-                "CheckStatusChanged"
-            ]
-        });
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        var emailChannel = new NotificationChannel
+        {
+            WorkspaceId = workspace.Id,
+            Name = "Email Notifications",
+            ChannelType = ChannelTypes.Email,
+            ConfigurationJson = new Dictionary<string, JsonElement>
+            {
+                [ConfigurationKeys.Email.Recipients] = JsonSerializer.SerializeToElement("admin@example.com")
+            },
+            Enabled = false,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.NotificationChannels.AddRange(slackChannel, emailChannel);
+        await DbContext.SaveChangesAsync();
 
-        var result = await _importService.ImportAsync(export);
+        var slackSubscription = new EventSubscription
+        {
+            NotificationChannelId = slackChannel.Id,
+            EventType = "CheckStatusChanged",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.EventSubscriptions.Add(slackSubscription);
+        await DbContext.SaveChangesAsync();
 
-        Assert.IsTrue(result.Success);
+        var httpCheck = new Check
+        {
+            WorkspaceId = workspace.Id,
+            Name = "API Health Check",
+            Description = "Monitors API health endpoint",
+            CheckType = CheckTypes.Http,
+            ConfigurationJson = new Dictionary<string, JsonElement>
+            {
+                [ConfigurationKeys.HttpCheck.Url] = JsonSerializer.SerializeToElement("https://api.example.com/health"),
+                [ConfigurationKeys.HttpCheck.ExpectedStatusCodes] = JsonSerializer.SerializeToElement(new[] { 200, 201 })
+            },
+            IntervalSeconds = 60,
+            TimeoutSeconds = 30,
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        var pingCheck = new Check
+        {
+            WorkspaceId = workspace.Id,
+            Name = "Server Ping",
+            Description = "Pings the server",
+            CheckType = CheckTypes.Ping,
+            ConfigurationJson = new Dictionary<string, JsonElement>
+            {
+                [ConfigurationKeys.PingCheck.Host] = JsonSerializer.SerializeToElement("server.example.com")
+            },
+            IntervalSeconds = 120,
+            TimeoutSeconds = 10,
+            Enabled = false,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.Checks.AddRange(httpCheck, pingCheck);
+        await DbContext.SaveChangesAsync();
 
-        var channel = await DbContext.NotificationChannels
-            .Include(c => c.EventSubscriptions)
-            .FirstOrDefaultAsync(c => c.Name == "Slack Channel");
-        Assert.IsNotNull(channel);
-        Assert.HasCount(2, channel.EventSubscriptions);
+        var httpAlert = new Alert
+        {
+            CheckId = httpCheck.Id,
+            Name = "API Down Alert",
+            TriggerOnWarn = false,
+            TriggerOnDown = true,
+            FailureThreshold = 3,
+            SendRecoveryNotification = true,
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        httpAlert.NotificationChannels.Add(slackChannel);
+        httpAlert.NotificationChannels.Add(emailChannel);
+        var pingAlert = new Alert
+        {
+            CheckId = pingCheck.Id,
+            Name = "Server Unreachable",
+            TriggerOnWarn = true,
+            TriggerOnDown = true,
+            FailureThreshold = 5,
+            SendRecoveryNotification = false,
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        pingAlert.NotificationChannels.Add(slackChannel);
+        DbContext.Alerts.AddRange(httpAlert, pingAlert);
+        await DbContext.SaveChangesAsync();
+
+        var appStateService = new ApplicationStateService();
+        var exportService = new ConfigurationExportService(DbContext, appStateService);
+        var exportData = await exportService.ExportAllAsync();
+
+        DbContext.Workspaces.Remove(workspace);
+        await DbContext.SaveChangesAsync();
+
+        var importResult = await _importService.ImportAsync(exportData);
+
+        Assert.IsTrue(importResult.Success);
+        Assert.IsEmpty(importResult.Errors);
+        Assert.AreEqual(1, importResult.WorkspacesCreated);
+        Assert.AreEqual(2, importResult.ChecksCreated);
+        Assert.AreEqual(2, importResult.NotificationChannelsCreated);
+        Assert.AreEqual(2, importResult.AlertsCreated);
+
+        var importedWorkspace = await DbContext.Workspaces
+            .Include(w => w.Checks)
+                .ThenInclude(c => c.Alerts)
+                    .ThenInclude(a => a.NotificationChannels)
+            .Include(w => w.NotificationChannels)
+                .ThenInclude(nc => nc.EventSubscriptions)
+            .FirstOrDefaultAsync(w => w.Name == "Export Test Workspace");
+
+        Assert.IsNotNull(importedWorkspace);
+        Assert.AreEqual("Full roundtrip test", importedWorkspace.Description);
+        Assert.IsTrue(importedWorkspace.IsPublic);
+
+        Assert.HasCount(2, importedWorkspace.NotificationChannels);
+        var importedSlack = importedWorkspace.NotificationChannels.First(c => c.Name == "Slack Notifications");
+        Assert.AreEqual(ChannelTypes.Slack, importedSlack.ChannelType);
+        Assert.IsTrue(importedSlack.Enabled);
+        Assert.IsTrue(importedSlack.ConfigurationJson.ContainsKey(ConfigurationKeys.Webhook.WebhookUrl));
+        Assert.HasCount(1, importedSlack.EventSubscriptions);
+        Assert.AreEqual("CheckStatusChanged", importedSlack.EventSubscriptions.First().EventType);
+
+        var importedEmail = importedWorkspace.NotificationChannels.First(c => c.Name == "Email Notifications");
+        Assert.AreEqual(ChannelTypes.Email, importedEmail.ChannelType);
+        Assert.IsFalse(importedEmail.Enabled);
+
+        Assert.HasCount(2, importedWorkspace.Checks);
+        var importedHttpCheck = importedWorkspace.Checks.First(c => c.Name == "API Health Check");
+        Assert.AreEqual(CheckTypes.Http, importedHttpCheck.CheckType);
+        Assert.AreEqual("Monitors API health endpoint", importedHttpCheck.Description);
+        Assert.AreEqual(60, importedHttpCheck.IntervalSeconds);
+        Assert.AreEqual(30, importedHttpCheck.TimeoutSeconds);
+        Assert.IsTrue(importedHttpCheck.Enabled);
+
+        var importedPingCheck = importedWorkspace.Checks.First(c => c.Name == "Server Ping");
+        Assert.AreEqual(CheckTypes.Ping, importedPingCheck.CheckType);
+        Assert.AreEqual(120, importedPingCheck.IntervalSeconds);
+        Assert.IsFalse(importedPingCheck.Enabled);
+
+        Assert.HasCount(1, importedHttpCheck.Alerts);
+        var importedHttpAlert = importedHttpCheck.Alerts.First();
+        Assert.AreEqual("API Down Alert", importedHttpAlert.Name);
+        Assert.IsFalse(importedHttpAlert.TriggerOnWarn);
+        Assert.IsTrue(importedHttpAlert.TriggerOnDown);
+        Assert.AreEqual(3, importedHttpAlert.FailureThreshold);
+        Assert.IsTrue(importedHttpAlert.SendRecoveryNotification);
+        Assert.IsTrue(importedHttpAlert.Enabled);
+        Assert.HasCount(2, importedHttpAlert.NotificationChannels);
+        Assert.IsTrue(importedHttpAlert.NotificationChannels.Any(c => c.Name == "Slack Notifications"));
+        Assert.IsTrue(importedHttpAlert.NotificationChannels.Any(c => c.Name == "Email Notifications"));
+
+        Assert.HasCount(1, importedPingCheck.Alerts);
+        var importedPingAlert = importedPingCheck.Alerts.First();
+        Assert.AreEqual("Server Unreachable", importedPingAlert.Name);
+        Assert.IsTrue(importedPingAlert.TriggerOnWarn);
+        Assert.IsTrue(importedPingAlert.TriggerOnDown);
+        Assert.AreEqual(5, importedPingAlert.FailureThreshold);
+        Assert.IsFalse(importedPingAlert.SendRecoveryNotification);
+        Assert.HasCount(1, importedPingAlert.NotificationChannels);
+        Assert.AreEqual("Slack Notifications", importedPingAlert.NotificationChannels.First().Name);
     }
 
     private static SamaExportDto CreateBasicExport()
