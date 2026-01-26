@@ -68,6 +68,7 @@ public class MyJob : IJob
 ```
 
 ### Lucide Icons
+- **ALWAYS verify icon names exist** in `SAMA.Web/wwwroot/lib/lucide-static/font/lucide.css` before using them - do not guess or assume icon names
 - Always add an appropriate size class to Lucide icons (e.g., `icon-xs`, `icon-md`, `icon-lg`)
 
 ## What NOT to Do

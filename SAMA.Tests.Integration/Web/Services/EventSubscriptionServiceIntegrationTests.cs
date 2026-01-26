@@ -12,33 +12,25 @@ namespace SAMA.Tests.Integration.Web.Services;
 [TestClass]
 public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
 {
+    private static INotificationChannelHandler _sharedMockHandler = null!;
+
     private EventSubscriptionService _service = null!;
-    private ServiceProvider _testServiceProvider = null!;
-    private INotificationChannelHandler _mockHandler = null!;
+
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        _sharedMockHandler = Substitute.For<INotificationChannelHandler>();
+        services.AddKeyedSingleton("Email", _sharedMockHandler);
+        services.AddKeyedSingleton("Slack", _sharedMockHandler);
+        services.AddKeyedSingleton("Teams", _sharedMockHandler);
+    }
 
     [TestInitialize]
     public override async Task InitializeTestAsync()
     {
         await base.InitializeTestAsync();
 
-        _mockHandler = Substitute.For<INotificationChannelHandler>();
-
-        var services = new ServiceCollection();
-        services.AddKeyedSingleton("Email", _mockHandler);
-        services.AddKeyedSingleton("Slack", _mockHandler);
-        services.AddKeyedSingleton("Teams", _mockHandler);
-
-        _testServiceProvider = services.BuildServiceProvider();
-
         var logger = Substitute.For<ILogger<EventSubscriptionService>>();
-        _service = new EventSubscriptionService(DbContext, _testServiceProvider, logger);
-    }
-
-    [TestCleanup]
-    public override async Task CleanupTestAsync()
-    {
-        await _testServiceProvider.DisposeAsync();
-        await base.CleanupTestAsync();
+        _service = new EventSubscriptionService(DbContext, ServiceProvider, logger);
     }
 
     [TestMethod]
@@ -58,7 +50,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
 
         await _service.TriggerLifecycleEventAsync(workspace.Id, context);
 
-        await _mockHandler.DidNotReceive().SendLifecycleEventAsync(
+        await _sharedMockHandler.DidNotReceive().SendLifecycleEventAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<LifecycleEventContext>(),
             Arg.Any<CancellationToken>());
@@ -71,7 +63,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
         var channel = await CreateNotificationChannelAsync(workspace.Id, "Test Channel", "Email");
         await CreateEventSubscriptionAsync(channel.Id, EventTypes.CheckCreated);
 
-        _mockHandler.SendLifecycleEventAsync(
+        _sharedMockHandler.SendLifecycleEventAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<LifecycleEventContext>(),
             Arg.Any<CancellationToken>())
@@ -90,7 +82,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
 
         await _service.TriggerLifecycleEventAsync(workspace.Id, context);
 
-        await _mockHandler.Received(1).SendLifecycleEventAsync(
+        await _sharedMockHandler.Received(1).SendLifecycleEventAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == channel.Id),
             Arg.Is<LifecycleEventContext>(ctx => ctx.EventType == EventTypes.CheckCreated),
             Arg.Any<CancellationToken>());
@@ -105,7 +97,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
         await CreateEventSubscriptionAsync(channel1.Id, EventTypes.CheckDeleted);
         await CreateEventSubscriptionAsync(channel2.Id, EventTypes.CheckDeleted);
 
-        _mockHandler.SendLifecycleEventAsync(
+        _sharedMockHandler.SendLifecycleEventAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<LifecycleEventContext>(),
             Arg.Any<CancellationToken>())
@@ -124,7 +116,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
 
         await _service.TriggerLifecycleEventAsync(workspace.Id, context);
 
-        await _mockHandler.Received(2).SendLifecycleEventAsync(
+        await _sharedMockHandler.Received(2).SendLifecycleEventAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Is<LifecycleEventContext>(ctx => ctx.EventType == EventTypes.CheckDeleted),
             Arg.Any<CancellationToken>());
@@ -146,7 +138,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
 
         await _service.TriggerStatusChangeEventAsync(workspace.Id, context);
 
-        await _mockHandler.DidNotReceive().SendStatusChangeEventAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusChangeEventAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusChangeEventContext>(),
             Arg.Any<CancellationToken>());
@@ -159,7 +151,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
         var channel = await CreateNotificationChannelAsync(workspace.Id, "Test Channel", "Teams");
         await CreateEventSubscriptionAsync(channel.Id, EventTypes.CheckStatusChanged);
 
-        _mockHandler.SendStatusChangeEventAsync(
+        _sharedMockHandler.SendStatusChangeEventAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusChangeEventContext>(),
             Arg.Any<CancellationToken>())
@@ -177,7 +169,7 @@ public class EventSubscriptionServiceIntegrationTests : IntegrationTestBase
 
         await _service.TriggerStatusChangeEventAsync(workspace.Id, context);
 
-        await _mockHandler.Received(1).SendStatusChangeEventAsync(
+        await _sharedMockHandler.Received(1).SendStatusChangeEventAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == channel.Id),
             Arg.Is<StatusChangeEventContext>(ctx =>
                 ctx.PreviousStatus == "Up" && ctx.NewStatus == "Warn"),

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using NSubstitute;
 using SAMA.Data.Entities;
 using SAMA.Data.Services;
 using SAMA.Shared.Constants;
@@ -14,13 +15,15 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
 {
     private const string TestPassword = "test-export-password-123";
     private ConfigurationImportService _importService = null!;
+    private CheckSchedulerService _mockScheduler = null!;
 
     [TestInitialize]
     public override async Task InitializeTestAsync()
     {
         await base.InitializeTestAsync();
         var encryptionService = new AesEncryptionService();
-        _importService = new ConfigurationImportService(DbContext, encryptionService);
+        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null);
+        _importService = new ConfigurationImportService(DbContext, encryptionService, _mockScheduler);
     }
 
     [TestMethod]
@@ -381,6 +384,7 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         Assert.AreEqual(2, importResult.AlertsCreated);
 
         var importedWorkspace = await DbContext.Workspaces
+            .AsSplitQuery()
             .Include(w => w.Checks)
                 .ThenInclude(c => c.Alerts)
                     .ThenInclude(a => a.NotificationChannels)
@@ -438,6 +442,104 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
         Assert.IsFalse(importedPingAlert.SendRecoveryNotification);
         Assert.HasCount(1, importedPingAlert.NotificationChannels);
         Assert.AreEqual("Slack Notifications", importedPingAlert.NotificationChannels.First().Name);
+    }
+
+    [TestMethod]
+    public async Task ImportAsyncShouldScheduleEnabledChecks()
+    {
+        var export = CreateEncryptedExport(
+        [
+            new WorkspaceExportDto
+            {
+                Name = "Scheduler Test Workspace",
+                IsPublic = true,
+                Checks =
+                [
+                    new CheckExportDto
+                    {
+                        Name = "Enabled Check",
+                        CheckType = CheckTypes.Http,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        IntervalSeconds = 60,
+                        TimeoutSeconds = 30,
+                        Enabled = true
+                    },
+                    new CheckExportDto
+                    {
+                        Name = "Disabled Check",
+                        CheckType = CheckTypes.Ping,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        IntervalSeconds = 120,
+                        TimeoutSeconds = 10,
+                        Enabled = false
+                    }
+                ]
+            }
+        ]);
+
+        var result = await _importService.ImportAsync(export, TestPassword);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(2, result.ChecksCreated);
+        Assert.AreEqual(1, result.ChecksScheduled);
+
+        await _mockScheduler.Received(1).ScheduleCheckAsync(
+            Arg.Any<Guid>(),
+            60,
+            Arg.Any<CancellationToken>());
+
+        await _mockScheduler.DidNotReceive().ScheduleCheckAsync(
+            Arg.Any<Guid>(),
+            120,
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task ImportAsyncShouldScheduleEnabledChecksWhenMerging()
+    {
+        var existingWorkspace = new Workspace
+        {
+            Name = "Merge Scheduler Test",
+            Description = "Original",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        DbContext.Workspaces.Add(existingWorkspace);
+        await DbContext.SaveChangesAsync();
+
+        var export = CreateEncryptedExport(
+        [
+            new WorkspaceExportDto
+            {
+                Name = "Merge Scheduler Test",
+                Description = "Updated",
+                IsPublic = true,
+                Checks =
+                [
+                    new CheckExportDto
+                    {
+                        Name = "Merged Enabled Check",
+                        CheckType = CheckTypes.Tcp,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        IntervalSeconds = 90,
+                        TimeoutSeconds = 15,
+                        Enabled = true
+                    }
+                ]
+            }
+        ]);
+
+        var result = await _importService.ImportAsync(export, TestPassword, ImportMergeStrategy.MergeIntoExisting);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(1, result.WorkspacesUpdated);
+        Assert.AreEqual(1, result.ChecksCreated);
+        Assert.AreEqual(1, result.ChecksScheduled);
+
+        await _mockScheduler.Received(1).ScheduleCheckAsync(
+            Arg.Any<Guid>(),
+            90,
+            Arg.Any<CancellationToken>());
     }
 
     private static SamaExportDto CreateEncryptedExport(List<WorkspaceExportDto> workspaces)

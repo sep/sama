@@ -140,6 +140,7 @@ public abstract class IntegrationTestBase
         services.AddDbContext<SamaDbContext>(options =>
         {
             options.UseNpgsql(_dataSource);
+            options.ConfigureWarnings(w => w.Throw(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.MultipleCollectionIncludeWarning));
         });
 
         services.AddLogging();
@@ -159,10 +160,20 @@ public abstract class IntegrationTestBase
         // Register GlobalSettingsService for tests that need it
         services.AddSingleton<SAMA.Web.Services.GlobalSettingsService>();
 
+        // Allow derived test classes to register additional services
+        ConfigureServices(services);
+
         _serviceProvider = services.BuildServiceProvider();
         DbContext = _serviceProvider.GetRequiredService<SamaDbContext>();
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Override this method to register additional services for a test class.
+    /// </summary>
+    protected virtual void ConfigureServices(IServiceCollection services)
+    {
     }
 
     private async Task ApplyMigrationsAsync()

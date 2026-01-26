@@ -1,14 +1,14 @@
 /* SAMA Design System Theme
  * Version: 1.3
  * Last Updated: 2025-01-27
- * 
+ *
  * This file contains ONLY:
  * - CSS Custom Properties (design tokens)
  * - Dark theme variable overrides
  * - Reduced motion support
  * - Bootstrap CSS variable integration
  * - Bootstrap component-level overrides
- * 
+ *
  * All component styling is in site.css to avoid redundancy.
  */
 
@@ -23,14 +23,14 @@
   --color-primary-active: #994400;
   --color-primary-light: #FF6B1A;
   --color-primary-subtle: #FFF4ED;
-  
+
   /* Secondary Colors - Neutral Gray */
   --color-secondary: #6C757D;
   --color-secondary-hover: #5C636A;
   --color-secondary-active: #4D5258;
   --color-secondary-light: #E9ECEF;
   --color-secondary-dark: #3D4148;
-  
+
   /* Status Colors */
   --color-success: #198754;
   --color-success-hover: #157347;
@@ -44,7 +44,7 @@
   --color-info: #0DCAF0;
   --color-info-hover: #0AA2C0;
   --color-info-light: #CFF4FC;
-  
+
   /* Neutral Colors - Light Theme (Default) */
   --color-background: #FFFFFF;
   --color-surface: #F8F9FA;
@@ -53,7 +53,7 @@
   --color-text-primary: #212529;
   --color-text-secondary: #6C757D;
   --color-text-muted: #ADB5BD;
-  
+
   /* Spacing Scale (0.25rem / 4px increments) */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -65,45 +65,45 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
-  
+
   /* Typography */
-  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                        "Helvetica Neue", Arial, sans-serif;
-  --font-family-mono: SFMono-Regular, Menlo, Monaco, Consolas, 
+  --font-family-mono: SFMono-Regular, Menlo, Monaco, Consolas,
                        "Liberation Mono", "Courier New", monospace;
-  
+
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
   --font-size-md: 1.25rem;
   --font-size-lg: 1.5rem;
   --font-size-xl: 2rem;
-  
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
-  
+
   /* Shadows - Light Theme */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.1);
-  
+
   /* Border Radius */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-full: 9999px;
-  
+
   /* Transitions */
   --transition-fast: 150ms;
   --transition-base: 200ms;
   --transition-slow: 300ms;
-  
+
   /* Bootstrap 5 CSS Variable Overrides */
   --bs-primary: #CC5500;
   --bs-primary-rgb: 204, 85, 0;
@@ -138,15 +138,15 @@ a:hover {
   --color-text-primary: #F8F9FA;
   --color-text-secondary: #CED4DA;
   --color-text-muted: #ADB5BD;
-  
+
   /* Adjust subtle primary for dark backgrounds */
   --color-primary-subtle: #2D1A0A;
-  
+
   /* Reduce shadows in dark theme - use borders for depth */
   --shadow-sm: none;
   --shadow-md: none;
   --shadow-lg: none;
-  
+
   /* Adjust light color variants for dark theme */
   --color-success-light: #0F3A29;
   --color-warning-light: #4D3800;
@@ -155,6 +155,10 @@ a:hover {
 
   /* Bootstrap 5 CSS Variable Overrides */
   --bs-border-color-translucent: rgba(255, 255, 255, 0.175);
+  --bs-tertiary-bg: #3A3F47;
+  --bs-secondary-bg: #2F333A;
+  --bs-body-color: #F8F9FA;
+  --bs-body-bg: #1A1D23;
 }
 
 /* ============================================
@@ -167,7 +171,7 @@ a:hover {
     --transition-base: 0ms;
     --transition-slow: 0ms;
   }
-  
+
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

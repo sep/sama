@@ -25,6 +25,7 @@ public class ConfigurationExportService(
     public virtual async Task<SamaExportDto> ExportAllAsync(string password, CancellationToken cancellationToken = default)
     {
         var workspaces = await _dbContext.Workspaces
+            .AsSplitQuery()
             .AsNoTracking()
             .Include(w => w.Checks)
                 .ThenInclude(c => c.Alerts)

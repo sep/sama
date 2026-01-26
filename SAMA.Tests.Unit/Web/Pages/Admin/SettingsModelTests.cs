@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SAMA.Data;
+using SAMA.Data.Services;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Pages.Admin;
 using SAMA.Web.Services;
@@ -14,6 +15,8 @@ public class SettingsModelTests
 {
     private GlobalSettingsService _mockGlobalSettings = null!;
     private WorkspaceQueryService _mockWorkspaceQuery = null!;
+    private ConfigurationExportService _mockExportService = null!;
+    private ConfigurationImportService _mockImportService = null!;
     private ILogger<SettingsModel> _mockLogger = null!;
     private SettingsModel _pageModel = null!;
 
@@ -22,12 +25,14 @@ public class SettingsModelTests
     {
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockExportService = Substitute.For<ConfigurationExportService>(null!, null!, null!);
+        _mockImportService = Substitute.For<ConfigurationImportService>(null!, null!, null!);
         _mockLogger = Substitute.For<ILogger<SettingsModel>>();
 
         _mockWorkspaceQuery.GetWorkspacesAsync(Arg.Any<List<Guid>?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new List<SAMA.Web.Models.WorkspaceDetailsViewModel>()));
 
-        _pageModel = new SettingsModel(_mockGlobalSettings, _mockWorkspaceQuery, _mockLogger);
+        _pageModel = new SettingsModel(_mockGlobalSettings, _mockWorkspaceQuery, _mockExportService, _mockImportService, _mockLogger);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 

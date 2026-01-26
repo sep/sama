@@ -14,34 +14,27 @@ namespace SAMA.Tests.Integration.Web.Services;
 [TestClass]
 public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 {
+    private static INotificationChannelHandler _sharedMockHandler = null!;
+
     private AlertHandlerService _service = null!;
-    private ServiceProvider _testServiceProvider = null!;
-    private INotificationChannelHandler _mockHandler = null!;
     private EventSubscriptionService _mockEventSubscriptionService = null!;
+
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        _sharedMockHandler = Substitute.For<INotificationChannelHandler>();
+        services.AddKeyedSingleton("TestChannel1", _sharedMockHandler);
+        services.AddKeyedSingleton("TestChannel2", _sharedMockHandler);
+    }
 
     [TestInitialize]
     public override async Task InitializeTestAsync()
     {
         await base.InitializeTestAsync();
 
-        _mockHandler = Substitute.For<INotificationChannelHandler>();
         _mockEventSubscriptionService = Substitute.For<EventSubscriptionService>(null, null, null);
 
-        var services = new ServiceCollection();
-        services.AddKeyedSingleton("TestChannel1", _mockHandler);
-        services.AddKeyedSingleton("TestChannel2", _mockHandler);
-
-        _testServiceProvider = services.BuildServiceProvider();
-
         var logger = Substitute.For<ILogger<AlertHandlerService>>();
-        _service = new AlertHandlerService(DbContext, _testServiceProvider, _mockEventSubscriptionService, logger);
-    }
-
-    [TestCleanup]
-    public override async Task CleanupTestAsync()
-    {
-        await _testServiceProvider.DisposeAsync();
-        await base.CleanupTestAsync();
+        _service = new AlertHandlerService(DbContext, ServiceProvider, _mockEventSubscriptionService, logger);
     }
 
     [TestMethod]
@@ -54,7 +47,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -68,7 +61,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         await _service.ProcessCheckResultAsync(nonExistentCheckId, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -90,7 +83,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -108,7 +101,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         await CreateAlertHistoryAsync(alert.Id, channel.Id, CheckStatuses.Up, success: true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, DateTimeOffset.UtcNow.AddMinutes(-1));
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -118,7 +111,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == channel.Id),
             Arg.Is<StatusAlertContext>(ctx =>
                 ctx.CheckId == check.Id &&
@@ -141,7 +134,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -155,7 +148,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, DateTimeOffset.UtcNow.AddMinutes(-1));
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Is<StatusAlertContext>(ctx => ctx.ConsecutiveFailures == 3),
             Arg.Any<CancellationToken>());
@@ -180,7 +173,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -207,7 +200,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -226,7 +219,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -235,7 +228,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Up);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Is<StatusAlertContext>(ctx =>
                 ctx.Status == CheckStatuses.Up &&
@@ -259,7 +252,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Up);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -281,7 +274,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -291,7 +284,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(2).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(2).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -313,7 +306,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Warn);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -336,7 +329,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -355,7 +348,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -365,7 +358,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Warn);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Is<StatusAlertContext>(ctx => ctx.Status == CheckStatuses.Warn),
             Arg.Any<CancellationToken>());
@@ -384,7 +377,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -418,7 +411,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -456,7 +449,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -466,7 +459,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -488,7 +481,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -498,7 +491,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -520,7 +513,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -530,12 +523,12 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == enabledChannel.Id),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == disabledChannel.Id),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -580,7 +573,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -590,7 +583,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(3).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(3).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -608,7 +601,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -618,12 +611,12 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(2).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(2).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == disabledChannel.Id),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -642,7 +635,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -651,7 +644,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Up);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(2).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(2).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Is<StatusAlertContext>(ctx =>
                 ctx.Status == CheckStatuses.Up &&
@@ -673,7 +666,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -683,7 +676,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -691,11 +684,11 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, DateTimeOffset.UtcNow.AddMinutes(-1));
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(ch => ch.Name == "Channel 1"),
             Arg.Is<StatusAlertContext>(ctx => ctx.ConsecutiveFailures == 2),
             Arg.Any<CancellationToken>());
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(ch => ch.Name == "Channel 2"),
             Arg.Is<StatusAlertContext>(ctx => ctx.ConsecutiveFailures == 2),
             Arg.Any<CancellationToken>());
@@ -712,7 +705,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -744,7 +737,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -754,7 +747,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(2).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(2).SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -772,7 +765,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -782,12 +775,12 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Down);
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.Received(1).SendStatusAlertAsync(
+        await _sharedMockHandler.Received(1).SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == channel1Workspace1.Id),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Is<NotificationChannel>(nc => nc.Id == channel2Workspace2.Id),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());
@@ -808,7 +801,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -841,7 +834,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -875,7 +868,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -909,7 +902,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
 
         DbContext.ChangeTracker.Clear();
 
-        _mockHandler.SendStatusAlertAsync(
+        _sharedMockHandler.SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>())
@@ -919,7 +912,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
         var result = CreateCheckExecutionResult(CheckStatuses.Warn, "Certificate expires in 15 days");
         await _service.ProcessCheckResultAsync(check.Id, result);
 
-        await _mockHandler.DidNotReceive().SendStatusAlertAsync(
+        await _sharedMockHandler.DidNotReceive().SendStatusAlertAsync(
             Arg.Any<NotificationChannel>(),
             Arg.Any<StatusAlertContext>(),
             Arg.Any<CancellationToken>());

@@ -28,6 +28,7 @@ public class CheckExecutorJob(
         if (check == null)
         {
             _logger.LogWarning("Check {CheckId} not found or disabled, removing job", checkId);
+            await context.Scheduler.DeleteJob(context.JobDetail.Key, context.CancellationToken);
             return;
         }
 

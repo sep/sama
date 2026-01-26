@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Web.Services;
 
@@ -17,17 +16,7 @@ public class UserPreferencesServiceTests : IntegrationTestBase
     {
         await base.InitializeTestAsync();
 
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddSingleton(DbContext);
-
-        services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
-            .AddEntityFrameworkStores<SamaDbContext>()
-            .AddDefaultTokenProviders();
-
-        var serviceProvider = services.BuildServiceProvider();
-        _userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
+        _userManager = ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         _service = new UserPreferencesService(_userManager);
     }
 

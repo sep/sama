@@ -12,7 +12,10 @@ namespace SAMA.Web.Services;
 /// Service for importing SAMA configuration from an encrypted export file.
 /// Supports schema version migration for backward compatibility.
 /// </summary>
-public class ConfigurationImportService(SamaDbContext _dbContext, AesEncryptionService _encryptionService)
+public class ConfigurationImportService(
+    SamaDbContext _dbContext,
+    AesEncryptionService _encryptionService,
+    CheckSchedulerService _schedulerService)
 {
     /// <summary>
     /// Current schema version supported by this import service.
@@ -39,6 +42,8 @@ public class ConfigurationImportService(SamaDbContext _dbContext, AesEncryptionS
         public int NotificationChannelsCreated { get; set; }
 
         public int AlertsCreated { get; set; }
+
+        public int ChecksScheduled { get; set; }
     }
 
     /// <summary>
@@ -109,6 +114,7 @@ public class ConfigurationImportService(SamaDbContext _dbContext, AesEncryptionS
         CancellationToken cancellationToken)
     {
         var existingWorkspace = await _dbContext.Workspaces
+            .AsSplitQuery()
             .Include(w => w.NotificationChannels)
             .Include(w => w.Checks)
                 .ThenInclude(c => c.Alerts)
@@ -173,6 +179,13 @@ public class ConfigurationImportService(SamaDbContext _dbContext, AesEncryptionS
                 result.AlertsCreated++;
             }
 
+            // Schedule enabled checks with Quartz
+            if (check.Enabled)
+            {
+                await _schedulerService.ScheduleCheckAsync(check.Id, check.IntervalSeconds, cancellationToken);
+                result.ChecksScheduled++;
+            }
+
             result.ChecksCreated++;
         }
 
@@ -226,6 +239,13 @@ public class ConfigurationImportService(SamaDbContext _dbContext, AesEncryptionS
                 var alert = CreateAlert(check.Id, alertDto, exportIdToChannel, result);
                 _dbContext.Alerts.Add(alert);
                 result.AlertsCreated++;
+            }
+
+            // Schedule enabled checks with Quartz
+            if (check.Enabled)
+            {
+                await _schedulerService.ScheduleCheckAsync(check.Id, check.IntervalSeconds, cancellationToken);
+                result.ChecksScheduled++;
             }
 
             result.ChecksCreated++;
