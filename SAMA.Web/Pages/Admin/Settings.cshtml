@@ -258,8 +258,8 @@
                         <input asp-for="ImportInput.Password" class="form-control" type="password" placeholder="Enter decryption password" />
                     </div>
                     <div class="mb-3">
-						<label asp-for="ImportInput.ImportStrategy" class="form-label"></label>
-						<select asp-for="ImportInput.ImportStrategy" asp-items="Model.ImportStrategyOptions" class="form-select"></select>
+                        <label asp-for="ImportInput.ImportStrategy" class="form-label"></label>
+                        <select asp-for="ImportInput.ImportStrategy" asp-items="Model.ImportStrategyOptions" class="form-select"></select>
                         <div class="form-text">
                             Choose how to handle workspaces that already exist.<br />
                             <span class="fw-bold">Note:</span> Importing with "Merge" will not overwrite existing checks or notification channels.
