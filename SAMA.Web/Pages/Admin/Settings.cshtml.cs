@@ -158,7 +158,7 @@ public class SettingsModel(
             var export = await _exportService.ExportAllAsync(ExportInput.Password);
             var json = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true });
             var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-            var fileName = $"sama-export-{DateTime.UtcNow:yyyy-MM-dd}.json";
+            var fileName = $"sama-export-{DateTimeOffset.UtcNow:yyyy-MM-dd}.json";
 
             _logger.LogInformation("Configuration exported by {User}", User.Identity?.Name ?? "Unknown");
 
