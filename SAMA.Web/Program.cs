@@ -201,6 +201,7 @@ builder.Services.AddSingleton(inMemoryLogSink);
 builder.Services.AddSingleton<ApplicationStateService>();
 builder.Services.AddSingleton<AesEncryptionService>();
 builder.Services.AddSingleton<GlobalSettingsService>();
+builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<SetupService>();
 builder.Services.AddScoped<NotificationChannelConfigurationService>();

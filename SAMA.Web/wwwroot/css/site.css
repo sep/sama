@@ -1151,3 +1151,113 @@ pre code {
     color: #FF6B6B;
     background-color: rgba(220, 53, 69, 0.2);
 }
+
+/* ============================================
+   Dashboard Message (Markdown Content)
+   ============================================ */
+
+.dashboard-message {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.dashboard-message > *:first-child {
+    margin-top: 0;
+}
+
+.dashboard-message > *:last-child {
+    margin-bottom: 0;
+}
+
+.dashboard-message h1,
+.dashboard-message h2,
+.dashboard-message h3,
+.dashboard-message h4,
+.dashboard-message h5,
+.dashboard-message h6 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.dashboard-message h1 { font-size: 1.5rem; }
+.dashboard-message h2 { font-size: 1.35rem; }
+.dashboard-message h3 { font-size: 1.2rem; }
+.dashboard-message h4 { font-size: 1.1rem; }
+.dashboard-message h5 { font-size: 1rem; }
+.dashboard-message h6 { font-size: 0.9rem; }
+
+.dashboard-message p {
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-message ul,
+.dashboard-message ol {
+    margin-bottom: 0.75rem;
+    padding-left: 1.5rem;
+}
+
+.dashboard-message li {
+    margin-bottom: 0.25rem;
+}
+
+.dashboard-message code {
+    background-color: var(--color-surface);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+
+.dashboard-message pre {
+    background-color: var(--color-surface);
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-message pre code {
+    background: none;
+    padding: 0;
+}
+
+.dashboard-message blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding-left: 1rem;
+    margin-left: 0;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.dashboard-message a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.dashboard-message a:hover {
+    text-decoration: underline;
+}
+
+.dashboard-message table {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    border-collapse: collapse;
+}
+
+.dashboard-message th,
+.dashboard-message td {
+    border: 1px solid var(--color-border);
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.dashboard-message th {
+    background-color: var(--color-surface);
+    font-weight: 600;
+}
+
+.dashboard-message hr {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 1rem 0;
+}

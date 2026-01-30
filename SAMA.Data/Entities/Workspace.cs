@@ -8,6 +8,8 @@ public class Workspace
 
     public string? Description { get; set; }
 
+    public string? DashboardMessage { get; set; }
+
     public bool IsPublic { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }

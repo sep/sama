@@ -107,6 +107,17 @@ else
             </div>
         </div>
 
+        @if (!string.IsNullOrEmpty(Model.DashboardMessageHtml))
+        {
+            <div class="mb-4" id="dashboard-message-container" hx-swap-oob="true">
+                <div class="card">
+                    <div class="card-body dashboard-message">
+                        @Html.Raw(Model.DashboardMessageHtml)
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="mb-4">
             <partial name="_IncidentTimelineChart" model="Model.IncidentTimeline" />
         </div>

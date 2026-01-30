@@ -88,6 +88,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
             Guid.NewGuid(),
             "Updated Name",
             "Updated Description",
+            null,
             true,
             "admin");
 
@@ -104,6 +105,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
             workspace.Id,
             "Updated Name",
             "Updated Description",
+            null,
             true,
             "admin");
 
@@ -127,6 +129,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
             workspace.Id,
             "Test",
             null,
+            null,
             false,
             "admin");
 
@@ -146,6 +149,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
         var result = await _service.UpdateWorkspaceAsync(
             workspace.Id,
             "Test",
+            null,
             null,
             false,
             "admin");
@@ -237,6 +241,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
             workspace1.Id,
             "Updated Workspace 1",
             "Updated Description 1",
+            null,
             true,
             "admin");
 
@@ -289,6 +294,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
         await _service.UpdateWorkspaceAsync(
             workspace.Id,
             "Updated Test",
+            null,
             null,
             false,
             "admin");

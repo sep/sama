@@ -2,17 +2,23 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SAMA.Web.Authorization;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Commands;
 using SAMA.Web.Services.Queries;
 
 namespace SAMA.Web.Pages.Workspaces;
 
 [RequireWorkspaceEditAccess]
-public class EditModel(WorkspaceQueryService _workspaceQueryService, WorkspaceCommandService _workspaceCommandService)
+public class EditModel(
+    WorkspaceQueryService _workspaceQueryService,
+    WorkspaceCommandService _workspaceCommandService,
+    MarkdownService _markdownService)
     : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
+
+    public string DashboardMessagePreview { get; set; } = string.Empty;
 
     public class InputModel
     {
@@ -24,6 +30,9 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, WorkspaceCo
 
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
+
+        [StringLength(2000, ErrorMessage = "Dashboard message cannot exceed 2000 characters")]
+        public string? DashboardMessage { get; set; }
 
         public bool IsPublic { get; set; }
     }
@@ -46,8 +55,11 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, WorkspaceCo
             Id = workspace.Id,
             Name = workspace.Name,
             Description = workspace.Description,
+            DashboardMessage = workspace.DashboardMessage,
             IsPublic = workspace.IsPublic
         };
+
+        DashboardMessagePreview = _markdownService.RenderToHtml(workspace.DashboardMessage);
 
         // Set ViewData for workspace layout
         ViewData["WorkspaceId"] = workspace.Id.ToString();
@@ -77,6 +89,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, WorkspaceCo
             Input.Id,
             Input.Name,
             Input.Description,
+            Input.DashboardMessage,
             Input.IsPublic,
             User.Identity?.Name ?? "System");
 
@@ -88,5 +101,11 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, WorkspaceCo
         TempData["SuccessMessage"] = $"Workspace '{Input.Name}' updated successfully.";
 
         return RedirectToPage("/Dashboard/Index", new { workspaceId = Input.Id });
+    }
+
+    public IActionResult OnPostPreviewMarkdown([FromForm] string? markdown)
+    {
+        var html = _markdownService.RenderToHtml(markdown);
+        return Content(html, "text/html");
     }
 }

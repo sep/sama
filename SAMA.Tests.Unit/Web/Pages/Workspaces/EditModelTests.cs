@@ -5,6 +5,7 @@ using SAMA.Data;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Models;
 using SAMA.Web.Pages.Workspaces;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Commands;
 using SAMA.Web.Services.Queries;
 
@@ -15,6 +16,7 @@ public class EditModelTests
 {
     private WorkspaceQueryService _mockWorkspaceQuery = null!;
     private WorkspaceCommandService _mockWorkspaceCommand = null!;
+    private MarkdownService _markdownService = null!;
     private EditModel _pageModel = null!;
 
     [TestInitialize]
@@ -22,8 +24,9 @@ public class EditModelTests
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
         _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!);
+        _markdownService = new MarkdownService();
 
-        _pageModel = new EditModel(_mockWorkspaceQuery, _mockWorkspaceCommand);
+        _pageModel = new EditModel(_mockWorkspaceQuery, _mockWorkspaceCommand, _markdownService);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 
@@ -163,6 +166,7 @@ public class EditModelTests
             Arg.Any<Guid>(),
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>()).Returns(Task.FromResult(true));
@@ -181,6 +185,7 @@ public class EditModelTests
             workspaceId,
             "Updated Workspace",
             "Updated Description",
+            Arg.Any<string?>(),
             true,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -193,6 +198,7 @@ public class EditModelTests
         _mockWorkspaceCommand.UpdateWorkspaceAsync(
             Arg.Any<Guid>(),
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -221,6 +227,7 @@ public class EditModelTests
             Arg.Any<Guid>(),
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>()).Returns(Task.FromResult(true));
@@ -248,6 +255,7 @@ public class EditModelTests
         _mockWorkspaceCommand.UpdateWorkspaceAsync(
             Arg.Any<Guid>(),
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -293,6 +301,7 @@ public class EditModelTests
             Arg.Any<Guid>(),
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -335,6 +344,7 @@ public class EditModelTests
             Arg.Any<Guid>(),
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>()).Returns(Task.FromResult(true));
@@ -353,6 +363,7 @@ public class EditModelTests
             workspaceId,
             "Workspace Without Description",
             Arg.Is<string?>(d => d == null),
+            Arg.Any<string?>(),
             true,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -365,6 +376,7 @@ public class EditModelTests
         _mockWorkspaceCommand.UpdateWorkspaceAsync(
             Arg.Any<Guid>(),
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -382,6 +394,7 @@ public class EditModelTests
         await _mockWorkspaceCommand.Received(1).UpdateWorkspaceAsync(
             workspaceId,
             "Test",
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             false,
             Arg.Any<string>(),

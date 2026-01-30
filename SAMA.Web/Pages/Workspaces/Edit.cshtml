@@ -34,6 +34,39 @@
                     <div class="form-text">Optional description of this workspace's purpose.</div>
                 </div>
 
+                <div class="mb-3">
+                    <label asp-for="Input.DashboardMessage" class="form-label">Dashboard Message</label>
+                    <textarea asp-for="Input.DashboardMessage" 
+                              class="form-control" 
+                              rows="4"
+                              hx-post="/Workspaces/Edit?id=@Model.Input.Id&handler=PreviewMarkdown"
+                              hx-trigger="keyup changed delay:500ms"
+                              hx-target="#dashboard-message-preview"
+                              hx-swap="innerHTML"
+                              hx-select="unset"
+                              name="markdown"></textarea>
+                    <div class="form-text">Optional message displayed on the dashboard. Supports Markdown formatting.</div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Input.DashboardMessage))
+                {
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Preview</label>
+                        <div id="dashboard-message-preview" class="card card-body dashboard-message">
+                            @Html.Raw(Model.DashboardMessagePreview)
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Preview</label>
+                        <div id="dashboard-message-preview" class="card card-body dashboard-message text-muted">
+                            <em>Enter a message above to see a preview...</em>
+                        </div>
+                    </div>
+                }
+
                 <div class="mb-4 form-check">
                     <input asp-for="Input.IsPublic" class="form-check-input" type="checkbox" />
                     <label asp-for="Input.IsPublic" class="form-check-label">

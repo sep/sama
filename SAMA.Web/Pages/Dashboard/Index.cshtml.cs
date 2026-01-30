@@ -12,7 +12,8 @@ public class IndexModel(
     WorkspaceQueryService _workspaceQueryService,
     CheckQueryService _checkQueryService,
     AlertQueryService _alertQueryService,
-    GlobalSettingsService _globalSettings)
+    GlobalSettingsService _globalSettings,
+    MarkdownService _markdownService)
     : WorkspacePageModel(_workspaceQueryService)
 {
     public IList<CheckListItemViewModel> Checks { get; set; } = [];
@@ -22,6 +23,8 @@ public class IndexModel(
     public WorkspaceIncidentTimelineViewModel IncidentTimeline { get; set; } = new();
 
     public WorkspaceResponseTimeTrendsViewModel ResponseTimeTrends { get; set; } = new();
+
+    public string DashboardMessageHtml { get; set; } = string.Empty;
 
     public int RefreshIntervalSeconds { get; set; }
 
@@ -41,6 +44,12 @@ public class IndexModel(
 
         TimelineHours = timelineHours ?? 24;
         TrendsHours = trendsHours ?? 24;
+
+        var workspace = await _workspaceQueryService.GetWorkspaceDetailsAsync(WorkspaceId);
+        if (workspace != null)
+        {
+            DashboardMessageHtml = _markdownService.RenderToHtml(workspace.DashboardMessage);
+        }
 
         Checks = await _checkQueryService.GetChecksForWorkspaceAsync(WorkspaceId);
         RecentAlerts = await _alertQueryService.GetRecentAlertsForWorkspaceAsync(

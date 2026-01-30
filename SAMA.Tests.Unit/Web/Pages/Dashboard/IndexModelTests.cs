@@ -18,6 +18,7 @@ public class IndexModelTests
     private CheckQueryService _mockCheckQuery = null!;
     private AlertQueryService _mockAlertQuery = null!;
     private GlobalSettingsService _mockGlobalSettings = null!;
+    private MarkdownService _markdownService = null!;
     private IndexModel _pageModel = null!;
 
     [TestInitialize]
@@ -27,8 +28,9 @@ public class IndexModelTests
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null);
+        _markdownService = new MarkdownService();
 
-        _pageModel = new IndexModel(_mockWorkspaceQuery, _mockCheckQuery, _mockAlertQuery, _mockGlobalSettings);
+        _pageModel = new IndexModel(_mockWorkspaceQuery, _mockCheckQuery, _mockAlertQuery, _mockGlobalSettings, _markdownService);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 

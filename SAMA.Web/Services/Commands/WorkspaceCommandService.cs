@@ -36,6 +36,7 @@ public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<Workspace
         Guid workspaceId,
         string name,
         string? description,
+        string? dashboardMessage,
         bool isPublic,
         string performedBy,
         CancellationToken cancellationToken = default)
@@ -50,6 +51,7 @@ public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<Workspace
 
         workspace.Name = name;
         workspace.Description = description;
+        workspace.DashboardMessage = dashboardMessage;
         workspace.IsPublic = isPublic;
         workspace.UpdatedAt = DateTimeOffset.UtcNow;
 
