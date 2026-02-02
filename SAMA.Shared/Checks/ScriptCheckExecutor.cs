@@ -137,7 +137,7 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
             {
                 try
                 {
-                    File.Delete(tempScriptFile);
+                    await Task.Run(() => File.Delete(tempScriptFile), CancellationToken.None);
                 }
                 catch
                 {
