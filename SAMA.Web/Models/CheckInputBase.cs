@@ -70,4 +70,6 @@ public class CheckInputBase
     public string? ScriptArguments { get; set; }
 
     public int? ScriptExpectedExitCode { get; set; } = CheckDefaults.ScriptExpectedExitCode;
+
+    public string? ScriptContent { get; set; }
 }

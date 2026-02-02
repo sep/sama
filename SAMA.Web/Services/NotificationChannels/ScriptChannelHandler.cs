@@ -128,6 +128,7 @@ public class ScriptChannelHandler(
     {
         var sentAt = DateTimeOffset.UtcNow;
         long? timestamp = null;
+        string? tempScriptFile = null;
 
         try
         {
@@ -156,6 +157,32 @@ public class ScriptChannelHandler(
             var arguments = channel.ConfigurationJson.TryGetValue(ConfigurationKeys.Script.Arguments, out var argsElement)
                 ? argsElement.GetString()
                 : null;
+
+            var scriptContent = channel.ConfigurationJson.TryGetValue(ConfigurationKeys.Script.Content, out var contentElement)
+                ? contentElement.GetString()
+                : null;
+
+            // Handle inline script content
+            if (!string.IsNullOrWhiteSpace(scriptContent))
+            {
+                if (string.IsNullOrWhiteSpace(arguments) ||
+                    !arguments.Contains(ChannelDefaults.ScriptFilePlaceholder, StringComparison.Ordinal))
+                {
+                    return new NotificationResultModel
+                    {
+                        Success = false,
+                        ErrorMessage = $"Arguments must contain {ChannelDefaults.ScriptFilePlaceholder} placeholder when using inline script content",
+                        SentAt = sentAt
+                    };
+                }
+
+                // Use .ps1 extension because PowerShell requires it for -File parameter.
+                // Other interpreters (bash, python, etc.) ignore file extensions.
+                tempScriptFile = Path.Combine(Path.GetTempPath(), $"sama-notify-{Guid.NewGuid():N}.ps1");
+                await File.WriteAllTextAsync(tempScriptFile, scriptContent, cancellationToken);
+
+                arguments = arguments.Replace(ChannelDefaults.ScriptFilePlaceholder, tempScriptFile, StringComparison.Ordinal);
+            }
 
             var timeoutSeconds = _globalSettings.NotificationTimeoutSeconds;
 
@@ -290,6 +317,21 @@ public class ScriptChannelHandler(
                 ErrorMessage = $"Unexpected error: {ex.Message}",
                 SentAt = sentAt
             };
+        }
+        finally
+        {
+            // Clean up temp script file
+            if (tempScriptFile != null)
+            {
+                try
+                {
+                    File.Delete(tempScriptFile);
+                }
+                catch
+                {
+                    // Best effort cleanup
+                }
+            }
         }
     }
 }

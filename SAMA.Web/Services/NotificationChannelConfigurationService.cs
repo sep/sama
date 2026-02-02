@@ -45,11 +45,7 @@ public class NotificationChannelConfigurationService
             {
                 [ConfigurationKeys.Webhook.WebhookUrl] = JsonSerializer.SerializeToElement(input.DiscordWebhookUrl!)
             },
-            ChannelTypes.Script => new Dictionary<string, JsonElement>
-            {
-                [ConfigurationKeys.Script.Path] = JsonSerializer.SerializeToElement(input.ScriptPath!),
-                [ConfigurationKeys.Script.Arguments] = JsonSerializer.SerializeToElement(input.ScriptArguments ?? "")
-            },
+            ChannelTypes.Script => BuildScriptConfiguration(input),
             ChannelTypes.EventGrid => new Dictionary<string, JsonElement>
             {
                 [ConfigurationKeys.EventGrid.TopicEndpoint] = JsonSerializer.SerializeToElement(input.EventGridTopicEndpoint!),
@@ -100,6 +96,7 @@ public class NotificationChannelConfigurationService
             case ChannelTypes.Script:
                 input.ScriptPath = JsonElementHelper.GetString(config, ConfigurationKeys.Script.Path);
                 input.ScriptArguments = JsonElementHelper.GetString(config, ConfigurationKeys.Script.Arguments);
+                input.ScriptContent = JsonElementHelper.GetString(config, ConfigurationKeys.Script.Content);
                 break;
 
             case ChannelTypes.EventGrid:
@@ -174,7 +171,18 @@ public class NotificationChannelConfigurationService
             case ChannelTypes.Script:
                 if (string.IsNullOrWhiteSpace(input.ScriptPath))
                 {
-                    modelState.AddModelError($"{nameof(input.ScriptPath)}", "Script path is required");
+                    modelState.AddModelError($"{nameof(input.ScriptPath)}", "Script path or interpreter is required");
+                }
+
+                if (!string.IsNullOrWhiteSpace(input.ScriptContent))
+                {
+                    if (string.IsNullOrWhiteSpace(input.ScriptArguments) ||
+                        !input.ScriptArguments.Contains(ChannelDefaults.ScriptFilePlaceholder, StringComparison.Ordinal))
+                    {
+                        modelState.AddModelError(
+                            $"{nameof(input.ScriptArguments)}",
+                            $"Arguments must contain {ChannelDefaults.ScriptFilePlaceholder} placeholder when using inline script content");
+                    }
                 }
                 break;
 
@@ -193,5 +201,21 @@ public class NotificationChannelConfigurationService
                 }
                 break;
         }
+    }
+
+    private static Dictionary<string, JsonElement> BuildScriptConfiguration<T>(T input) where T : NotificationChannelInputBase
+    {
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.Script.Path] = JsonSerializer.SerializeToElement(input.ScriptPath!),
+            [ConfigurationKeys.Script.Arguments] = JsonSerializer.SerializeToElement(input.ScriptArguments ?? "")
+        };
+
+        if (!string.IsNullOrWhiteSpace(input.ScriptContent))
+        {
+            config[ConfigurationKeys.Script.Content] = JsonSerializer.SerializeToElement(input.ScriptContent);
+        }
+
+        return config;
     }
 }

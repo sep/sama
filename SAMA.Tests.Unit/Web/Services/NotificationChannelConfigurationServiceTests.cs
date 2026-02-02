@@ -701,5 +701,90 @@ public class NotificationChannelConfigurationServiceTests
         Assert.IsTrue(modelState.IsValid);
     }
 
+    [TestMethod]
+    public void ValidateConfigurationShouldAcceptScriptWithInlineContentAndValidPlaceholder()
+    {
+        var modelState = new ModelStateDictionary();
+        var input = new NotificationChannelInputBase
+        {
+            ChannelType = ChannelTypes.Script,
+            ScriptPath = "bash",
+            ScriptArguments = ChannelDefaults.ScriptFilePlaceholder,
+            ScriptContent = "echo $SAMA_CHECK_NAME"
+        };
+
+        _service.ValidateConfiguration(modelState, input);
+
+        Assert.IsTrue(modelState.IsValid);
+    }
+
+    [TestMethod]
+    public void ValidateConfigurationShouldRejectScriptInlineContentMissingPlaceholder()
+    {
+        var modelState = new ModelStateDictionary();
+        var input = new NotificationChannelInputBase
+        {
+            ChannelType = ChannelTypes.Script,
+            ScriptPath = "bash",
+            ScriptArguments = "--flag value",
+            ScriptContent = "echo $SAMA_CHECK_NAME"
+        };
+
+        _service.ValidateConfiguration(modelState, input);
+
+        Assert.IsFalse(modelState.IsValid);
+        Assert.IsTrue(modelState.ContainsKey(nameof(input.ScriptArguments)));
+    }
+
+    [TestMethod]
+    public void ValidateConfigurationShouldRejectScriptInlineContentWithNoArguments()
+    {
+        var modelState = new ModelStateDictionary();
+        var input = new NotificationChannelInputBase
+        {
+            ChannelType = ChannelTypes.Script,
+            ScriptPath = "python3",
+            ScriptContent = "print('hello')"
+        };
+
+        _service.ValidateConfiguration(modelState, input);
+
+        Assert.IsFalse(modelState.IsValid);
+        Assert.IsTrue(modelState.ContainsKey(nameof(input.ScriptArguments)));
+    }
+
+    [TestMethod]
+    public void BuildConfigurationShouldIncludeScriptContentWhenProvided()
+    {
+        var input = new NotificationChannelInputBase
+        {
+            ChannelType = ChannelTypes.Script,
+            ScriptPath = "bash",
+            ScriptArguments = ChannelDefaults.ScriptFilePlaceholder,
+            ScriptContent = "#!/bin/bash\necho $SAMA_CHECK_NAME"
+        };
+
+        var config = _service.BuildConfiguration(input);
+
+        Assert.IsTrue(config.ContainsKey(ConfigurationKeys.Script.Content));
+        Assert.AreEqual("#!/bin/bash\necho $SAMA_CHECK_NAME", config[ConfigurationKeys.Script.Content].GetString());
+    }
+
+    [TestMethod]
+    public void PopulateFromConfigurationShouldRestoreScriptContent()
+    {
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.Script.Path] = JsonSerializer.SerializeToElement("python3"),
+            [ConfigurationKeys.Script.Arguments] = JsonSerializer.SerializeToElement($"-u {ChannelDefaults.ScriptFilePlaceholder}"),
+            [ConfigurationKeys.Script.Content] = JsonSerializer.SerializeToElement("print('hello')")
+        };
+
+        var input = new NotificationChannelInputBase { ChannelType = ChannelTypes.Script };
+        _service.PopulateFromConfiguration(input, config);
+
+        Assert.AreEqual("print('hello')", input.ScriptContent);
+    }
+
     #endregion
 }

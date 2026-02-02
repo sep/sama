@@ -94,6 +94,7 @@ public class CheckConfigurationService
                 input.ScriptPath = JsonElementHelper.GetString(config, ConfigurationKeys.ScriptCheck.Path);
                 input.ScriptArguments = JsonElementHelper.GetString(config, ConfigurationKeys.ScriptCheck.Arguments);
                 input.ScriptExpectedExitCode = JsonElementHelper.GetInt32(config, ConfigurationKeys.ScriptCheck.ExpectedExitCode) ?? CheckDefaults.ScriptExpectedExitCode;
+                input.ScriptContent = JsonElementHelper.GetString(config, ConfigurationKeys.ScriptCheck.Content);
                 break;
         }
     }
@@ -186,7 +187,18 @@ public class CheckConfigurationService
             case CheckTypes.Script:
                 if (string.IsNullOrWhiteSpace(input.ScriptPath))
                 {
-                    modelState.AddModelError($"{nameof(input.ScriptPath)}", "Script path is required");
+                    modelState.AddModelError($"{nameof(input.ScriptPath)}", "Script path or interpreter is required");
+                }
+
+                if (!string.IsNullOrWhiteSpace(input.ScriptContent))
+                {
+                    if (string.IsNullOrWhiteSpace(input.ScriptArguments) ||
+                        !input.ScriptArguments.Contains(CheckDefaults.ScriptFilePlaceholder, StringComparison.Ordinal))
+                    {
+                        modelState.AddModelError(
+                            $"{nameof(input.ScriptArguments)}",
+                            $"Arguments must contain {CheckDefaults.ScriptFilePlaceholder} placeholder when using inline script content");
+                    }
                 }
                 break;
         }
@@ -298,6 +310,11 @@ public class CheckConfigurationService
         if (!string.IsNullOrWhiteSpace(input.ScriptArguments))
         {
             config[ConfigurationKeys.ScriptCheck.Arguments] = JsonSerializer.SerializeToElement(input.ScriptArguments);
+        }
+
+        if (!string.IsNullOrWhiteSpace(input.ScriptContent))
+        {
+            config[ConfigurationKeys.ScriptCheck.Content] = JsonSerializer.SerializeToElement(input.ScriptContent);
         }
 
         return config;

@@ -5,7 +5,7 @@
     <h5 class="mb-3">Script Execution Configuration</h5>
     
     <dl class="row mb-0">
-        <dt class="col-sm-4">Script Path</dt>
+        <dt class="col-sm-4">Script Path / Interpreter</dt>
         <dd class="col-sm-8">
             <code>@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Path)</code>
         </dd>
@@ -19,6 +19,17 @@
         }
 
         <dt class="col-sm-4">Expected Exit Code</dt>
-        <dd class="col-sm-8 mb-0">@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.ExpectedExitCode)</dd>
+        <dd class="col-sm-8">@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.ExpectedExitCode)</dd>
+
+        @{
+            var scriptContent = Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Content)?.ToString();
+        }
+        @if (!string.IsNullOrWhiteSpace(scriptContent))
+        {
+            <dt class="col-sm-4">Inline Script</dt>
+            <dd class="col-sm-8 mb-0">
+                <pre class="bg-light p-2 rounded small mb-0" style="max-height: 200px; overflow-y: auto;"><code>@scriptContent</code></pre>
+            </dd>
+        }
     </dl>
 </div>

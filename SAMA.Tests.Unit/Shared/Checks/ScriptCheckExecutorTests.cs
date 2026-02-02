@@ -250,4 +250,94 @@ public class ScriptCheckExecutorTests
         Assert.IsNotNull(result.ErrorMessage);
         Assert.AreEqual("Script exited with code 1 (expected 0)", result.ErrorMessage);
     }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldReturnDownWhenInlineScriptMissingPlaceholder()
+    {
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("bash"),
+            [ConfigurationKeys.ScriptCheck.Arguments] = JsonSerializer.SerializeToElement("--some-arg"),
+            [ConfigurationKeys.ScriptCheck.Content] = JsonSerializer.SerializeToElement("echo 'test'"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0)
+        };
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Down, result.Status);
+        Assert.IsNotNull(result.ErrorMessage);
+        Assert.Contains(CheckDefaults.ScriptFilePlaceholder, result.ErrorMessage);
+    }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldReturnDownWhenInlineScriptMissingArguments()
+    {
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("bash"),
+            [ConfigurationKeys.ScriptCheck.Content] = JsonSerializer.SerializeToElement("echo 'test'"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0)
+        };
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Down, result.Status);
+        Assert.IsNotNull(result.ErrorMessage);
+        Assert.Contains(CheckDefaults.ScriptFilePlaceholder, result.ErrorMessage);
+    }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldReplacePlaceholderWithTempFilePath()
+    {
+        _mockWrapper.WaitForExitAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(10));
+        _mockWrapper.ExitCode.Returns(0);
+
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("bash"),
+            [ConfigurationKeys.ScriptCheck.Arguments] = JsonSerializer.SerializeToElement(CheckDefaults.ScriptFilePlaceholder),
+            [ConfigurationKeys.ScriptCheck.Content] = JsonSerializer.SerializeToElement("echo 'test'"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0),
+            [ConfigurationKeys.Common.TimeoutSeconds] = JsonSerializer.SerializeToElement(10)
+        };
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Up, result.Status);
+
+        _mockWrapper.Received(1).Start(Arg.Is<ProcessStartInfo>(psi =>
+            psi.FileName == "bash" &&
+            !psi.Arguments.Contains(CheckDefaults.ScriptFilePlaceholder) &&
+            psi.Arguments.Contains("sama-script-") &&
+            psi.Arguments.EndsWith(".ps1", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldCleanupTempFileAfterExecution()
+    {
+        _mockWrapper.WaitForExitAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(10));
+        _mockWrapper.ExitCode.Returns(0);
+
+        string? capturedTempFilePath = null;
+        _mockWrapper.When(w => w.Start(Arg.Any<ProcessStartInfo>()))
+            .Do(callInfo =>
+            {
+                var psi = callInfo.Arg<ProcessStartInfo>();
+                capturedTempFilePath = psi.Arguments;
+            });
+
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("bash"),
+            [ConfigurationKeys.ScriptCheck.Arguments] = JsonSerializer.SerializeToElement(CheckDefaults.ScriptFilePlaceholder),
+            [ConfigurationKeys.ScriptCheck.Content] = JsonSerializer.SerializeToElement("echo 'test'"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0),
+            [ConfigurationKeys.Common.TimeoutSeconds] = JsonSerializer.SerializeToElement(10)
+        };
+
+        await _executor.ExecuteAsync(config);
+
+        Assert.IsNotNull(capturedTempFilePath);
+        Assert.IsFalse(File.Exists(capturedTempFilePath), "Temp file should be deleted after execution");
+    }
 }

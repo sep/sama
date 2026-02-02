@@ -52,6 +52,12 @@ public static class CheckDefaults
     public const int ScriptExpectedExitCode = 0;
 
     /// <summary>
+    /// Placeholder in script arguments that gets replaced with the temp file path
+    /// when using inline script content.
+    /// </summary>
+    public const string ScriptFilePlaceholder = "{SCRIPT_FILE}";
+
+    /// <summary>
     /// Default timeout for all checks (in seconds).
     /// </summary>
     public const int CheckTimeoutSeconds = 30;

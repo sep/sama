@@ -14,24 +14,40 @@
     </div>
 
     <div class="mb-3">
-        <label for="Input_ScriptPath" class="form-label">Script Path</label>
+        <label for="Input_ScriptPath" class="form-label">Script Path / Interpreter</label>
         <input asp-for="ScriptPath" id="Input_ScriptPath" name="Input.ScriptPath" class="form-control font-monospace" placeholder="/usr/local/bin/check-script.sh" />
         <span asp-validation-for="ScriptPath" class="text-danger"></span>
         <div class="form-text">
             Full path to the script or command to execute.
             <br><strong>Linux/Mac:</strong> <code>/usr/local/bin/check.sh</code> | <strong>Windows:</strong> <code>C:\Scripts\check.bat</code>
+            <br>If using inline script content below, specify the interpreter (e.g., <code>bash</code>, <code>python3</code>, <code>powershell</code>).
         </div>
     </div>
 
     <div class="mb-3">
-        <label for="Input_ScriptArguments" class="form-label">Arguments (optional)</label>
+        <label for="Input_ScriptArguments" class="form-label">Arguments <small class="text-muted">(optional, required for inline scripts)</small></label>
         <input asp-for="ScriptArguments" id="Input_ScriptArguments" name="Input.ScriptArguments" class="form-control font-monospace" placeholder="--option value" />
-        <div class="form-text">Command-line arguments to pass to the script.</div>
+        <span asp-validation-for="ScriptArguments" class="text-danger"></span>
+        <div class="form-text">
+            Command-line arguments to pass to the script.
+            <br>For inline scripts, include <code>@CheckDefaults.ScriptFilePlaceholder</code> where the temp script file path should be inserted.
+            <br><strong>Examples:</strong> <code>@CheckDefaults.ScriptFilePlaceholder</code> | <code>-u @CheckDefaults.ScriptFilePlaceholder</code> | <code>-File @CheckDefaults.ScriptFilePlaceholder</code>
+        </div>
     </div>
 
     <div class="mb-3">
         <label for="Input_ScriptExpectedExitCode" class="form-label">Expected Exit Code</label>
         <input asp-for="ScriptExpectedExitCode" id="Input_ScriptExpectedExitCode" name="Input.ScriptExpectedExitCode" class="form-control" type="number" min="0" max="255" />
         <div class="form-text">Exit code that indicates success (0-255). Default is @CheckDefaults.ScriptExpectedExitCode.</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="Input_ScriptContent" class="form-label">Inline Script Content <small class="text-muted">(optional)</small></label>
+        <textarea asp-for="ScriptContent" id="Input_ScriptContent" name="Input.ScriptContent" class="form-control font-monospace" rows="8" placeholder="#!/bin/bash&#10;# Your script here...&#10;exit 0"></textarea>
+        <span asp-validation-for="ScriptContent" class="text-danger"></span>
+        <div class="form-text">
+            Enter script content directly instead of referencing an external file.
+            <br>When using inline content, set <strong>Script Path</strong> to the interpreter and include <code>@CheckDefaults.ScriptFilePlaceholder</code> in arguments.
+        </div>
     </div>
 </div>

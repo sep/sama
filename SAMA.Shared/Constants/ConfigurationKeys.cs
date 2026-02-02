@@ -43,6 +43,7 @@ public static class ConfigurationKeys
     {
         public const string Path = "Path";
         public const string Arguments = "Arguments";
+        public const string Content = "Content";
     }
 
     /// <summary>
@@ -118,5 +119,6 @@ public static class ConfigurationKeys
         public const string Path = "Path";
         public const string Arguments = "Arguments";
         public const string ExpectedExitCode = "ExpectedExitCode";
+        public const string Content = "Content";
     }
 }

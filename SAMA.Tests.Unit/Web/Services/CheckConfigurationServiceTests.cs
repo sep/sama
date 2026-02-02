@@ -799,5 +799,91 @@ public class CheckConfigurationServiceTests
         Assert.IsTrue(modelState.IsValid);
     }
 
+    [TestMethod]
+    public void ValidateConfigurationShouldAcceptInlineScriptWithValidPlaceholder()
+    {
+        var modelState = new ModelStateDictionary();
+        var input = new CheckInputBase
+        {
+            CheckType = CheckTypes.Script,
+            ScriptPath = "bash",
+            ScriptArguments = CheckDefaults.ScriptFilePlaceholder,
+            ScriptContent = "echo 'test'"
+        };
+
+        _service.ValidateConfiguration(modelState, input);
+
+        Assert.IsTrue(modelState.IsValid);
+    }
+
+    [TestMethod]
+    public void ValidateConfigurationShouldRejectInlineScriptMissingPlaceholder()
+    {
+        var modelState = new ModelStateDictionary();
+        var input = new CheckInputBase
+        {
+            CheckType = CheckTypes.Script,
+            ScriptPath = "bash",
+            ScriptArguments = "--some-flag",
+            ScriptContent = "echo 'test'"
+        };
+
+        _service.ValidateConfiguration(modelState, input);
+
+        Assert.IsFalse(modelState.IsValid);
+        Assert.IsTrue(modelState.ContainsKey(nameof(input.ScriptArguments)));
+    }
+
+    [TestMethod]
+    public void ValidateConfigurationShouldRejectInlineScriptWithNoArguments()
+    {
+        var modelState = new ModelStateDictionary();
+        var input = new CheckInputBase
+        {
+            CheckType = CheckTypes.Script,
+            ScriptPath = "bash",
+            ScriptContent = "echo 'test'"
+        };
+
+        _service.ValidateConfiguration(modelState, input);
+
+        Assert.IsFalse(modelState.IsValid);
+        Assert.IsTrue(modelState.ContainsKey(nameof(input.ScriptArguments)));
+    }
+
+    [TestMethod]
+    public void BuildConfigurationShouldIncludeScriptContent()
+    {
+        var input = new CheckInputBase
+        {
+            CheckType = CheckTypes.Script,
+            ScriptPath = "python3",
+            ScriptArguments = $"-u {CheckDefaults.ScriptFilePlaceholder}",
+            ScriptContent = "print('hello')"
+        };
+
+        var config = _service.BuildConfiguration(input);
+
+        Assert.IsTrue(config.ContainsKey(ConfigurationKeys.ScriptCheck.Content));
+        Assert.AreEqual("print('hello')", config[ConfigurationKeys.ScriptCheck.Content].GetString());
+    }
+
+    [TestMethod]
+    public void PopulateFromConfigurationShouldRestoreScriptContent()
+    {
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("bash"),
+            [ConfigurationKeys.ScriptCheck.Arguments] = JsonSerializer.SerializeToElement(CheckDefaults.ScriptFilePlaceholder),
+            [ConfigurationKeys.ScriptCheck.Content] = JsonSerializer.SerializeToElement("echo 'test'"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0)
+        };
+
+        var input = new CheckInputBase { CheckType = CheckTypes.Script };
+        _service.PopulateFromConfiguration(input, config);
+
+        Assert.AreEqual("echo 'test'", input.ScriptContent);
+    }
+
     #endregion
 }

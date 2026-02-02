@@ -1,19 +1,38 @@
 @model SAMA.Web.Models.NotificationChannelInputBase
+@using SAMA.Web.Constants
 
 <div class="mt-3 border-top pt-3">
     <h5 class="mb-3">Script Configuration</h5>
     
     <div class="mb-3">
-        <label for="Input_ScriptPath" class="form-label">Script Path</label>
-        <input asp-for="ScriptPath" id="Input_ScriptPath" name="Input.ScriptPath" class="form-control" placeholder="/path/to/script.sh" />
-        <div class="form-text">Full path to the script or command to execute</div>
+        <label for="Input_ScriptPath" class="form-label">Script Path / Interpreter</label>
+        <input asp-for="ScriptPath" id="Input_ScriptPath" name="Input.ScriptPath" class="form-control font-monospace" placeholder="/path/to/script.sh" />
         <span asp-validation-for="ScriptPath" class="text-danger"></span>
+        <div class="form-text">
+            Full path to the script or command to execute.
+            <br>If using inline script content below, specify the interpreter (e.g., <code>bash</code>, <code>python3</code>, <code>powershell</code>).
+        </div>
     </div>
 
     <div class="mb-3">
-        <label for="Input_ScriptArguments" class="form-label">Arguments <small class="text-muted">(optional)</small></label>
-        <input asp-for="ScriptArguments" id="Input_ScriptArguments" name="Input.ScriptArguments" class="form-control" placeholder="--flag value" />
-        <div class="form-text">Command-line arguments to pass to the script</div>
+        <label for="Input_ScriptArguments" class="form-label">Arguments <small class="text-muted">(optional, required for inline scripts)</small></label>
+        <input asp-for="ScriptArguments" id="Input_ScriptArguments" name="Input.ScriptArguments" class="form-control font-monospace" placeholder="--flag value" />
+        <span asp-validation-for="ScriptArguments" class="text-danger"></span>
+        <div class="form-text">
+            Command-line arguments to pass to the script.
+            <br>For inline scripts, include <code>@ChannelDefaults.ScriptFilePlaceholder</code> where the temp script file path should be inserted.
+            <br><strong>Examples:</strong> <code>@ChannelDefaults.ScriptFilePlaceholder</code> | <code>-u @ChannelDefaults.ScriptFilePlaceholder</code> | <code>-File @ChannelDefaults.ScriptFilePlaceholder</code>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="Input_ScriptContent" class="form-label">Inline Script Content <small class="text-muted">(optional)</small></label>
+        <textarea asp-for="ScriptContent" id="Input_ScriptContent" name="Input.ScriptContent" class="form-control font-monospace" rows="8" placeholder="#!/bin/bash&#10;# Your script here...&#10;echo &quot;Notification received&quot;"></textarea>
+        <span asp-validation-for="ScriptContent" class="text-danger"></span>
+        <div class="form-text">
+            Enter script content directly instead of referencing an external file.
+            <br>When using inline content, set <strong>Script Path</strong> to the interpreter and include <code>@ChannelDefaults.ScriptFilePlaceholder</code> in arguments.
+        </div>
     </div>
 
     <div class="alert alert-info">

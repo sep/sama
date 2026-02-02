@@ -38,6 +38,8 @@ public class NotificationChannelInputBase
 
     public string? ScriptArguments { get; set; }
 
+    public string? ScriptContent { get; set; }
+
     // EventGrid configuration
     public string? EventGridTopicEndpoint { get; set; }
 
