@@ -103,7 +103,7 @@ public class EditModel(
         return RedirectToPage("/Dashboard/Index", new { workspaceId = Input.Id });
     }
 
-    public IActionResult OnPostPreviewMarkdown([FromForm] string? markdown)
+    public IActionResult OnPostPreviewMarkdown([FromForm(Name = $"{nameof(Input)}.{nameof(InputModel.DashboardMessage)}")] string? markdown)
     {
         var html = _markdownService.RenderToHtml(markdown);
         return Content(html, "text/html");

@@ -9,6 +9,7 @@ public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<Workspace
     public virtual async Task<Guid> CreateWorkspaceAsync(
         string name,
         string? description,
+        string? dashboardMessage,
         bool isPublic,
         string performedBy,
         CancellationToken cancellationToken = default)
@@ -17,6 +18,7 @@ public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<Workspace
         {
             Name = name,
             Description = description,
+            DashboardMessage = dashboardMessage,
             IsPublic = isPublic
         };
 

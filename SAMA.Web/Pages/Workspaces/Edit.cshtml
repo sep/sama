@@ -40,11 +40,10 @@
                               class="form-control" 
                               rows="4"
                               hx-post="/Workspaces/Edit?id=@Model.Input.Id&handler=PreviewMarkdown"
-                              hx-trigger="keyup changed delay:500ms"
+                              hx-trigger="input changed delay:500ms"
                               hx-target="#dashboard-message-preview"
                               hx-swap="innerHTML"
-                              hx-select="unset"
-                              name="markdown"></textarea>
+                              hx-select="unset"></textarea>
                     <div class="form-text">Optional message displayed on the dashboard. Supports Markdown formatting.</div>
                 </div>
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Pages.Workspaces;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Commands;
 
 namespace SAMA.Tests.Unit.Web.Pages.Workspaces;
@@ -11,14 +12,16 @@ namespace SAMA.Tests.Unit.Web.Pages.Workspaces;
 public class CreateModelTests
 {
     private WorkspaceCommandService _mockWorkspaceCommand = null!;
+    private MarkdownService _mockMarkdownService = null!;
     private CreateModel _pageModel = null!;
 
     [TestInitialize]
     public void Setup()
     {
         _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!);
+        _mockMarkdownService = Substitute.For<MarkdownService>();
 
-        _pageModel = new CreateModel(_mockWorkspaceCommand);
+        _pageModel = new CreateModel(_mockWorkspaceCommand, _mockMarkdownService);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 
@@ -29,6 +32,7 @@ public class CreateModelTests
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>()).Returns(Task.FromResult(workspaceId));
@@ -37,6 +41,7 @@ public class CreateModelTests
         {
             Name = "Test Workspace",
             Description = "Test Description",
+            DashboardMessage = "Test Message",
             IsPublic = true
         };
 
@@ -45,6 +50,7 @@ public class CreateModelTests
         await _mockWorkspaceCommand.Received(1).CreateWorkspaceAsync(
             "Test Workspace",
             "Test Description",
+            "Test Message",
             true,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -56,6 +62,7 @@ public class CreateModelTests
         var workspaceId = Guid.NewGuid();
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -80,6 +87,7 @@ public class CreateModelTests
         var workspaceId = Guid.NewGuid();
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -131,6 +139,7 @@ public class CreateModelTests
         await _mockWorkspaceCommand.DidNotReceive().CreateWorkspaceAsync(
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -142,6 +151,7 @@ public class CreateModelTests
         var workspaceId = Guid.NewGuid();
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -159,6 +169,7 @@ public class CreateModelTests
         await _mockWorkspaceCommand.Received(1).CreateWorkspaceAsync(
             "Workspace Without Description",
             Arg.Is<string?>(d => d == null),
+            Arg.Any<string?>(),
             true,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -170,6 +181,7 @@ public class CreateModelTests
         var workspaceId = Guid.NewGuid();
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -186,6 +198,7 @@ public class CreateModelTests
         await _mockWorkspaceCommand.Received(1).CreateWorkspaceAsync(
             "Public Workspace",
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             true,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -197,6 +210,7 @@ public class CreateModelTests
         var workspaceId = Guid.NewGuid();
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -213,6 +227,7 @@ public class CreateModelTests
         await _mockWorkspaceCommand.Received(1).CreateWorkspaceAsync(
             "Private Workspace",
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             false,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
@@ -224,6 +239,7 @@ public class CreateModelTests
         var workspaceId = Guid.NewGuid();
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
+            Arg.Any<string?>(),
             Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
@@ -248,6 +264,7 @@ public class CreateModelTests
         _mockWorkspaceCommand.CreateWorkspaceAsync(
             Arg.Any<string>(),
             Arg.Any<string?>(),
+            Arg.Any<string?>(),
             Arg.Any<bool>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>()).Returns(Task.FromResult(workspaceId));
@@ -264,8 +281,40 @@ public class CreateModelTests
         await _mockWorkspaceCommand.Received(1).CreateWorkspaceAsync(
             "Described Workspace",
             "A detailed description",
+            Arg.Any<string?>(),
             true,
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public void OnPostPreviewMarkdownShouldReturnRenderedHtml()
+    {
+        _mockMarkdownService.RenderToHtml("**bold**").Returns("<p><strong>bold</strong></p>");
+
+        var result = _pageModel.OnPostPreviewMarkdown("**bold**");
+
+        var contentResult = result as ContentResult;
+        Assert.IsNotNull(contentResult);
+        Assert.AreEqual("<p><strong>bold</strong></p>", contentResult.Content);
+        Assert.AreEqual("text/html", contentResult.ContentType);
+    }
+
+    [TestMethod]
+    public async Task OnPostAsyncShouldRenderPreviewWhenModelStateIsInvalid()
+    {
+        _mockMarkdownService.RenderToHtml("**Test**").Returns("<p><strong>Test</strong></p>");
+
+        _pageModel.Input = new CreateModel.InputModel
+        {
+            Name = "",
+            DashboardMessage = "**Test**"
+        };
+        _pageModel.ModelState.AddModelError("Input.Name", "Workspace name is required");
+
+        await _pageModel.OnPostAsync();
+
+        _mockMarkdownService.Received(1).RenderToHtml("**Test**");
+        Assert.AreEqual("<p><strong>Test</strong></p>", _pageModel.DashboardMessagePreview);
     }
 }

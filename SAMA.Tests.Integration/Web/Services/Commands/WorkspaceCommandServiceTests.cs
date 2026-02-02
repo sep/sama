@@ -25,6 +25,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
         var workspaceId = await _service.CreateWorkspaceAsync(
             "Test Workspace",
             "Test Description",
+            null,
             false,
             "admin");
 
@@ -45,6 +46,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
         var workspaceId = await _service.CreateWorkspaceAsync(
             "Workspace Without Description",
             null,
+            null,
             true,
             "admin");
 
@@ -61,6 +63,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
         var workspaceId = await _service.CreateWorkspaceAsync(
             "Public Workspace",
             "Public Description",
+            null,
             true,
             "admin");
 
@@ -70,10 +73,25 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task CreateWorkspaceAsyncShouldCreateWorkspaceWithDashboardMessage()
+    {
+        var workspaceId = await _service.CreateWorkspaceAsync(
+            "Test Workspace",
+            "Description",
+            "**Welcome** to this workspace!",
+            false,
+            "admin");
+
+        var workspace = await DbContext.Workspaces.FindAsync(workspaceId);
+        Assert.IsNotNull(workspace);
+        Assert.AreEqual("**Welcome** to this workspace!", workspace.DashboardMessage);
+    }
+
+    [TestMethod]
     public async Task CreateWorkspaceAsyncShouldCreateMultipleWorkspaces()
     {
-        await _service.CreateWorkspaceAsync("Workspace 1", null, false, "admin");
-        await _service.CreateWorkspaceAsync("Workspace 2", null, true, "admin");
+        await _service.CreateWorkspaceAsync("Workspace 1", null, null, false, "admin");
+        await _service.CreateWorkspaceAsync("Workspace 2", null, null, true, "admin");
 
         var workspaces = await DbContext.Workspaces.OrderBy(w => w.Name).ToListAsync();
         Assert.HasCount(2, workspaces);
@@ -305,6 +323,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
 
         var workspaceId = await _service.CreateWorkspaceAsync(
             "Test Workspace",
+            null,
             null,
             false,
             "admin");

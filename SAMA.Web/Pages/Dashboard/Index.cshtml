@@ -26,6 +26,17 @@
      hx-trigger="every @(Model.RefreshIntervalSeconds)s"
      hx-swap="none"></div>
 
+@if (!string.IsNullOrEmpty(Model.DashboardMessageHtml))
+{
+    <div class="mb-4" id="dashboard-message-container" hx-swap-oob="true">
+        <div class="card">
+            <div class="card-body dashboard-message">
+                @Html.Raw(Model.DashboardMessageHtml)
+            </div>
+        </div>
+    </div>
+}
+
 @if (!Model.Checks.Any())
 {
     <div class="alert alert-info">
@@ -106,17 +117,6 @@ else
                 </div>
             </div>
         </div>
-
-        @if (!string.IsNullOrEmpty(Model.DashboardMessageHtml))
-        {
-            <div class="mb-4" id="dashboard-message-container" hx-swap-oob="true">
-                <div class="card">
-                    <div class="card-body dashboard-message">
-                        @Html.Raw(Model.DashboardMessageHtml)
-                    </div>
-                </div>
-            </div>
-        }
 
         <div class="mb-4">
             <partial name="_IncidentTimelineChart" model="Model.IncidentTimeline" />
