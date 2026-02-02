@@ -325,7 +325,7 @@ public class ScriptChannelHandler(
             {
                 try
                 {
-                    File.Delete(tempScriptFile);
+                    await Task.Run(() => File.Delete(tempScriptFile));
                 }
                 catch
                 {
