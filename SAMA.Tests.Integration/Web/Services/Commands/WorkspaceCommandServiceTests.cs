@@ -163,6 +163,38 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task UpdateWorkspaceAsyncShouldSetAndClearDashboardMessage()
+    {
+        var workspace = await CreateWorkspaceAsync("Test", null, false);
+
+        await _service.UpdateWorkspaceAsync(
+            workspace.Id,
+            "Test",
+            null,
+            "# Welcome\nThis is a **test** message.",
+            false,
+            "admin");
+
+        DbContext.ChangeTracker.Clear();
+        var updated = await DbContext.Workspaces.FindAsync(workspace.Id);
+        Assert.IsNotNull(updated);
+        Assert.AreEqual("# Welcome\nThis is a **test** message.", updated.DashboardMessage);
+
+        await _service.UpdateWorkspaceAsync(
+            workspace.Id,
+            "Test",
+            null,
+            null,
+            false,
+            "admin");
+
+        DbContext.ChangeTracker.Clear();
+        var cleared = await DbContext.Workspaces.FindAsync(workspace.Id);
+        Assert.IsNotNull(cleared);
+        Assert.IsNull(cleared.DashboardMessage);
+    }
+
+    [TestMethod]
     public async Task DeleteWorkspaceAsyncShouldReturnFalseWhenWorkspaceDoesNotExist()
     {
         var result = await _service.DeleteWorkspaceAsync(Guid.NewGuid(), "admin");
