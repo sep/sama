@@ -154,6 +154,42 @@ volumes:
    
    Navigate to `http://localhost:8080` and follow the setup wizard to create your administrator account.
 
+
+### Docker Image Variants
+
+SAMA provides two image variants:
+
+| Variant | Tag Examples | Description |
+|---------|--------------|-------------|
+| Standard | `latest`, `2.0.0`, `unstable` | Default image, runs as non-root user |
+| Sudo | `latest-sudo`, `2.0.0-sudo`, `unstable-sudo` | Includes sudo capability for script checks requiring elevated privileges |
+
+#### Using the Sudo Variant
+
+The `-sudo` images have sudo installed but require explicit opt-in at runtime for security:
+
+```yaml
+services:
+  web:
+    image: ghcr.io/sep/sama:latest-sudo
+    environment:
+      - ENABLE_SUDO=true  # Required to enable sudo at runtime
+      # ... other environment variables
+```
+
+**Security notes:**
+- Without `ENABLE_SUDO=true`, sudo access is removed at container startup
+- This provides defense-in-depth: both build-time (`INSTALL_SUDO`) and runtime (`ENABLE_SUDO`) opt-in required
+- Only use the sudo variant if your script checks require elevated privileges
+
+#### Building Custom Images
+
+To build your own sudo-enabled image:
+
+```bash
+docker build --build-arg INSTALL_SUDO=true -t sama-sudo .
+```
+
 ## Configuration
 
 ### Environment Variables
