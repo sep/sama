@@ -82,16 +82,38 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
             timestamp = Stopwatch.GetTimestamp();
             process.Start(startInfo);
 
-            await process.WaitForExitAsync(cts.Token);
+            var timedOut = false;
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                // Timeout occurred (our internal timeout, not external cancellation)
+                timedOut = true;
+                process.Kill();
+            }
 
             var executionTime = Stopwatch.GetElapsedTime(timestamp.Value);
             var executionTimeMs = (int)executionTime.TotalMilliseconds;
 
-            var exitCode = process.ExitCode;
+            // Always capture stdout/stderr for script checks (even on timeout)
+            var stdout = await process.ReadStandardOutputAsync(CancellationToken.None);
+            var stderr = await process.ReadStandardErrorAsync(CancellationToken.None);
 
-            // Always capture stdout/stderr for script checks
-            var stdout = await process.ReadStandardOutputAsync(cancellationToken);
-            var stderr = await process.ReadStandardErrorAsync(cancellationToken);
+            if (timedOut)
+            {
+                return new CheckExecutionResult
+                {
+                    Status = CheckStatuses.Down,
+                    ResponseTimeMs = executionTimeMs,
+                    ErrorMessage = "Script execution timeout",
+                    StandardOutput = stdout,
+                    StandardError = stderr
+                };
+            }
+
+            var exitCode = process.ExitCode;
 
             if (exitCode == expectedExitCode)
             {
@@ -121,11 +143,12 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
         }
         catch (OperationCanceledException)
         {
+            // External cancellation (not timeout)
             return new CheckExecutionResult
             {
                 Status = CheckStatuses.Down,
                 ResponseTimeMs = timestamp.HasValue ? (int)Stopwatch.GetElapsedTime(timestamp.Value).TotalMilliseconds : null,
-                ErrorMessage = "Script execution timeout"
+                ErrorMessage = "Script execution cancelled"
             };
         }
         catch (Exception ex)

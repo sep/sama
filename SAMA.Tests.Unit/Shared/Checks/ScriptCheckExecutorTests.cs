@@ -384,4 +384,30 @@ public class ScriptCheckExecutorTests
         Assert.AreEqual("Partial output", result.StandardOutput);
         Assert.AreEqual("Error details", result.StandardError);
     }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldCaptureStdoutAndStderrOnTimeout()
+    {
+        _mockWrapper.When(x => x.Start(Arg.Any<ProcessStartInfo>())).Do(_ => { });
+        _mockWrapper.WaitForExitAsync(Arg.Any<CancellationToken>())
+            .Returns(callInfo => Task.Delay(10000, callInfo.Arg<CancellationToken>()));
+        _mockWrapper.ReadStandardOutputAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult("Partial output before timeout"));
+        _mockWrapper.ReadStandardErrorAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult("Error output before timeout"));
+
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("/path/to/script.sh"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0),
+            [ConfigurationKeys.Common.TimeoutSeconds] = JsonSerializer.SerializeToElement(1)
+        };
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Down, result.Status);
+        Assert.IsNotNull(result.ResponseTimeMs);
+        Assert.IsNotNull(result.ErrorMessage);
+        Assert.Contains("timeout", result.ErrorMessage);
+        Assert.AreEqual("Partial output before timeout", result.StandardOutput);
+        Assert.AreEqual("Error output before timeout", result.StandardError);
+    }
 }

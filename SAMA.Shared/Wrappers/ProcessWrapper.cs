@@ -68,6 +68,17 @@ public class ProcessWrapper : IDisposable
         return await _process.StandardError.ReadToEndAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Kills the process and its child processes.
+    /// </summary>
+    public virtual void Kill()
+    {
+        ObjectDisposedException.ThrowIf(_disposedValue, this);
+        ArgumentNullException.ThrowIfNull(_process, nameof(_process));
+
+        _process.Kill(entireProcessTree: true);
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposedValue)
