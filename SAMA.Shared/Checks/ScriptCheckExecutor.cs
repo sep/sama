@@ -91,7 +91,14 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
             {
                 // Timeout occurred (our internal timeout, not external cancellation)
                 timedOut = true;
-                process.Kill();
+                try
+                {
+                    process.Kill();
+                }
+                catch
+                {
+                    // Best effort - process may have already exited or we may not have permission to kill all children
+                }
             }
 
             var executionTime = Stopwatch.GetElapsedTime(timestamp.Value);

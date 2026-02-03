@@ -71,12 +71,25 @@ public class ProcessWrapper : IDisposable
     /// <summary>
     /// Kills the process and its child processes.
     /// </summary>
+    /// <remarks>
+    /// If some child processes cannot be terminated, an AggregateException is thrown
+    /// but the main process is always killed first before this exception occurs.
+    /// </remarks>
     public virtual void Kill()
     {
         ObjectDisposedException.ThrowIf(_disposedValue, this);
         ArgumentNullException.ThrowIfNull(_process, nameof(_process));
 
-        _process.Kill(entireProcessTree: true);
+        try
+        {
+            _process.Kill(entireProcessTree: true);
+        }
+        catch (AggregateException ex) when (ex.Message.Contains("Not all processes", StringComparison.Ordinal))
+        {
+            // "Not all processes in process tree could be terminated" -
+            // the main process is already killed, only some children failed.
+            // This is acceptable for our use case.
+        }
     }
 
     protected virtual void Dispose(bool disposing)
