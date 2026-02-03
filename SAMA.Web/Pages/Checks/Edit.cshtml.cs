@@ -42,7 +42,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, CheckQueryS
         public int IntervalSeconds { get; set; }
 
         [Required(ErrorMessage = "Timeout is required")]
-        [Range(5, 300, ErrorMessage = "Timeout must be between 5 and 300 seconds")]
+        [Range(5, 3600, ErrorMessage = "Timeout must be between 5 seconds and 1 hour")]
         public int TimeoutSeconds { get; set; }
 
         public bool Enabled { get; set; }

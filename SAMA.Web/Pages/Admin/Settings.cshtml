@@ -95,7 +95,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Input.DefaultCheckTimeoutSeconds" class="form-label"></label>
-                                <input asp-for="Input.DefaultCheckTimeoutSeconds" class="form-control" type="number" min="5" max="300" required />
+                                <input asp-for="Input.DefaultCheckTimeoutSeconds" class="form-control" type="number" min="5" max="3600" required />
                                 <span asp-validation-for="Input.DefaultCheckTimeoutSeconds" class="text-danger"></span>
                                 <div class="form-text">Default timeout for new checks (default: 30 seconds)</div>
                             </div>

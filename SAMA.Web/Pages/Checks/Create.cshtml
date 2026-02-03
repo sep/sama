@@ -96,20 +96,22 @@
                            min="30" 
                            max="86400" 
                            required />
-                    <div class="form-text mb-2">How often to run this check (30 seconds to 24 hours).</div>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="Quick interval selections">
+                    <div class="btn-group btn-group-sm mt-1" role="group" aria-label="Quick interval selections">
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=30">30s</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=60">1m</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=300">5m</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=600">10m</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=1800">30m</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=3600">1h</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=21600">6h</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=86400">24h</button>
                     </div>
+                    <div class="form-text">How often to run this check (30 seconds to 24 hours).</div>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Input.TimeoutSeconds" class="form-label">Timeout (seconds)</label>
-                    <input asp-for="Input.TimeoutSeconds" class="form-control" type="number" min="5" max="300" required />
+                    <input asp-for="Input.TimeoutSeconds" class="form-control" type="number" min="5" max="3600" required />
                     <div class="form-text">Maximum time to wait for a response before marking as failed.</div>
                 </div>
 

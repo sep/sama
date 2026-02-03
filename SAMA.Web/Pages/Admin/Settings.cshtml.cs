@@ -65,7 +65,7 @@ public class SettingsModel(
         public int MaxRecentAlerts { get; set; }
 
         [Required(ErrorMessage = "Default check timeout is required")]
-        [Range(5, 300, ErrorMessage = "Default check timeout must be between 5 and 300 seconds")]
+        [Range(5, 3600, ErrorMessage = "Default check timeout must be between 5 seconds and 1 hour")]
         [Display(Name = "Default Check Timeout (seconds)")]
         public int DefaultCheckTimeoutSeconds { get; set; }
 
