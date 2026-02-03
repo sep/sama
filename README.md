@@ -179,7 +179,6 @@ services:
 
 **Security notes:**
 - Without `ENABLE_SUDO=true`, sudo access is removed at container startup
-- This provides defense-in-depth: both build-time (`INSTALL_SUDO`) and runtime (`ENABLE_SUDO`) opt-in required
 - Only use the sudo variant if your script checks require elevated privileges
 
 #### Building Custom Images
@@ -187,7 +186,7 @@ services:
 To build your own sudo-enabled image:
 
 ```bash
-docker build --build-arg INSTALL_SUDO=true -t sama-sudo .
+docker build -f Dockerfile.sudo -t sama-sudo .
 ```
 
 ## Configuration

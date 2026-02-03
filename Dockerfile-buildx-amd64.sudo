@@ -1,5 +1,6 @@
-# https://hub.docker.com/_/microsoft-dotnet
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Forcing amd64 for buildx per https://github.com/dotnet/dotnet-docker/issues/1537#issuecomment-755351628
+# Sudo-enabled variant - runs as root, drops to app user via gosu
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble-amd64 AS build
 ARG VERSION=0.0.0-dev
 WORKDIR /source
 
@@ -21,22 +22,23 @@ RUN dotnet publish -c release -o /app --no-restore /p:MinVerSkip=true /p:Version
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
-RUN apt update && apt install -y iputils-ping tini curl python3-venv python3-pip \
+RUN apt update && apt install -y iputils-ping tini curl python3-venv python3-pip sudo \
     && rm -rf /var/lib/apt/lists/*
 ARG VERSION=0.0.0-dev
 WORKDIR /app
 COPY --from=build /app ./
+COPY docker-entrypoint-sudo.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
 # create keys directory with proper permissions
 RUN mkdir -p /app/keys && chown -R app:app /app/keys
 
 LABEL org.opencontainers.image.title="SAMA"
-LABEL org.opencontainers.image.description="Service Availability Monitoring and Alerting"
+LABEL org.opencontainers.image.description="Service Availability Monitoring and Alerting (sudo-enabled)"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.source="https://github.com/sep/sama"
 
-# Run as non-root user (built into the base image)
-USER app
+# Run as root - entrypoint will drop to app user via gosu
 VOLUME ["/app/keys"]
 EXPOSE 8080
-ENTRYPOINT ["tini", "--", "dotnet", "SAMA.Web.dll"]
+ENTRYPOINT ["tini", "--", "/app/docker-entrypoint.sh"]

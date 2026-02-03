@@ -103,7 +103,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile-buildx-amd64
+          file: ./Dockerfile-buildx-amd64.sudo
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           provenance: false
           push: true
@@ -112,4 +112,3 @@ jobs:
           annotations: ${{ steps.meta-sudo.outputs.annotations }}
           build-args: |
             VERSION=${{ steps.minver.outputs.version }}
-            INSTALL_SUDO=true
