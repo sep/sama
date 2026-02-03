@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Models;
 using SAMA.Web.Pages.Checks;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Queries;
 
 namespace SAMA.Tests.Unit.Web.Pages.Checks;
@@ -15,6 +17,7 @@ public class DetailsModelTests
 {
     private WorkspaceQueryService _mockWorkspaceQuery = null!;
     private CheckQueryService _mockCheckQuery = null!;
+    private ScriptOutputBuffer _mockScriptOutputBuffer = null!;
     private DetailsModel _pageModel = null!;
 
     [TestInitialize]
@@ -22,8 +25,9 @@ public class DetailsModelTests
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
+        _mockScriptOutputBuffer = new ScriptOutputBuffer(Substitute.For<ILogger<ScriptOutputBuffer>>());
 
-        _pageModel = new DetailsModel(_mockWorkspaceQuery, _mockCheckQuery);
+        _pageModel = new DetailsModel(_mockWorkspaceQuery, _mockCheckQuery, _mockScriptOutputBuffer);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 

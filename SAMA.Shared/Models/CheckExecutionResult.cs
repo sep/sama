@@ -10,5 +10,9 @@ public class CheckExecutionResult
 
     public string? ErrorMessage { get; set; }
 
+    public string? StandardOutput { get; set; }
+
+    public string? StandardError { get; set; }
+
     public DateTimeOffset CheckedAt { get; set; } = DateTimeOffset.UtcNow;
 }

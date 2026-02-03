@@ -11,6 +11,7 @@ namespace SAMA.Web.Services;
 [DisallowConcurrentExecution]
 public class CheckExecutorJob(
     IServiceProvider _serviceProvider,
+    ScriptOutputBuffer _scriptOutputBuffer,
     ILogger<CheckExecutorJob> _logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
@@ -49,8 +50,12 @@ public class CheckExecutorJob(
 
             var result = await executor.ExecuteAsync(configuration, context.CancellationToken);
 
+            // Generate ID upfront so we can correlate with script output
+            var checkResultId = Guid.CreateVersion7();
+
             var checkResult = new CheckResult
             {
+                Id = checkResultId,
                 CheckId = check.Id,
                 Status = result.Status,
                 ResponseTimeMs = result.ResponseTimeMs,
@@ -61,6 +66,12 @@ public class CheckExecutorJob(
 
             dbContext.CheckResults.Add(checkResult);
             await dbContext.SaveChangesAsync(context.CancellationToken);
+
+            // Buffer script output for UI display (also logs to Serilog)
+            if (check.CheckType == CheckTypes.Script)
+            {
+                _scriptOutputBuffer.Add(check.Id, checkResultId, result.StandardOutput, result.StandardError);
+            }
 
             _logger.LogDebug(
                 "Check {CheckId} executed: Status={Status}, ResponseTime={ResponseTime}ms",

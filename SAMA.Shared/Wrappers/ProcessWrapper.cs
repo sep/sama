@@ -47,6 +47,17 @@ public class ProcessWrapper : IDisposable
     }
 
     /// <summary>
+    /// Reads all text from the standard output stream asynchronously.
+    /// </summary>
+    public virtual async Task<string> ReadStandardOutputAsync(CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_disposedValue, this);
+        ArgumentNullException.ThrowIfNull(_process, nameof(_process));
+
+        return await _process.StandardOutput.ReadToEndAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Reads all text from the standard error stream asynchronously.
     /// </summary>
     public virtual async Task<string> ReadStandardErrorAsync(CancellationToken cancellationToken)

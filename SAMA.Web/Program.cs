@@ -198,6 +198,7 @@ foreach (var executorType in executorTypes)
 
 // Register application services
 builder.Services.AddSingleton(inMemoryLogSink);
+builder.Services.AddSingleton<ScriptOutputBuffer>();
 builder.Services.AddSingleton<ApplicationStateService>();
 builder.Services.AddSingleton<AesEncryptionService>();
 builder.Services.AddSingleton<GlobalSettingsService>();

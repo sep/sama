@@ -1,16 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using SAMA.Shared.Constants;
 using SAMA.Web.Authorization;
 using SAMA.Web.Models;
 using SAMA.Web.Pages.Shared;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Queries;
 
 namespace SAMA.Web.Pages.Checks;
 
 [RequireWorkspaceViewAccess]
-public class DetailsModel(WorkspaceQueryService _workspaceQueryService, CheckQueryService _checkQueryService)
+public class DetailsModel(
+    WorkspaceQueryService _workspaceQueryService,
+    CheckQueryService _checkQueryService,
+    ScriptOutputBuffer _scriptOutputBuffer)
     : WorkspacePageModel(_workspaceQueryService)
 {
     public CheckDetailsViewModel Check { get; set; } = new();
+
+    public List<ScriptOutputEntry> ScriptOutputs { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync(Guid? id)
     {
@@ -32,6 +39,12 @@ public class DetailsModel(WorkspaceQueryService _workspaceQueryService, CheckQue
         }
 
         Check = check;
+
+        // Load script outputs if this is a script check
+        if (check.CheckType == CheckTypes.Script)
+        {
+            ScriptOutputs = _scriptOutputBuffer.GetOutputs(check.Id).ToList();
+        }
 
         return Page();
     }

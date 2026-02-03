@@ -41,7 +41,11 @@ public class CheckExecutorJobIntegrationTests : IntegrationTestBase
         _mockContext.CancellationToken.Returns(CancellationToken.None);
         _mockContext.Scheduler.Returns(_mockScheduler);
 
-        _job = new CheckExecutorJob(ServiceProvider, Substitute.For<ILogger<CheckExecutorJob>>());
+        var scriptOutputBuffer = new ScriptOutputBuffer(Substitute.For<ILogger<ScriptOutputBuffer>>());
+        _job = new CheckExecutorJob(
+            ServiceProvider,
+            scriptOutputBuffer,
+            Substitute.For<ILogger<CheckExecutorJob>>());
     }
 
     [TestMethod]

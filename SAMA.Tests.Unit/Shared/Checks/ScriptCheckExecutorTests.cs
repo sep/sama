@@ -340,4 +340,48 @@ public class ScriptCheckExecutorTests
         Assert.IsNotNull(capturedTempFilePath);
         Assert.IsFalse(File.Exists(capturedTempFilePath), "Temp file should be deleted after execution");
     }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldCaptureStdoutOnSuccess()
+    {
+        _mockWrapper.WaitForExitAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(10));
+        _mockWrapper.ExitCode.Returns(0);
+        _mockWrapper.ReadStandardOutputAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult("Success output"));
+        _mockWrapper.ReadStandardErrorAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(""));
+
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("/path/to/script.sh"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0),
+            [ConfigurationKeys.Common.TimeoutSeconds] = JsonSerializer.SerializeToElement(10)
+        };
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Up, result.Status);
+        Assert.AreEqual("Success output", result.StandardOutput);
+        Assert.AreEqual("", result.StandardError);
+    }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldCaptureStdoutAndStderrOnFailure()
+    {
+        _mockWrapper.WaitForExitAsync(Arg.Any<CancellationToken>()).Returns(Task.Delay(10));
+        _mockWrapper.ExitCode.Returns(1);
+        _mockWrapper.ReadStandardOutputAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult("Partial output"));
+        _mockWrapper.ReadStandardErrorAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult("Error details"));
+
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.ScriptCheck.Path] = JsonSerializer.SerializeToElement("/path/to/script.sh"),
+            [ConfigurationKeys.ScriptCheck.ExpectedExitCode] = JsonSerializer.SerializeToElement(0),
+            [ConfigurationKeys.Common.TimeoutSeconds] = JsonSerializer.SerializeToElement(10)
+        };
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Down, result.Status);
+        Assert.AreEqual("Partial output", result.StandardOutput);
+        Assert.AreEqual("Error details", result.StandardError);
+    }
 }

@@ -89,17 +89,22 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
 
             var exitCode = process.ExitCode;
 
+            // Always capture stdout/stderr for script checks
+            var stdout = await process.ReadStandardOutputAsync(cancellationToken);
+            var stderr = await process.ReadStandardErrorAsync(cancellationToken);
+
             if (exitCode == expectedExitCode)
             {
                 return new CheckExecutionResult
                 {
                     Status = CheckStatuses.Up,
                     ResponseTimeMs = executionTimeMs,
-                    StatusCode = exitCode
+                    StatusCode = exitCode,
+                    StandardOutput = stdout,
+                    StandardError = stderr
                 };
             }
 
-            var stderr = await process.ReadStandardErrorAsync(cancellationToken);
             var errorMessage = string.IsNullOrWhiteSpace(stderr)
                 ? $"Script exited with code {exitCode} (expected {expectedExitCode})"
                 : $"Script exited with code {exitCode} (expected {expectedExitCode}): {stderr.Trim()}";
@@ -109,7 +114,9 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
                 Status = CheckStatuses.Down,
                 ResponseTimeMs = executionTimeMs,
                 StatusCode = exitCode,
-                ErrorMessage = errorMessage
+                ErrorMessage = errorMessage,
+                StandardOutput = stdout,
+                StandardError = stderr
             };
         }
         catch (OperationCanceledException)
