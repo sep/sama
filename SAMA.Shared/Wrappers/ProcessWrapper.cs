@@ -80,16 +80,7 @@ public class ProcessWrapper : IDisposable
         ObjectDisposedException.ThrowIf(_disposedValue, this);
         ArgumentNullException.ThrowIfNull(_process, nameof(_process));
 
-        try
-        {
-            _process.Kill(entireProcessTree: true);
-        }
-        catch (AggregateException ex) when (ex.Message.Contains("Not all processes", StringComparison.Ordinal))
-        {
-            // "Not all processes in process tree could be terminated" -
-            // the main process is already killed, only some children failed.
-            // This is acceptable for our use case.
-        }
+        _process.Kill(entireProcessTree: true);
     }
 
     protected virtual void Dispose(bool disposing)
