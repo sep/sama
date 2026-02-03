@@ -15,9 +15,10 @@ on:
       - 'v*'
 
 jobs:
-  release_docker:
+  version:
     runs-on: ubuntu-latest
-
+    outputs:
+      version: ${{ steps.minver.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,6 +39,29 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Calculated version: $VERSION"
 
+  release_docker:
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: standard
+            dockerfile: ./Dockerfile-buildx-amd64
+            suffix: ""
+            title: "SAMA"
+            description: "Service Availability Monitoring and Alerting - A modern uptime monitoring system"
+          - variant: sudo
+            dockerfile: ./Dockerfile-buildx-amd64.sudo
+            suffix: "-sudo"
+            title: "SAMA (sudo)"
+            description: "Service Availability Monitoring and Alerting - A modern uptime monitoring system (with sudo)"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -50,13 +74,13 @@ jobs:
         with:
           images: ${{ env.TAG_NAME }}
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.minver.outputs.version }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.minver.outputs.version }},enable=${{ !contains(steps.minver.outputs.version, '-') }}
-            type=raw,value=latest,enable=${{ !contains(steps.minver.outputs.version, '-') }}
-            type=raw,value=unstable,enable=${{ contains(steps.minver.outputs.version, '-') }}
+            type=semver,pattern={{version}}${{ matrix.suffix }},value=${{ needs.version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}}${{ matrix.suffix }},value=${{ needs.version.outputs.version }},enable=${{ !contains(needs.version.outputs.version, '-') }}
+            type=raw,value=latest${{ matrix.suffix }},enable=${{ !contains(needs.version.outputs.version, '-') }}
+            type=raw,value=unstable${{ matrix.suffix }},enable=${{ contains(needs.version.outputs.version, '-') }}
           labels: |
-            org.opencontainers.image.title=SAMA
-            org.opencontainers.image.description=Service Availability Monitoring and Alerting - A modern uptime monitoring system
+            org.opencontainers.image.title=${{ matrix.title }}
+            org.opencontainers.image.description=${{ matrix.description }}
             org.opencontainers.image.vendor=SEP
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
@@ -72,7 +96,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile-buildx-amd64
+          file: ${{ matrix.dockerfile }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           provenance: false
           push: true
@@ -80,35 +104,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
-            VERSION=${{ steps.minver.outputs.version }}
-
-      - name: Extract metadata (sudo)
-        id: meta-sudo
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.TAG_NAME }}
-          tags: |
-            type=semver,pattern={{version}}-sudo,value=${{ steps.minver.outputs.version }}
-            type=semver,pattern={{major}}.{{minor}}-sudo,value=${{ steps.minver.outputs.version }},enable=${{ !contains(steps.minver.outputs.version, '-') }}
-            type=raw,value=latest-sudo,enable=${{ !contains(steps.minver.outputs.version, '-') }}
-            type=raw,value=unstable-sudo,enable=${{ contains(steps.minver.outputs.version, '-') }}
-          labels: |
-            org.opencontainers.image.title=SAMA (sudo)
-            org.opencontainers.image.description=Service Availability Monitoring and Alerting - A modern uptime monitoring system (with sudo)
-            org.opencontainers.image.vendor=SEP
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
-
-      - name: Build and push (sudo)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile-buildx-amd64.sudo
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          provenance: false
-          push: true
-          tags: ${{ steps.meta-sudo.outputs.tags }}
-          labels: ${{ steps.meta-sudo.outputs.labels }}
-          annotations: ${{ steps.meta-sudo.outputs.annotations }}
-          build-args: |
-            VERSION=${{ steps.minver.outputs.version }}
+            VERSION=${{ needs.version.outputs.version }}
