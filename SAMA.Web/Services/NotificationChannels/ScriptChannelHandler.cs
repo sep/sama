@@ -213,10 +213,43 @@ public class ScriptChannelHandler(
             timestamp = Stopwatch.GetTimestamp();
             process.Start(startInfo);
 
-            await process.WaitForExitAsync(cts.Token);
+            var timedOut = false;
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                // Timeout occurred (our internal timeout, not external cancellation)
+                timedOut = true;
+                try
+                {
+                    process.Kill();
+                }
+                catch
+                {
+                    // Best effort - process may have already exited or we may not have permission to kill all children
+                }
+            }
 
             var executionTime = Stopwatch.GetElapsedTime(timestamp.Value);
             var executionTimeMs = (int)executionTime.TotalMilliseconds;
+
+            if (timedOut)
+            {
+                _logger.LogWarning(
+                    "Script {MessageType} timeout for check {CheckId} after {ExecutionTimeMs}ms",
+                    messageType,
+                    checkId,
+                    executionTimeMs);
+
+                return new NotificationResultModel
+                {
+                    Success = false,
+                    ErrorMessage = $"Script execution timeout ({_globalSettings.NotificationTimeoutSeconds}s)",
+                    SentAt = sentAt
+                };
+            }
 
             var exitCode = process.ExitCode;
 
@@ -266,25 +299,6 @@ public class ScriptChannelHandler(
             {
                 Success = false,
                 ErrorMessage = "Request cancelled",
-                SentAt = sentAt
-            };
-        }
-        catch (OperationCanceledException)
-        {
-            var executionTimeMs = timestamp.HasValue
-                ? (int)Stopwatch.GetElapsedTime(timestamp.Value).TotalMilliseconds
-                : 0;
-
-            _logger.LogWarning(
-                "Script {MessageType} timeout for check {CheckId} after {ExecutionTimeMs}ms",
-                messageType,
-                checkId,
-                executionTimeMs);
-
-            return new NotificationResultModel
-            {
-                Success = false,
-                ErrorMessage = $"Script execution timeout ({_globalSettings.NotificationTimeoutSeconds}s)",
                 SentAt = sentAt
             };
         }
