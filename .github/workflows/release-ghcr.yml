@@ -81,3 +81,35 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           build-args: |
             VERSION=${{ steps.minver.outputs.version }}
+
+      - name: Extract metadata (sudo)
+        id: meta-sudo
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.TAG_NAME }}
+          tags: |
+            type=semver,pattern={{version}}-sudo,value=${{ steps.minver.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}}-sudo,value=${{ steps.minver.outputs.version }},enable=${{ !contains(steps.minver.outputs.version, '-') }}
+            type=raw,value=latest-sudo,enable=${{ !contains(steps.minver.outputs.version, '-') }}
+            type=raw,value=unstable-sudo,enable=${{ contains(steps.minver.outputs.version, '-') }}
+          labels: |
+            org.opencontainers.image.title=SAMA (sudo)
+            org.opencontainers.image.description=Service Availability Monitoring and Alerting - A modern uptime monitoring system (with sudo)
+            org.opencontainers.image.vendor=SEP
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+
+      - name: Build and push (sudo)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile-buildx-amd64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          provenance: false
+          push: true
+          tags: ${{ steps.meta-sudo.outputs.tags }}
+          labels: ${{ steps.meta-sudo.outputs.labels }}
+          annotations: ${{ steps.meta-sudo.outputs.annotations }}
+          build-args: |
+            VERSION=${{ steps.minver.outputs.version }}
+            INSTALL_SUDO=true

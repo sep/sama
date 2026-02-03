@@ -21,12 +21,16 @@ RUN dotnet publish -c release -o /app --no-restore /p:MinVerSkip=true /p:Version
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+ARG INSTALL_SUDO=false
 RUN apt update && apt install -y iputils-ping tini curl python3-venv python3-pip \
-    libxdamage1 libgtk-3-0t64 libpangocairo-1.0-0 libpango-1.0-0 libatk1.0-0t64 libcairo-gobject2 libcairo2 libasound2t64 \
+    && if [ "$INSTALL_SUDO" = "true" ]; then \
+         apt install -y sudo && echo "app ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers; \
+       fi \
     && rm -rf /var/lib/apt/lists/*
 ARG VERSION=0.0.0-dev
 WORKDIR /app
 COPY --from=build /app ./
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
 # create keys directory with proper permissions
 RUN mkdir -p /app/keys && chown -R app:app /app/keys
@@ -40,4 +44,4 @@ LABEL org.opencontainers.image.source="https://github.com/sep/sama"
 USER app
 VOLUME ["/app/keys"]
 EXPOSE 8080
-ENTRYPOINT ["tini", "--", "dotnet", "SAMA.Web.dll"]
+ENTRYPOINT ["tini", "--", "/app/docker-entrypoint.sh"]
