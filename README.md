@@ -178,7 +178,7 @@ services:
 ```
 
 **Security notes:**
-- Without `ENABLE_SUDO=true`, sudo access is removed at container startup
+- Without `ENABLE_SUDO=true`, sudo access is not granted at container startup (sudo remains installed but is not configured for use)
 - Only use the sudo variant if your script checks require elevated privileges
 
 #### Building Custom Images

@@ -1,5 +1,5 @@
 # Forcing amd64 for buildx per https://github.com/dotnet/dotnet-docker/issues/1537#issuecomment-755351628
-# Sudo-enabled variant - runs as root, drops to app user via gosu
+# Sudo-enabled variant - runs as root, drops to app user
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble-amd64 AS build
 ARG VERSION=0.0.0-dev
 WORKDIR /source
@@ -38,7 +38,7 @@ LABEL org.opencontainers.image.description="Service Availability Monitoring and 
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.source="https://github.com/sep/sama"
 
-# Run as root - entrypoint will drop to app user via gosu
+# Run as root - entrypoint will drop to app user
 VOLUME ["/app/keys"]
 EXPOSE 8080
 ENTRYPOINT ["tini", "--", "/app/docker-entrypoint.sh"]
