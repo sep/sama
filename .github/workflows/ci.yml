@@ -113,3 +113,11 @@ jobs:
         run: |
           cd SAMA.Tests.System
           dotnet test --logger "console;verbosity=detailed"
+
+  docker_build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t sama:ci-test .
