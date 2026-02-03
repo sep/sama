@@ -21,7 +21,8 @@ RUN dotnet publish -c release -o /app --no-restore /p:MinVerSkip=true /p:Version
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
-RUN apt update && apt install -y iputils-ping tini curl nodejs npm \
+RUN apt update && apt install -y iputils-ping tini curl python3-venv python3-pip \
+    libxdamage1 libgtk-3-0t64 libpangocairo-1.0-0 libpango-1.0-0 libatk1.0-0t64 libcairo-gobject2 libcairo2 libasound2t64 \
     && rm -rf /var/lib/apt/lists/*
 ARG VERSION=0.0.0-dev
 WORKDIR /app
