@@ -22,7 +22,9 @@ RUN dotnet publish -c release -o /app --no-restore /p:MinVerSkip=true /p:Version
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt update && apt install -y iputils-ping tini curl python3-venv python3-pip
+RUN apt-get update \
+ && apt-get install -y iputils-ping tini curl python3-venv python3-pip \
+ && apt-get clean
 ARG VERSION=0.0.0-dev
 WORKDIR /app
 COPY --from=build /app ./
