@@ -213,6 +213,10 @@ public class ScriptChannelHandler(
             timestamp = Stopwatch.GetTimestamp();
             process.Start(startInfo);
 
+            // Start reading stdout/stderr immediately to prevent buffer deadlock.
+            var stdoutTask = process.ReadStandardOutputAsync(CancellationToken.None);
+            var stderrTask = process.ReadStandardErrorAsync(CancellationToken.None);
+
             var timedOut = false;
             try
             {
@@ -234,6 +238,11 @@ public class ScriptChannelHandler(
 
             var executionTime = Stopwatch.GetElapsedTime(timestamp.Value);
             var executionTimeMs = (int)executionTime.TotalMilliseconds;
+
+            // Await the output tasks - they complete when streams close (process exits or is killed)
+            // We discard stdout but must drain it to prevent buffer deadlock
+            _ = await stdoutTask;
+            var stderr = await stderrTask;
 
             if (timedOut)
             {
@@ -268,8 +277,6 @@ public class ScriptChannelHandler(
                     SentAt = sentAt
                 };
             }
-
-            var stderr = await process.ReadStandardErrorAsync(CancellationToken.None);
             var errorMessage = string.IsNullOrWhiteSpace(stderr)
                 ? $"Script exited with code {exitCode}"
                 : $"Script exited with code {exitCode}: {TruncateErrorMessage(stderr.Trim())}";

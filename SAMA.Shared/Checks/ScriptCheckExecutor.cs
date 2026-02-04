@@ -82,6 +82,10 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
             timestamp = Stopwatch.GetTimestamp();
             process.Start(startInfo);
 
+            // Start reading stdout/stderr immediately to prevent buffer deadlock.
+            var stdoutTask = process.ReadStandardOutputAsync(CancellationToken.None);
+            var stderrTask = process.ReadStandardErrorAsync(CancellationToken.None);
+
             var timedOut = false;
             try
             {
@@ -104,9 +108,9 @@ public class ScriptCheckExecutor(ProcessFactory _processFactory) : ICheckExecuto
             var executionTime = Stopwatch.GetElapsedTime(timestamp.Value);
             var executionTimeMs = (int)executionTime.TotalMilliseconds;
 
-            // Always capture stdout/stderr for script checks (even on timeout)
-            var stdout = await process.ReadStandardOutputAsync(CancellationToken.None);
-            var stderr = await process.ReadStandardErrorAsync(CancellationToken.None);
+            // Await the output tasks - they complete when streams close (process exits or is killed)
+            var stdout = await stdoutTask;
+            var stderr = await stderrTask;
 
             if (timedOut)
             {
