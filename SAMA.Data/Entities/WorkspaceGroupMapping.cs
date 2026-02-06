@@ -6,7 +6,7 @@ public class WorkspaceGroupMapping
 
     public Guid? WorkspaceId { get; set; } // NULL for global Admin mappings
 
-    public required string IdentityProvider { get; set; } // Azure, Okta, Auth0, Generic-OIDC, Generic-SAML
+    public required string IdentityProvider { get; set; } // LDAP, Azure, Okta, Auth0, Generic-OIDC, Generic-SAML
 
     public required string ExternalGroupId { get; set; } // Group name/DN/ID from IdP
 

@@ -105,16 +105,16 @@ Note, these are all subject to change.
   - [ ] Agent health dashboard
   - [ ] LastSeenAt tracking
   - [ ] Alert on agent disconnection
+- [ ] LDAP/Active Directory Integration
+  - [ ] LDAP authentication handler
+  - [ ] LDAP server configuration UI
+  - [ ] Group membership queries
+  - [ ] Testing with Active Directory and OpenLDAP
 - [ ] OIDC Integration
-  - [ ] OpenIddict server setup
+  - [ ] OIDC authentication handler
   - [ ] OIDC provider configuration UI
   - [ ] User claim mapping
-  - [ ] Testing with common providers (Azure AD, Okta, Auth0)
-- [ ] SAML SSO
-  - [ ] SAML2 authentication handler
-  - [ ] Service Provider metadata
-  - [ ] IdP configuration UI
-  - [ ] Attribute mapping
+  - [ ] Testing with common providers (Azure AD/Entra, Okta, Auth0)
 - [ ] Enhanced Authorization
   - [ ] WorkspaceGroupMappings table and UI
   - [ ] External group-to-workspace role mapping
@@ -134,15 +134,15 @@ Note, these are all subject to change.
   - [ ] Agent API integration tests
   - [ ] Agent application tests
   - [ ] Multi-region scenario tests
+  - [ ] LDAP/AD authentication tests
   - [ ] OIDC flow tests
-  - [ ] SAML flow tests
   - [ ] Multi-provider tests
 - [ ] Documentation
   - [ ] Agent deployment guide
   - [ ] Agent API documentation
   - [ ] API key setup guide
+  - [ ] LDAP/AD setup guide
   - [ ] OIDC setup guide
-  - [ ] SAML setup guide
   - [ ] Common IdP configurations
 
 ---

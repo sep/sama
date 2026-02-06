@@ -8,7 +8,7 @@ public class UserWorkspace
 
     public required string Role { get; set; } // Editor, Viewer
 
-    public required string Source { get; set; } = "Manual"; // Manual, OIDC, SAML
+    public required string Source { get; set; } = "Manual"; // Manual, LDAP, OIDC
 
     public DateTimeOffset CreatedAt { get; set; }
 

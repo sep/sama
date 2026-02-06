@@ -33,7 +33,7 @@ public static class AuthConstants
     public const string OidcSource = "OIDC";
 
     /// <summary>
-    /// Source for SAML-provisioned workspace access (recalculated on login).
+    /// Source for LDAP/Active Directory-provisioned workspace access (recalculated on login).
     /// </summary>
-    public const string SamlSource = "SAML";
+    public const string LdapSource = "LDAP";
 }

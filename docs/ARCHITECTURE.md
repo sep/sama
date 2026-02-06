@@ -124,8 +124,8 @@ SAMA/
 
 ### Authentication & Authorization
 - **ASP.NET Core Identity**: User management with passkey support
-- **OpenIddict**: OIDC provider support
-- **SAML2**: SSO integration
+- **LDAP/Active Directory**: On-premises directory integration
+- **OIDC**: Integration with Azure AD/Entra, Okta, Auth0, etc.
 
 ## Key Design Decisions
 
@@ -232,17 +232,18 @@ SAMA provides two complementary notification systems:
 - Future enhancement: Passkey support
 
 **Phase 2**:
-- OIDC integration via OpenIddict
-- SAML2 SSO support
+- LDAP/Active Directory integration (on-prem AD, OpenLDAP)
+- OIDC integration (Azure AD/Entra, Okta, Auth0, etc.)
+- SAML2 SSO support may be added based on demand
 
 ### Authorization
 - Role-based access control (RBAC)
 - **Global Role**: Admin (full system access)
   - Can be assigned manually via ASP.NET Identity
-  - Can be auto-provisioned via OIDC/SAML group mappings
+  - Can be auto-provisioned via LDAP/OIDC group mappings
 - **Workspace Roles**: Editor, Viewer (scoped per workspace via UserWorkspaces)
 - **Guest**: Unauthenticated users can view public workspaces
-- **External Group Mapping**: Auto-provision Admin or workspace access via OIDC/SAML group mappings
+- **External Group Mapping**: Auto-provision Admin or workspace access via LDAP/OIDC group mappings
 
 ### API Security
 - Agent API: API key-based authentication (Bearer token)
@@ -359,14 +360,15 @@ SAMA provides two complementary notification systems:
 
 ### Phase 2
 - Agent support with advanced checks (Playwright, Database)
+- LDAP/Active Directory authentication
 - OIDC authentication
 - Enhanced alerting rules
 
 ### Phase 3
-- SAML SSO support
 - Advanced reporting
 - Alert acknowledgment workflow
 - SSE for real-time updates
+- SAML SSO (if demand warrants)
 
 ### Beyond MVP
 - REST API for external integrations
