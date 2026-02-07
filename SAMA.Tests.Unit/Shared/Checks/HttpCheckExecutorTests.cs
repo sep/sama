@@ -371,6 +371,7 @@ public class HttpCheckExecutorTests
 
         Assert.AreEqual(CheckStatuses.Up, result.Status);
         Assert.IsNotNull(mockHandler.RequestReceived);
+        Assert.IsTrue(mockHandler.RequestReceived.Headers.ConnectionClose);
         Assert.IsTrue(mockHandler.RequestReceived.Headers.Contains("Connection"));
         Assert.AreEqual("close", string.Join(',', mockHandler.RequestReceived.Headers.GetValues("Connection")));
     }

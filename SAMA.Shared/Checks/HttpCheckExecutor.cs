@@ -52,7 +52,7 @@ public class HttpCheckExecutor(ConfigurableHttpClientFactory _httpClientFactory)
 
             using var request = new HttpRequestMessage(new HttpMethod(method), url);
 
-            request.Headers.TryAddWithoutValidation("Connection", "close");
+            request.Headers.ConnectionClose = true;
 
             if (!string.IsNullOrWhiteSpace(body))
             {
