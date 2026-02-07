@@ -52,6 +52,8 @@ public class HttpCheckExecutor(ConfigurableHttpClientFactory _httpClientFactory)
 
             using var request = new HttpRequestMessage(new HttpMethod(method), url);
 
+            request.Headers.TryAddWithoutValidation("Connection", "close");
+
             if (!string.IsNullOrWhiteSpace(body))
             {
                 request.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(body));

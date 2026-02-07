@@ -354,4 +354,24 @@ public class HttpCheckExecutorTests
         Assert.AreEqual(CheckStatuses.Up, result.Status);
         factory.Received().CreateClient(Arg.Any<bool>(), Arg.Is(false), Arg.Any<int>());
     }
+
+    [TestMethod]
+    public async Task ExecuteAsyncShouldSetConnectionCloseHeader()
+    {
+        using var mockHandler = HttpTestHelpers.CreateMockHandler(HttpStatusCode.OK, "Success");
+        var executor = new HttpCheckExecutor(HttpTestHelpers.CreateConfigurableHttpClientFactory(mockHandler));
+        var configuration = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.HttpCheck.Url] = JsonSerializer.SerializeToElement("https://example.com"),
+            [ConfigurationKeys.HttpCheck.Method] = JsonSerializer.SerializeToElement("GET"),
+            [ConfigurationKeys.HttpCheck.ExpectedStatusCodes] = JsonSerializer.SerializeToElement(new[] { 200 })
+        };
+
+        var result = await executor.ExecuteAsync(configuration);
+
+        Assert.AreEqual(CheckStatuses.Up, result.Status);
+        Assert.IsNotNull(mockHandler.RequestReceived);
+        Assert.IsTrue(mockHandler.RequestReceived.Headers.Contains("Connection"));
+        Assert.AreEqual("close", string.Join(',', mockHandler.RequestReceived.Headers.GetValues("Connection")));
+    }
 }
