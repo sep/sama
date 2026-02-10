@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SAMA.Data;
 using SAMA.Shared.Constants;
+using SAMA.Web.Extensions;
 using SAMA.Web.Models;
 
 namespace SAMA.Web.Services.Queries;
@@ -235,8 +236,8 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var lastResult = checkResults[^1];
         var now = DateTimeOffset.UtcNow;
         var timeSinceLastCheck = now - lastResult.CheckedAt;
-        var intervalSeconds = int.TryParse(check.Schedule, out var parsed) ? parsed : 300;
-        var maxLastStateDuration = TimeSpan.FromSeconds(intervalSeconds * 2);
+        var expectedIntervalSeconds = ScheduleExtensions.GetExpectedIntervalSeconds(check.Schedule, lastResult.CheckedAt);
+        var maxLastStateDuration = TimeSpan.FromSeconds(expectedIntervalSeconds * 2);
         var lastStateDuration = timeSinceLastCheck > maxLastStateDuration
             ? maxLastStateDuration
             : timeSinceLastCheck;
