@@ -18,7 +18,7 @@ public class AlertQueryServiceTests : IntegrationTestBase
         await base.InitializeTestAsync();
 
         _workspace = await CreateWorkspaceAsync("Test Workspace");
-        _check = await CreateCheckAsync("Test Check", CheckTypes.Http, 60, true);
+        _check = await CreateCheckAsync("Test Check", CheckTypes.Http, "60", true);
         _service = new AlertQueryService(DbContext);
     }
 
@@ -87,7 +87,7 @@ public class AlertQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetAlertsForCheckAsyncShouldOnlyReturnAlertsForSpecifiedCheck()
     {
-        var otherCheck = await CreateCheckAsync("Other Check", CheckTypes.Tcp, 120, true);
+        var otherCheck = await CreateCheckAsync("Other Check", CheckTypes.Tcp, "120", true);
         await CreateAlertAsync(_check.Id, "Check 1 Alert", true, true, 1, true, true);
         await CreateAlertAsync(otherCheck.Id, "Other Check Alert", true, true, 1, true, true);
 
@@ -311,7 +311,7 @@ public class AlertQueryServiceTests : IntegrationTestBase
             Name = "Other Check",
             CheckType = CheckTypes.Http,
             ConfigurationJson = [],
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -392,7 +392,7 @@ public class AlertQueryServiceTests : IntegrationTestBase
         return workspace;
     }
 
-    private async Task<Check> CreateCheckAsync(string name, string checkType, int intervalSeconds, bool enabled)
+    private async Task<Check> CreateCheckAsync(string name, string checkType, string schedule, bool enabled)
     {
         var check = new Check
         {
@@ -400,7 +400,7 @@ public class AlertQueryServiceTests : IntegrationTestBase
             Name = name,
             CheckType = checkType,
             ConfigurationJson = [],
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = 30,
             Enabled = enabled,
             CreatedAt = DateTimeOffset.UtcNow,

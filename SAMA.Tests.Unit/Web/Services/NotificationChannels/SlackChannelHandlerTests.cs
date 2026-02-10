@@ -444,7 +444,7 @@ public class SlackChannelHandlerTests
         var channel = CreateChannel("https://hooks.slack.com/services/TEST");
         var changes = new Dictionary<string, object>
         {
-            ["IntervalSeconds"] = 300,
+            ["Schedule"] = 300,
             ["TimeoutSeconds"] = 60
         };
         var context = CreateLifecycleContext(
@@ -472,7 +472,7 @@ public class SlackChannelHandlerTests
         Assert.AreNotEqual(JsonValueKind.Undefined, changeFieldsBlock.ValueKind);
 
         var changeFieldsText = changeFieldsBlock.GetProperty("text").GetProperty("text").GetString();
-        Assert.Contains("IntervalSeconds", changeFieldsText!);
+        Assert.Contains("Schedule", changeFieldsText!);
     }
 
     [TestMethod]

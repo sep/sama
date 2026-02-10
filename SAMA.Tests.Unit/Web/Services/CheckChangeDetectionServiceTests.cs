@@ -25,7 +25,7 @@ public class CheckChangeDetectionServiceTests
             "New Name",
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             oldCheck.ConfigurationJson,
             oldCheck.Enabled);
@@ -44,7 +44,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             "New description",
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             oldCheck.ConfigurationJson,
             oldCheck.Enabled);
@@ -62,7 +62,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             CheckTypes.Tcp,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             new Dictionary<string, JsonElement>(),
             oldCheck.Enabled);
@@ -72,20 +72,20 @@ public class CheckChangeDetectionServiceTests
     }
 
     [TestMethod]
-    public void DetectChangesShouldDetectIntervalChange()
+    public void DetectChangesShouldDetectScheduleChange()
     {
-        var oldCheck = CreateCheck("Test", intervalSeconds: 60);
+        var oldCheck = CreateCheck("Test", schedule: "60");
         var changes = _service.DetectChanges(
             oldCheck,
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            120,
+            "120",
             oldCheck.TimeoutSeconds,
             oldCheck.ConfigurationJson,
             oldCheck.Enabled);
 
-        Assert.IsTrue(changes.ContainsKey("Interval"));
+        Assert.IsTrue(changes.ContainsKey("Schedule"));
         Assert.IsTrue(changes.ContainsKey("Updated At"));
     }
 
@@ -98,7 +98,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             45,
             oldCheck.ConfigurationJson,
             oldCheck.Enabled);
@@ -116,7 +116,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             oldCheck.ConfigurationJson,
             false);
@@ -134,7 +134,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             oldCheck.ConfigurationJson,
             oldCheck.Enabled);
@@ -163,7 +163,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -190,7 +190,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -216,7 +216,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -244,7 +244,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -273,7 +273,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -300,7 +300,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -327,7 +327,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -355,7 +355,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -383,7 +383,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -411,7 +411,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -437,7 +437,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             newConfig,
             oldCheck.Enabled);
@@ -448,20 +448,20 @@ public class CheckChangeDetectionServiceTests
     [TestMethod]
     public void DetectChangesShouldHandleMultipleChanges()
     {
-        var oldCheck = CreateCheck("Old Name", "Old description", CheckTypes.Http, 60, 30, true);
+        var oldCheck = CreateCheck("Old Name", "Old description", CheckTypes.Http, "60", 30, true);
         var changes = _service.DetectChanges(
             oldCheck,
             "New Name",
             "New description",
             CheckTypes.Http,
-            120,
+            "120",
             45,
             oldCheck.ConfigurationJson,
             false);
 
         Assert.IsTrue(changes.ContainsKey("Name"));
         Assert.IsTrue(changes.ContainsKey("Description"));
-        Assert.IsTrue(changes.ContainsKey("Interval"));
+        Assert.IsTrue(changes.ContainsKey("Schedule"));
         Assert.IsTrue(changes.ContainsKey("Timeout"));
         Assert.IsTrue(changes.ContainsKey("Enabled"));
         Assert.IsTrue(changes.ContainsKey("Updated At"));
@@ -477,7 +477,7 @@ public class CheckChangeDetectionServiceTests
             oldCheck.Name,
             oldCheck.Description,
             oldCheck.CheckType,
-            oldCheck.IntervalSeconds,
+            oldCheck.Schedule,
             oldCheck.TimeoutSeconds,
             oldCheck.ConfigurationJson,
             oldCheck.Enabled);
@@ -490,7 +490,7 @@ public class CheckChangeDetectionServiceTests
         string name,
         string? description = null,
         string checkType = CheckTypes.Http,
-        int intervalSeconds = 60,
+        string schedule = "60",
         int timeoutSeconds = 30,
         bool enabled = true,
         Dictionary<string, JsonElement>? config = null)
@@ -503,7 +503,7 @@ public class CheckChangeDetectionServiceTests
             Description = description,
             CheckType = checkType,
             ConfigurationJson = config ?? new Dictionary<string, JsonElement>(),
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = timeoutSeconds,
             Enabled = enabled,
             CreatedAt = DateTimeOffset.UtcNow,

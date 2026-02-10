@@ -25,7 +25,7 @@ public class AlertCommandServiceTests : IntegrationTestBase
         await base.InitializeTestAsync();
 
         _workspace = await CreateWorkspaceAsync("Test Workspace");
-        _check = await CreateCheckAsync("Test Check", CheckTypes.Http, 60, true);
+        _check = await CreateCheckAsync("Test Check", CheckTypes.Http, "60", true);
         _mockScheduler = Substitute.For<CheckSchedulerService>(null, null);
         _mockEventService = Substitute.For<EventSubscriptionService>(null, null, null);
 
@@ -656,7 +656,7 @@ public class AlertCommandServiceTests : IntegrationTestBase
         return workspace;
     }
 
-    private async Task<Check> CreateCheckAsync(string name, string checkType, int intervalSeconds, bool enabled)
+    private async Task<Check> CreateCheckAsync(string name, string checkType, string schedule, bool enabled)
     {
         var check = new Check
         {
@@ -664,7 +664,7 @@ public class AlertCommandServiceTests : IntegrationTestBase
             Name = name,
             CheckType = checkType,
             ConfigurationJson = [],
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = 30,
             Enabled = enabled,
             CreatedAt = DateTimeOffset.UtcNow,

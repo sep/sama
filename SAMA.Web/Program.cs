@@ -339,14 +339,14 @@ _ = Task.Run(async () =>
     var checks = await delayedDbContext.Checks
         .AsNoTracking()
         .Where(c => c.Enabled)
-        .Select(c => new { c.Id, c.IntervalSeconds })
+        .Select(c => new { c.Id, c.Schedule })
         .ToListAsync();
 
     delayedLogger.LogInformation("Scheduling {CheckCount} check(s)", checks.Count);
 
     foreach (var check in checks)
     {
-        await schedulerService.ScheduleCheckAsync(check.Id, check.IntervalSeconds);
+        await schedulerService.ScheduleCheckAsync(check.Id, check.Schedule);
     }
 
     delayedLogger.LogInformation("Check scheduling completed successfully");

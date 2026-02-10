@@ -38,9 +38,9 @@ public class CreateModel(
         [Required(ErrorMessage = "Check type is required")]
         public override string CheckType { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Check interval is required")]
-        [Range(30, 86400, ErrorMessage = "Interval must be between 30 seconds and 24 hours")]
-        public int IntervalSeconds { get; set; } = 60;
+        [Required(ErrorMessage = "Schedule is required")]
+        [StringLength(100, ErrorMessage = "Schedule cannot exceed 100 characters")]
+        public string Schedule { get; set; } = "60";
 
         [Required(ErrorMessage = "Timeout is required")]
         [Range(5, 3600, ErrorMessage = "Timeout must be between 5 seconds and 1 hour")]
@@ -92,7 +92,7 @@ public class CreateModel(
             Input.Name,
             Input.Description,
             Input.CheckType,
-            Input.IntervalSeconds,
+            Input.Schedule,
             Input.TimeoutSeconds,
             configuration,
             Input.Enabled,

@@ -339,7 +339,7 @@ public class EventGridChannelHandlerTests
         var channel = CreateChannel("https://test.eventgrid.azure.net/api/events", "key");
         var changes = new Dictionary<string, object>
         {
-            ["IntervalSeconds"] = 300,
+            ["Schedule"] = 300,
             ["TimeoutSeconds"] = 60
         };
         var context = CreateLifecycleEventContext(
@@ -359,7 +359,7 @@ public class EventGridChannelHandlerTests
         var configChanges = data.GetProperty("configurationChanges");
         Assert.AreEqual(JsonValueKind.Array, configChanges.ValueKind);
         var changeKeys = configChanges.EnumerateArray().Select(e => e.GetString()).ToList();
-        Assert.Contains("IntervalSeconds", changeKeys);
+        Assert.Contains("Schedule", changeKeys);
         Assert.Contains("TimeoutSeconds", changeKeys);
     }
 

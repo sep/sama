@@ -16,7 +16,7 @@ public class Check
 
     public required Dictionary<string, JsonElement> ConfigurationJson { get; set; } // Encrypted JSON
 
-    public int IntervalSeconds { get; set; }
+    public required string Schedule { get; set; } // Interval in seconds (e.g. "60") or cron expression
 
     public int TimeoutSeconds { get; set; } = 30;
 

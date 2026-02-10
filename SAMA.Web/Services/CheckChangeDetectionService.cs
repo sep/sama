@@ -18,7 +18,7 @@ public class CheckChangeDetectionService
     /// <param name="newName">New check name</param>
     /// <param name="newDescription">New check description</param>
     /// <param name="newCheckType">New check type</param>
-    /// <param name="newIntervalSeconds">New interval in seconds</param>
+    /// <param name="newSchedule">New schedule (interval seconds or cron expression)</param>
     /// <param name="newTimeoutSeconds">New timeout in seconds</param>
     /// <param name="newConfiguration">New configuration JSON</param>
     /// <param name="newEnabled">New enabled state</param>
@@ -28,7 +28,7 @@ public class CheckChangeDetectionService
         string newName,
         string? newDescription,
         string newCheckType,
-        int newIntervalSeconds,
+        string newSchedule,
         int newTimeoutSeconds,
         Dictionary<string, JsonElement> newConfiguration,
         bool newEnabled)
@@ -50,9 +50,9 @@ public class CheckChangeDetectionService
             changes["Check Type"] = "changed";
         }
 
-        if (oldCheck.IntervalSeconds != newIntervalSeconds)
+        if (oldCheck.Schedule != newSchedule)
         {
-            changes["Interval"] = "changed";
+            changes["Schedule"] = "changed";
         }
 
         if (oldCheck.TimeoutSeconds != newTimeoutSeconds)

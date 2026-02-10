@@ -44,12 +44,12 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldReturnChecksOrderedByStatusThenName()
     {
-        var downCheck = await CreateCheckAsync("Zebra Down", CheckTypes.Http, 60, true);
-        var warnCheck = await CreateCheckAsync("Alpha Warn", CheckTypes.Http, 60, true);
-        var upCheck = await CreateCheckAsync("Beta Up", CheckTypes.Http, 60, true);
-        var pendingCheck = await CreateCheckAsync("Charlie Pending", CheckTypes.Http, 60, true);
-        var disabledCheck = await CreateCheckAsync("Delta Disabled", CheckTypes.Http, 60, false);
-        var anotherDownCheck = await CreateCheckAsync("Another Down", CheckTypes.Http, 60, true);
+        var downCheck = await CreateCheckAsync("Zebra Down", CheckTypes.Http, "60", true);
+        var warnCheck = await CreateCheckAsync("Alpha Warn", CheckTypes.Http, "60", true);
+        var upCheck = await CreateCheckAsync("Beta Up", CheckTypes.Http, "60", true);
+        var pendingCheck = await CreateCheckAsync("Charlie Pending", CheckTypes.Http, "60", true);
+        var disabledCheck = await CreateCheckAsync("Delta Disabled", CheckTypes.Http, "60", false);
+        var anotherDownCheck = await CreateCheckAsync("Another Down", CheckTypes.Http, "60", true);
 
         await CreateCheckResultAsync(downCheck.Id, CheckStatuses.Down, _testStartTime.AddMinutes(5));
         await CreateCheckResultAsync(warnCheck.Id, CheckStatuses.Warn, _testStartTime.AddMinutes(5));
@@ -76,7 +76,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldSetNullStatusForEnabledCheckWithoutResults()
     {
-        await CreateCheckAsync("Pending Check", CheckTypes.Http, 60, true);
+        await CreateCheckAsync("Pending Check", CheckTypes.Http, "60", true);
 
         var result = await _service.GetChecksForWorkspaceAsync(_workspace.Id);
 
@@ -88,7 +88,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldSetNullStatusWhenResultBeforeStartup()
     {
-        var check = await CreateCheckAsync("Old Result Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Old Result Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-20));
 
         var result = await _service.GetChecksForWorkspaceAsync(_workspace.Id);
@@ -100,7 +100,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldSetNullStatusWhenCheckUpdatedAfterLastResult()
     {
-        var check = await CreateCheckAsync("Updated Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Updated Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
 
         check.UpdatedAt = _testStartTime.AddMinutes(-3);
@@ -117,7 +117,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldReturnMostRecentResult()
     {
-        var check = await CreateCheckAsync("Multi Result Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Multi Result Check", CheckTypes.Http, "60", true);
         check.UpdatedAt = _testStartTime.AddMinutes(-10);
         DbContext.Checks.Update(check);
         await DbContext.SaveChangesAsync();
@@ -137,7 +137,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldNotShowStatusForDisabledCheckWithResults()
     {
-        var check = await CreateCheckAsync("Disabled Check", CheckTypes.Http, 60, false);
+        var check = await CreateCheckAsync("Disabled Check", CheckTypes.Http, "60", false);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
 
         var result = await _service.GetChecksForWorkspaceAsync(_workspace.Id);
@@ -150,7 +150,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldIncludeAlertCount()
     {
-        var check = await CreateCheckAsync("Check With Alerts", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Check With Alerts", CheckTypes.Http, "60", true);
         await CreateAlertAsync(check.Id, "Alert 1");
         await CreateAlertAsync(check.Id, "Alert 2");
 
@@ -164,8 +164,8 @@ public class CheckQueryServiceTests : IntegrationTestBase
     public async Task GetChecksForWorkspaceAsyncShouldOnlyReturnChecksForSpecifiedWorkspace()
     {
         var otherWorkspace = await CreateWorkspaceAsync("Other Workspace");
-        await CreateCheckAsync("Workspace 1 Check", CheckTypes.Http, 60, true);
-        await CreateCheckAsync("Other Check", CheckTypes.Tcp, 120, true, workspaceId: otherWorkspace.Id);
+        await CreateCheckAsync("Workspace 1 Check", CheckTypes.Http, "60", true);
+        await CreateCheckAsync("Other Check", CheckTypes.Tcp, "120", true, workspaceId: otherWorkspace.Id);
 
         var result = await _service.GetChecksForWorkspaceAsync(_workspace.Id);
 
@@ -176,7 +176,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldIncludeResponseTimeAndErrorMessage()
     {
-        var check = await CreateCheckAsync("Check With Details", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Check With Details", CheckTypes.Http, "60", true);
         check.UpdatedAt = _testStartTime.AddMinutes(-10);
         DbContext.Checks.Update(check);
         await DbContext.SaveChangesAsync();
@@ -195,7 +195,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetChecksForWorkspaceAsyncShouldReturnNullResponseTimeAndErrorForCheckWithoutResults()
     {
-        await CreateCheckAsync("No Results Check", CheckTypes.Http, 60, true);
+        await CreateCheckAsync("No Results Check", CheckTypes.Http, "60", true);
 
         var result = await _service.GetChecksForWorkspaceAsync(_workspace.Id);
 
@@ -215,7 +215,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckDetailsAsyncShouldReturnCheckWithBasicProperties()
     {
-        var check = await CreateCheckAsync("Details Check", CheckTypes.Http, 60, true, description: "Test Description");
+        var check = await CreateCheckAsync("Details Check", CheckTypes.Http, "60", true, description: "Test Description");
 
         var result = await _service.GetCheckDetailsAsync(check.Id);
 
@@ -224,7 +224,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         Assert.AreEqual("Details Check", result.Name);
         Assert.AreEqual("Test Description", result.Description);
         Assert.AreEqual(CheckTypes.Http, result.CheckType);
-        Assert.AreEqual(60, result.IntervalSeconds);
+        Assert.AreEqual("60", result.Schedule);
         Assert.AreEqual(30, result.TimeoutSeconds);
         Assert.IsTrue(result.Enabled);
         Assert.AreEqual(_workspace.Id, result.WorkspaceId);
@@ -238,7 +238,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         _mockMaskingService.MaskCheckConfig(Arg.Any<string>(), Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>())
             .Returns(maskedConfig);
 
-        var check = await CreateCheckAsync("Config Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Config Check", CheckTypes.Http, "60", true);
 
         var result = await _service.GetCheckDetailsAsync(check.Id);
 
@@ -250,7 +250,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckDetailsAsyncShouldIncludeResultCount()
     {
-        var check = await CreateCheckAsync("Result Count Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Result Count Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-15));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-10));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, _testStartTime.AddMinutes(-5));
@@ -264,7 +264,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckDetailsAsyncShouldIncludeAlertsOrderedByName()
     {
-        var check = await CreateCheckAsync("Alert Details Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Alert Details Check", CheckTypes.Http, "60", true);
         await CreateDetailedAlertAsync(check.Id, "Zebra Alert", true, false, 1, true, true, 1);
         await CreateDetailedAlertAsync(check.Id, "Alpha Alert", false, true, 3, false, false, 2);
 
@@ -299,7 +299,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         {
             ["url"] = System.Text.Json.JsonSerializer.SerializeToElement("https://example.com")
         };
-        var check = await CreateCheckAsync("Edit Check", CheckTypes.Http, 90, false, "Edit Description", configJson);
+        var check = await CreateCheckAsync("Edit Check", CheckTypes.Http, "90", false, "Edit Description", configJson);
 
         var result = await _service.GetCheckForEditAsync(check.Id);
 
@@ -308,7 +308,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         Assert.AreEqual("Edit Check", result.Name);
         Assert.AreEqual("Edit Description", result.Description);
         Assert.AreEqual(CheckTypes.Http, result.CheckType);
-        Assert.AreEqual(90, result.IntervalSeconds);
+        Assert.AreEqual("90", result.Schedule);
         Assert.AreEqual(30, result.TimeoutSeconds);
         Assert.IsFalse(result.Enabled);
         Assert.AreEqual(_workspace.Id, result.WorkspaceId);
@@ -320,7 +320,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckHistoryAsyncShouldReturnEmptyListWhenNoResults()
     {
-        var check = await CreateCheckAsync("History Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("History Check", CheckTypes.Http, "60", true);
 
         var result = await _service.GetCheckHistoryAsync(check.Id, 24);
 
@@ -330,7 +330,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckHistoryAsyncShouldReturnHistoryOrderedByTimestamp()
     {
-        var check = await CreateCheckAsync("History Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("History Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-3), responseTimeMs: 300);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Warn, _testStartTime.AddHours(-1), responseTimeMs: 100);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, _testStartTime.AddHours(-2), responseTimeMs: 200, errorMessage: "Error");
@@ -347,7 +347,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckHistoryAsyncShouldFilterByTimeRange()
     {
-        var check = await CreateCheckAsync("Time Range Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Time Range Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-50), responseTimeMs: 100);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-12), responseTimeMs: 200);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-1), responseTimeMs: 300);
@@ -362,7 +362,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckHistoryAsyncShouldClampHoursToMaximum()
     {
-        var check = await CreateCheckAsync("Max Hours Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Max Hours Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-200));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-160));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-100));
@@ -375,7 +375,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldReturnNullWhenNoResults()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
 
         var result = await _service.GetCheckUptimeAsync(check.Id, 24);
 
@@ -385,7 +385,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldReturn100PercentWhenOnlyOneUpResult()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddHours(-1));
 
         var result = await _service.GetCheckUptimeAsync(check.Id, 24);
@@ -401,7 +401,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldReturn100PercentWhenOnlyOneWarnResult()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Warn, _testStartTime.AddHours(-1));
 
         var result = await _service.GetCheckUptimeAsync(check.Id, 24);
@@ -417,7 +417,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldReturn0PercentWhenOnlyOneDownResult()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, _testStartTime.AddHours(-1));
 
         var result = await _service.GetCheckUptimeAsync(check.Id, 24);
@@ -433,7 +433,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldCalculateTimeBasedUptime()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
 
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-60));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-50));
@@ -454,7 +454,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldCountWarnAsUptime()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
 
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-40));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Warn, _testStartTime.AddMinutes(-30));
@@ -473,7 +473,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckUptimeAsyncShouldExtendLastStateToNow()
     {
-        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Uptime Check", CheckTypes.Http, "60", true);
 
         await CreateCheckResultAsync(check.Id, CheckStatuses.Down, _testStartTime.AddSeconds(-70));
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddSeconds(-10));
@@ -500,7 +500,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetCheckBasicInfoAsyncShouldReturnBasicCheckInfo()
     {
-        var check = await CreateCheckAsync("Basic Info Check", CheckTypes.Http, 60, true, "Test Description");
+        var check = await CreateCheckAsync("Basic Info Check", CheckTypes.Http, "60", true, "Test Description");
 
         var result = await _service.GetCheckBasicInfoAsync(check.Id);
 
@@ -515,8 +515,8 @@ public class CheckQueryServiceTests : IntegrationTestBase
     public async Task GetCheckBasicInfoAsyncShouldReturnCheckFromCorrectWorkspace()
     {
         var otherWorkspace = await CreateWorkspaceAsync("Other Workspace");
-        var check1 = await CreateCheckAsync("Workspace 1 Check", CheckTypes.Http, 60, true);
-        var check2 = await CreateCheckAsync("Workspace 2 Check", CheckTypes.Tcp, 120, false, workspaceId: otherWorkspace.Id);
+        var check1 = await CreateCheckAsync("Workspace 1 Check", CheckTypes.Http, "60", true);
+        var check2 = await CreateCheckAsync("Workspace 2 Check", CheckTypes.Tcp, "120", false, workspaceId: otherWorkspace.Id);
 
         var result1 = await _service.GetCheckBasicInfoAsync(check1.Id);
         var result2 = await _service.GetCheckBasicInfoAsync(check2.Id);
@@ -546,7 +546,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldCreateTimeBasedIncrements()
     {
-        var check = await CreateCheckAsync("Timeline Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Timeline Check", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow;
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, referenceTime.AddHours(-3));
@@ -564,9 +564,9 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldAggregateCheckStatusesPerIncrement()
     {
-        var check1 = await CreateCheckAsync("Check 1", CheckTypes.Http, 60, true);
-        var check2 = await CreateCheckAsync("Check 2", CheckTypes.Http, 60, true);
-        var check3 = await CreateCheckAsync("Check 3", CheckTypes.Http, 60, true);
+        var check1 = await CreateCheckAsync("Check 1", CheckTypes.Http, "60", true);
+        var check2 = await CreateCheckAsync("Check 2", CheckTypes.Http, "60", true);
+        var check3 = await CreateCheckAsync("Check 3", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await CreateCheckResultAsync(check1.Id, CheckStatuses.Up, referenceTime);
@@ -588,8 +588,8 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldTrackChecksInWarnState()
     {
-        var check1 = await CreateCheckAsync("Warning Check 1", CheckTypes.Http, 60, true);
-        var check2 = await CreateCheckAsync("Warning Check 2", CheckTypes.Http, 60, true);
+        var check1 = await CreateCheckAsync("Warning Check 1", CheckTypes.Http, "60", true);
+        var check2 = await CreateCheckAsync("Warning Check 2", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await CreateCheckResultAsync(check1.Id, CheckStatuses.Warn, referenceTime, errorMessage: "Slow response");
@@ -610,8 +610,8 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldTrackChecksInDownState()
     {
-        var check1 = await CreateCheckAsync("Down Check 1", CheckTypes.Http, 60, true);
-        var check2 = await CreateCheckAsync("Down Check 2", CheckTypes.Http, 60, true);
+        var check1 = await CreateCheckAsync("Down Check 1", CheckTypes.Http, "60", true);
+        var check2 = await CreateCheckAsync("Down Check 2", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await CreateCheckResultAsync(check1.Id, CheckStatuses.Down, referenceTime, errorMessage: "Connection refused");
@@ -632,7 +632,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldUseMostSevereStatusWithinIncrement()
     {
-        var check = await CreateCheckAsync("Status Change Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Status Change Check", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, referenceTime);
@@ -653,7 +653,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldPrioritizeDownOverWarn()
     {
-        var check = await CreateCheckAsync("Severity Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Severity Check", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Warn, referenceTime, errorMessage: "Slow");
@@ -676,7 +676,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldPrioritizeWarnOverUp()
     {
-        var check = await CreateCheckAsync("Severity Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Severity Check", CheckTypes.Http, "60", true);
 
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-5);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, referenceTime);
@@ -699,7 +699,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldAdjustIncrementSizeBasedOnHours()
     {
-        var check = await CreateCheckAsync("Time Range Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Time Range Check", CheckTypes.Http, "60", true);
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-10);
         await CreateCheckResultAsync(check.Id, CheckStatuses.Up, referenceTime);
 
@@ -725,7 +725,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         var referenceTime = DateTimeOffset.UtcNow.AddMinutes(-10);
         for (int i = 0; i < 20; i++)
         {
-            var check = await CreateCheckAsync($"Check {i}", CheckTypes.Http, 60, true);
+            var check = await CreateCheckAsync($"Check {i}", CheckTypes.Http, "60", true);
             await CreateCheckResultAsync(check.Id, CheckStatuses.Up, referenceTime);
         }
 
@@ -739,8 +739,8 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldOnlyIncludeEnabledChecks()
     {
-        var enabledCheck = await CreateCheckAsync("Enabled Check", CheckTypes.Http, 60, true);
-        var disabledCheck = await CreateCheckAsync("Disabled Check", CheckTypes.Http, 60, false);
+        var enabledCheck = await CreateCheckAsync("Enabled Check", CheckTypes.Http, "60", true);
+        var disabledCheck = await CreateCheckAsync("Disabled Check", CheckTypes.Http, "60", false);
 
         var recentTime = DateTimeOffset.UtcNow.AddSeconds(-1);
         await CreateCheckResultAsync(enabledCheck.Id, CheckStatuses.Up, recentTime);
@@ -760,8 +760,8 @@ public class CheckQueryServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task GetWorkspaceIncidentTimelineAsyncShouldHandleChecksWithoutResults()
     {
-        var checkWithResults = await CreateCheckAsync("Check With Results", CheckTypes.Http, 60, true);
-        var checkWithoutResults = await CreateCheckAsync("Check Without Results", CheckTypes.Http, 60, true);
+        var checkWithResults = await CreateCheckAsync("Check With Results", CheckTypes.Http, "60", true);
+        var checkWithoutResults = await CreateCheckAsync("Check Without Results", CheckTypes.Http, "60", true);
 
         var recentTime = DateTimeOffset.UtcNow.AddSeconds(-1);
         await CreateCheckResultAsync(checkWithResults.Id, CheckStatuses.Up, recentTime);
@@ -796,7 +796,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
     private async Task<Check> CreateCheckAsync(
         string name,
         string checkType,
-        int intervalSeconds,
+        string schedule,
         bool enabled,
         string? description = null,
         Dictionary<string, System.Text.Json.JsonElement>? configJson = null,
@@ -809,7 +809,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
             Description = description,
             CheckType = checkType,
             ConfigurationJson = configJson ?? [],
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = 30,
             Enabled = enabled,
             CreatedAt = _testStartTime,

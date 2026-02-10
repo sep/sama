@@ -98,25 +98,22 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Input.IntervalSeconds" class="form-label">Check Interval (seconds)</label>
-                    <input asp-for="Input.IntervalSeconds" 
-                           id="interval-input"
+                    <label asp-for="Input.Schedule" class="form-label">Schedule</label>
+                    <input asp-for="Input.Schedule" 
+                           id="schedule-input"
                            class="form-control" 
-                           type="number" 
-                           min="30" 
-                           max="86400" 
                            required />
                     <div class="btn-group btn-group-sm mt-1" role="group" aria-label="Quick interval selections">
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=30">30s</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=60">1m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=300">5m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=600">10m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=1800">30m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=3600">1h</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=21600">6h</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('interval-input').value=86400">24h</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='30'">30s</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='60'">1m</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='300'">5m</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='600'">10m</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='1800'">30m</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='3600'">1h</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='21600'">6h</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='86400'">24h</button>
                     </div>
-                    <div class="form-text">How often to run this check (30 seconds to 24 hours).</div>
+                    <div class="form-text">Interval in seconds (e.g., <code>60</code>) or a cron expression with seconds (e.g., <code>* */5 * * * *</code>).</div>
                 </div>
 
                 <div class="mb-3">

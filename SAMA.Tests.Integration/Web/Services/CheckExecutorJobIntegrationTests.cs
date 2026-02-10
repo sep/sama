@@ -161,7 +161,7 @@ public class CheckExecutorJobIntegrationTests : IntegrationTestBase
             {
                 ["Url"] = JsonSerializer.SerializeToElement("https://example.com")
             },
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = enabled
         };

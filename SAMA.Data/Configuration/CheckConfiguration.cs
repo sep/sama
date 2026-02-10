@@ -27,8 +27,9 @@ public class CheckConfiguration : IEntityTypeConfiguration<Check>
             .IsRequired()
             .HasColumnType("text");
 
-        builder.Property(c => c.IntervalSeconds)
-            .IsRequired();
+        builder.Property(c => c.Schedule)
+            .IsRequired()
+            .HasMaxLength(100);
 
         builder.Property(c => c.TimeoutSeconds)
             .IsRequired()

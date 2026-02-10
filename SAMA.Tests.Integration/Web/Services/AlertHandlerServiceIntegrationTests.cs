@@ -1011,7 +1011,7 @@ public class AlertHandlerServiceIntegrationTests : IntegrationTestBase
             Name = "Test Check",
             CheckType = "TestCheckType",
             ConfigurationJson = new Dictionary<string, JsonElement>(),
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             CreatedAt = DateTimeOffset.UtcNow,

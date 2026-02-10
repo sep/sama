@@ -26,7 +26,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
                 Name = c.Name,
                 CheckType = c.CheckType,
                 Enabled = c.Enabled,
-                IntervalSeconds = c.IntervalSeconds,
+                Schedule = c.Schedule,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 LastStatus = c.CheckResults
@@ -102,7 +102,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             Name = check.Name,
             Description = check.Description,
             CheckType = check.CheckType,
-            IntervalSeconds = check.IntervalSeconds,
+            Schedule = check.Schedule,
             TimeoutSeconds = check.TimeoutSeconds,
             Enabled = check.Enabled,
             CreatedAt = check.CreatedAt,
@@ -158,7 +158,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             Name = check.Name,
             Description = check.Description,
             CheckType = check.CheckType,
-            IntervalSeconds = check.IntervalSeconds,
+            Schedule = check.Schedule,
             TimeoutSeconds = check.TimeoutSeconds,
             Enabled = check.Enabled,
             ConfigurationJson = check.ConfigurationJson
@@ -198,7 +198,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var check = await _samaDbContext.Checks
             .AsNoTracking()
             .Where(c => c.Id == checkId)
-            .Select(c => new { c.IntervalSeconds })
+            .Select(c => new { c.Schedule })
             .FirstOrDefaultAsync(cancellationToken);
         if (check == null)
         {
@@ -235,7 +235,8 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var lastResult = checkResults[^1];
         var now = DateTimeOffset.UtcNow;
         var timeSinceLastCheck = now - lastResult.CheckedAt;
-        var maxLastStateDuration = TimeSpan.FromSeconds(check.IntervalSeconds * 2);
+        var intervalSeconds = int.TryParse(check.Schedule, out var parsed) ? parsed : 300;
+        var maxLastStateDuration = TimeSpan.FromSeconds(intervalSeconds * 2);
         var lastStateDuration = timeSinceLastCheck > maxLastStateDuration
             ? maxLastStateDuration
             : timeSinceLastCheck;

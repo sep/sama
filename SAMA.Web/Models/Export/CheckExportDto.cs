@@ -18,7 +18,7 @@ public class CheckExportDto
     /// </summary>
     public Dictionary<string, JsonElement> Configuration { get; set; } = [];
 
-    public int IntervalSeconds { get; set; }
+    public string Schedule { get; set; } = string.Empty;
 
     public int TimeoutSeconds { get; set; }
 

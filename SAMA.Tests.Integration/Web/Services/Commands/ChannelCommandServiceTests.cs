@@ -136,7 +136,7 @@ public class ChannelCommandServiceTests : IntegrationTestBase
     public async Task DeleteChannelAsyncShouldRemoveChannelFromAlerts()
     {
         var channel = await CreateNotificationChannelAsync(_workspace.Id, "Channel", "Email", true);
-        var check = await CreateCheckAsync("Check", "Http", 60, true);
+        var check = await CreateCheckAsync("Check", "Http", "60", true);
         var alert = await CreateAlertAsync(check.Id, "Alert", true, true, 1, true, true);
 
         await AttachChannelToAlertAsync(alert.Id, channel.Id);
@@ -155,7 +155,7 @@ public class ChannelCommandServiceTests : IntegrationTestBase
     public async Task DeleteChannelAsyncShouldDeleteRelatedAlertHistory()
     {
         var channel = await CreateNotificationChannelAsync(_workspace.Id, "Channel", "Email", true);
-        var check = await CreateCheckAsync("Check", "Http", 60, true);
+        var check = await CreateCheckAsync("Check", "Http", "60", true);
         var alert = await CreateAlertAsync(check.Id, "Alert", true, true, 1, true, true);
 
         var history = new AlertHistory
@@ -215,7 +215,7 @@ public class ChannelCommandServiceTests : IntegrationTestBase
         return channel;
     }
 
-    private async Task<Check> CreateCheckAsync(string name, string checkType, int intervalSeconds, bool enabled)
+    private async Task<Check> CreateCheckAsync(string name, string checkType, string schedule, bool enabled)
     {
         var check = new Check
         {
@@ -223,7 +223,7 @@ public class ChannelCommandServiceTests : IntegrationTestBase
             Name = name,
             CheckType = checkType,
             ConfigurationJson = [],
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = 30,
             Enabled = enabled,
             CreatedAt = DateTimeOffset.UtcNow,

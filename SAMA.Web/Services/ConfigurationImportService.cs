@@ -182,7 +182,7 @@ public class ConfigurationImportService(
             // Schedule enabled checks with Quartz
             if (check.Enabled)
             {
-                await _schedulerService.ScheduleCheckAsync(check.Id, check.IntervalSeconds, cancellationToken);
+                await _schedulerService.ScheduleCheckAsync(check.Id, check.Schedule, cancellationToken);
                 result.ChecksScheduled++;
             }
 
@@ -252,7 +252,7 @@ public class ConfigurationImportService(
             // Schedule enabled checks with Quartz
             if (check.Enabled)
             {
-                await _schedulerService.ScheduleCheckAsync(check.Id, check.IntervalSeconds, cancellationToken);
+                await _schedulerService.ScheduleCheckAsync(check.Id, check.Schedule, cancellationToken);
                 result.ChecksScheduled++;
             }
 
@@ -295,7 +295,7 @@ public class ConfigurationImportService(
             Description = dto.Description,
             CheckType = dto.CheckType,
             ConfigurationJson = dto.Configuration,
-            IntervalSeconds = dto.IntervalSeconds,
+            Schedule = dto.Schedule,
             TimeoutSeconds = dto.TimeoutSeconds,
             Enabled = dto.Enabled,
             CreatedAt = DateTimeOffset.UtcNow,

@@ -126,16 +126,9 @@ else if (Model.Check.LastStatus == CheckStatuses.Down)
                 <span class="badge bg-info">@SAMA.Shared.Constants.CheckTypes.GetShortDisplayName(Model.Check.CheckType)</span>
             </dd>
 
-            <dt class="col-sm-3">Check Interval</dt>
+            <dt class="col-sm-3">Schedule</dt>
             <dd class="col-sm-9">
-                @if (Model.Check.IntervalSeconds >= 60)
-                {
-                    <span>Every @(Model.Check.IntervalSeconds / 60) minute(s)</span>
-                }
-                else
-                {
-                    <span>Every @Model.Check.IntervalSeconds second(s)</span>
-                }
+                <span>@ScheduleExtensions.ToDetailedDisplayString(Model.Check.Schedule)</span>
             </dd>
 
             <dt class="col-sm-3">Timeout</dt>

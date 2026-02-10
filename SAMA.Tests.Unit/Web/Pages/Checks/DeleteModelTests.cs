@@ -61,7 +61,7 @@ public class DeleteModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = "http",
-            IntervalSeconds = 60,
+            Schedule = "60",
             Enabled = true,
             CreatedAt = DateTimeOffset.UtcNow,
             ResultCount = 100,
@@ -89,7 +89,7 @@ public class DeleteModelTests
             WorkspaceId = workspaceId,
             Name = "Check to Delete",
             CheckType = "tcp",
-            IntervalSeconds = 300,
+            Schedule = "300",
             Enabled = false,
             CreatedAt = createdAt,
             ResultCount = 50,
@@ -104,7 +104,7 @@ public class DeleteModelTests
         Assert.AreEqual(checkId, _pageModel.CheckToDelete.Id);
         Assert.AreEqual("Check to Delete", _pageModel.CheckToDelete.Name);
         Assert.AreEqual("tcp", _pageModel.CheckToDelete.CheckType);
-        Assert.AreEqual(300, _pageModel.CheckToDelete.IntervalSeconds);
+        Assert.AreEqual("300", _pageModel.CheckToDelete.Schedule);
         Assert.IsFalse(_pageModel.CheckToDelete.Enabled);
         Assert.AreEqual(createdAt, _pageModel.CheckToDelete.CreatedAt);
         Assert.AreEqual(50, _pageModel.CheckToDelete.ResultCount);
@@ -344,7 +344,7 @@ public class DeleteModelTests
             WorkspaceId = workspaceId,
             Name = "Complete Check",
             CheckType = "dns",
-            IntervalSeconds = 600,
+            Schedule = "600",
             Enabled = true,
             CreatedAt = createdAt,
             ResultCount = 999,
@@ -359,7 +359,7 @@ public class DeleteModelTests
         Assert.AreEqual(checkId, _pageModel.CheckToDelete.Id);
         Assert.AreEqual("Complete Check", _pageModel.CheckToDelete.Name);
         Assert.AreEqual("dns", _pageModel.CheckToDelete.CheckType);
-        Assert.AreEqual(600, _pageModel.CheckToDelete.IntervalSeconds);
+        Assert.AreEqual("600", _pageModel.CheckToDelete.Schedule);
         Assert.IsTrue(_pageModel.CheckToDelete.Enabled);
         Assert.AreEqual(createdAt, _pageModel.CheckToDelete.CreatedAt);
         Assert.AreEqual(999, _pageModel.CheckToDelete.ResultCount);

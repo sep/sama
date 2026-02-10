@@ -19,7 +19,7 @@ public class CheckCommandService(
         string name,
         string? description,
         string checkType,
-        int intervalSeconds,
+        string schedule,
         int timeoutSeconds,
         Dictionary<string, JsonElement> configuration,
         bool enabled,
@@ -32,7 +32,7 @@ public class CheckCommandService(
             Name = name,
             Description = description,
             CheckType = checkType,
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = timeoutSeconds,
             ConfigurationJson = configuration,
             Enabled = enabled
@@ -70,7 +70,7 @@ public class CheckCommandService(
 
         if (check.Enabled)
         {
-            await _checkSchedulerService.ScheduleCheckAsync(check.Id, check.IntervalSeconds);
+            await _checkSchedulerService.ScheduleCheckAsync(check.Id, check.Schedule);
             _logger.LogInformation("Scheduled check {CheckId} for execution", check.Id);
         }
 
@@ -100,7 +100,7 @@ public class CheckCommandService(
         string name,
         string? description,
         string checkType,
-        int intervalSeconds,
+        string schedule,
         int timeoutSeconds,
         Dictionary<string, JsonElement> configuration,
         bool enabled,
@@ -122,7 +122,7 @@ public class CheckCommandService(
             name,
             description,
             checkType,
-            intervalSeconds,
+            schedule,
             timeoutSeconds,
             configuration,
             enabled);
@@ -130,7 +130,7 @@ public class CheckCommandService(
         checkToUpdate.Name = name;
         checkToUpdate.Description = description;
         checkToUpdate.CheckType = checkType;
-        checkToUpdate.IntervalSeconds = intervalSeconds;
+        checkToUpdate.Schedule = schedule;
         checkToUpdate.TimeoutSeconds = timeoutSeconds;
         checkToUpdate.ConfigurationJson = configuration;
         checkToUpdate.Enabled = enabled;
@@ -163,11 +163,11 @@ public class CheckCommandService(
 
         if (enabled)
         {
-            await _checkSchedulerService.ScheduleCheckAsync(checkToUpdate.Id, checkToUpdate.IntervalSeconds);
+            await _checkSchedulerService.ScheduleCheckAsync(checkToUpdate.Id, checkToUpdate.Schedule);
             _logger.LogInformation(
-                "Scheduled check {CheckId} with interval {IntervalSeconds}s",
+                "Scheduled check {CheckId} with schedule {Schedule}",
                 checkToUpdate.Id,
-                checkToUpdate.IntervalSeconds);
+                checkToUpdate.Schedule);
         }
         else if (wasEnabled)
         {

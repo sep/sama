@@ -49,7 +49,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Test Check",
             "Test Description",
             CheckTypes.Http,
-            60,
+            "60",
             30,
             config,
             true,
@@ -60,7 +60,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
         Assert.AreEqual("Test Check", check.Name);
         Assert.AreEqual("Test Description", check.Description);
         Assert.AreEqual(CheckTypes.Http, check.CheckType);
-        Assert.AreEqual(60, check.IntervalSeconds);
+        Assert.AreEqual("60", check.Schedule);
         Assert.AreEqual(30, check.TimeoutSeconds);
         Assert.IsTrue(check.Enabled);
         Assert.AreEqual(_workspace.Id, check.WorkspaceId);
@@ -75,7 +75,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Check With Alert",
             null,
             CheckTypes.Tcp,
-            120,
+            "120",
             30,
             [],
             false,
@@ -102,13 +102,13 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Enabled Check",
             null,
             CheckTypes.Http,
-            90,
+            "90",
             30,
             [],
             true,
             "admin");
 
-        await _mockScheduler.Received(1).ScheduleCheckAsync(checkId, 90);
+        await _mockScheduler.Received(1).ScheduleCheckAsync(checkId, "90");
     }
 
     [TestMethod]
@@ -119,13 +119,13 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Disabled Check",
             null,
             CheckTypes.Http,
-            60,
+            "60",
             30,
             [],
             false,
             "admin");
 
-        await _mockScheduler.DidNotReceive().ScheduleCheckAsync(Arg.Any<Guid>(), Arg.Any<int>());
+        await _mockScheduler.DidNotReceive().ScheduleCheckAsync(Arg.Any<Guid>(), Arg.Any<string>());
     }
 
     [TestMethod]
@@ -136,7 +136,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Event Check",
             null,
             CheckTypes.Tcp,
-            60,
+            "60",
             30,
             [],
             true,
@@ -162,7 +162,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Updated Name",
             null,
             CheckTypes.Http,
-            60,
+            "60",
             30,
             [],
             true,
@@ -174,7 +174,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task UpdateCheckAsyncShouldUpdateCheckProperties()
     {
-        var check = await CreateCheckAsync("Original Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Original Check", CheckTypes.Http, "60", true);
         var newConfig = new Dictionary<string, System.Text.Json.JsonElement>
         {
             ["host"] = System.Text.Json.JsonSerializer.SerializeToElement("example.com")
@@ -185,7 +185,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Updated Check",
             "New Description",
             CheckTypes.Tcp,
-            120,
+            "120",
             45,
             newConfig,
             false,
@@ -199,7 +199,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
         Assert.AreEqual("Updated Check", updated.Name);
         Assert.AreEqual("New Description", updated.Description);
         Assert.AreEqual(CheckTypes.Tcp, updated.CheckType);
-        Assert.AreEqual(120, updated.IntervalSeconds);
+        Assert.AreEqual("120", updated.Schedule);
         Assert.AreEqual(45, updated.TimeoutSeconds);
         Assert.IsFalse(updated.Enabled);
         Assert.AreEqual("example.com", updated.ConfigurationJson["host"].ToString());
@@ -209,33 +209,33 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task UpdateCheckAsyncShouldScheduleWhenEnabling()
     {
-        var check = await CreateCheckAsync("Disabled Check", CheckTypes.Http, 60, false);
+        var check = await CreateCheckAsync("Disabled Check", CheckTypes.Http, "60", false);
 
         await _service.UpdateCheckAsync(
             check.Id,
             "Enabled Check",
             null,
             CheckTypes.Http,
-            90,
+            "90",
             30,
             [],
             true,
             "admin");
 
-        await _mockScheduler.Received(1).ScheduleCheckAsync(check.Id, 90);
+        await _mockScheduler.Received(1).ScheduleCheckAsync(check.Id, "90");
     }
 
     [TestMethod]
     public async Task UpdateCheckAsyncShouldUnscheduleWhenDisabling()
     {
-        var check = await CreateCheckAsync("Enabled Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Enabled Check", CheckTypes.Http, "60", true);
 
         await _service.UpdateCheckAsync(
             check.Id,
             "Disabled Check",
             null,
             CheckTypes.Http,
-            60,
+            "60",
             30,
             [],
             false,
@@ -247,33 +247,33 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task UpdateCheckAsyncShouldRescheduleWhenIntervalChanges()
     {
-        var check = await CreateCheckAsync("Scheduled Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Scheduled Check", CheckTypes.Http, "60", true);
 
         await _service.UpdateCheckAsync(
             check.Id,
             "Rescheduled Check",
             null,
             CheckTypes.Http,
-            120,
+            "120",
             30,
             [],
             true,
             "admin");
 
-        await _mockScheduler.Received(1).ScheduleCheckAsync(check.Id, 120);
+        await _mockScheduler.Received(1).ScheduleCheckAsync(check.Id, "120");
     }
 
     [TestMethod]
     public async Task UpdateCheckAsyncShouldNotUnscheduleWhenStillEnabled()
     {
-        var check = await CreateCheckAsync("Enabled Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Enabled Check", CheckTypes.Http, "60", true);
 
         await _service.UpdateCheckAsync(
             check.Id,
             "Updated Check",
             null,
             CheckTypes.Http,
-            90,
+            "90",
             30,
             [],
             true,
@@ -285,14 +285,14 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task UpdateCheckAsyncShouldTriggerLifecycleEvent()
     {
-        var check = await CreateCheckAsync("Original Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Original Check", CheckTypes.Http, "60", true);
 
         await _service.UpdateCheckAsync(
             check.Id,
             "Updated Check",
             null,
             CheckTypes.Tcp,
-            120,
+            "120",
             30,
             [],
             false,
@@ -319,7 +319,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
         {
             [ConfigurationKeys.HttpCheck.Url] = System.Text.Json.JsonSerializer.SerializeToElement("https://example.com")
         };
-        var check = await CreateCheckAsync("Test Check", CheckTypes.Http, 60, true, originalConfig);
+        var check = await CreateCheckAsync("Test Check", CheckTypes.Http, "60", true, originalConfig);
 
         var newConfig = new Dictionary<string, System.Text.Json.JsonElement>
         {
@@ -331,7 +331,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Test Check Updated",
             "New description",
             CheckTypes.Http,
-            120,
+            "120",
             45,
             newConfig,
             false,
@@ -343,7 +343,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
                 ctx.ConfigurationChanges != null &&
                 ctx.ConfigurationChanges.ContainsKey("Name") &&
                 ctx.ConfigurationChanges.ContainsKey("Description") &&
-                ctx.ConfigurationChanges.ContainsKey("Interval") &&
+                ctx.ConfigurationChanges.ContainsKey("Schedule") &&
                 ctx.ConfigurationChanges.ContainsKey("Timeout") &&
                 ctx.ConfigurationChanges.ContainsKey("Enabled") &&
                 ctx.ConfigurationChanges.ContainsKey("Updated At") &&
@@ -354,14 +354,14 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task UpdateCheckAsyncShouldIncludeUpdatedAtInConfigurationChanges()
     {
-        var check = await CreateCheckAsync("Test Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Test Check", CheckTypes.Http, "60", true);
 
         await _service.UpdateCheckAsync(
             check.Id,
             "Test Check",
             check.Description,
             check.CheckType,
-            check.IntervalSeconds,
+            check.Schedule,
             check.TimeoutSeconds,
             check.ConfigurationJson,
             check.Enabled,
@@ -387,7 +387,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task DeleteCheckAsyncShouldDeleteCheck()
     {
-        var check = await CreateCheckAsync("Check To Delete", CheckTypes.Http, 60, false);
+        var check = await CreateCheckAsync("Check To Delete", CheckTypes.Http, "60", false);
 
         var result = await _service.DeleteCheckAsync(check.Id, "admin");
 
@@ -400,7 +400,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task DeleteCheckAsyncShouldUnscheduleEnabledCheck()
     {
-        var check = await CreateCheckAsync("Enabled Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Enabled Check", CheckTypes.Http, "60", true);
 
         await _service.DeleteCheckAsync(check.Id, "admin");
 
@@ -410,7 +410,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task DeleteCheckAsyncShouldNotUnscheduleDisabledCheck()
     {
-        var check = await CreateCheckAsync("Disabled Check", CheckTypes.Http, 60, false);
+        var check = await CreateCheckAsync("Disabled Check", CheckTypes.Http, "60", false);
 
         await _service.DeleteCheckAsync(check.Id, "admin");
 
@@ -420,7 +420,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task DeleteCheckAsyncShouldDeleteRelatedAlerts()
     {
-        var check = await CreateCheckAsync("Check With Alerts", CheckTypes.Http, 60, false);
+        var check = await CreateCheckAsync("Check With Alerts", CheckTypes.Http, "60", false);
         var alert = new Alert
         {
             CheckId = check.Id,
@@ -445,7 +445,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task DeleteCheckAsyncShouldDeleteRelatedCheckResults()
     {
-        var check = await CreateCheckAsync("Check With Results", CheckTypes.Http, 60, false);
+        var check = await CreateCheckAsync("Check With Results", CheckTypes.Http, "60", false);
         var result = new CheckResult
         {
             CheckId = check.Id,
@@ -465,7 +465,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task DeleteCheckAsyncShouldTriggerLifecycleEvent()
     {
-        var check = await CreateCheckAsync("Check To Delete", CheckTypes.Tcp, 60, true);
+        var check = await CreateCheckAsync("Check To Delete", CheckTypes.Tcp, "60", true);
         var checkId = check.Id;
 
         await _service.DeleteCheckAsync(checkId, "testuser");
@@ -486,10 +486,10 @@ public class CheckCommandServiceTests : IntegrationTestBase
     public async Task CreateCheckAsyncShouldSupportMultipleChecksInSameWorkspace()
     {
         var check1Id = await _service.CreateCheckAsync(
-            _workspace.Id, "Check 1", null, CheckTypes.Http, 60, 30, [], true, "admin");
+            _workspace.Id, "Check 1", null, CheckTypes.Http, "60", 30, [], true, "admin");
 
         var check2Id = await _service.CreateCheckAsync(
-            _workspace.Id, "Check 2", null, CheckTypes.Tcp, 120, 45, [], false, "admin");
+            _workspace.Id, "Check 2", null, CheckTypes.Tcp, "120", 45, [], false, "admin");
 
         var checks = DbContext.Checks.Where(c => c.WorkspaceId == _workspace.Id).ToList();
         Assert.HasCount(2, checks);
@@ -500,7 +500,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
     [TestMethod]
     public async Task UpdateCheckAsyncShouldPreserveWorkspaceId()
     {
-        var check = await CreateCheckAsync("Original Check", CheckTypes.Http, 60, true);
+        var check = await CreateCheckAsync("Original Check", CheckTypes.Http, "60", true);
         var originalWorkspaceId = check.WorkspaceId;
 
         await _service.UpdateCheckAsync(
@@ -508,7 +508,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             "Updated Check",
             null,
             CheckTypes.Tcp,
-            120,
+            "120",
             30,
             [],
             false,
@@ -537,7 +537,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
         return workspace;
     }
 
-    private async Task<Check> CreateCheckAsync(string name, string checkType, int intervalSeconds, bool enabled, Dictionary<string, System.Text.Json.JsonElement>? config = null)
+    private async Task<Check> CreateCheckAsync(string name, string checkType, string schedule, bool enabled, Dictionary<string, System.Text.Json.JsonElement>? config = null)
     {
         var check = new Check
         {
@@ -545,7 +545,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
             Name = name,
             CheckType = checkType,
             ConfigurationJson = config ?? [],
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = 30,
             Enabled = enabled,
             CreatedAt = DateTimeOffset.UtcNow,

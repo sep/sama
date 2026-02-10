@@ -277,7 +277,7 @@ public class DataCleanupJobIntegrationTests : IntegrationTestBase
             Name = $"Test Check {Guid.NewGuid()}",
             CheckType = "Http",
             ConfigurationJson = new Dictionary<string, System.Text.Json.JsonElement>(),
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };

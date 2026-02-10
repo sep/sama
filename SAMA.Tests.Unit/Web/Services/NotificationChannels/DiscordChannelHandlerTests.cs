@@ -449,7 +449,7 @@ public class DiscordChannelHandlerTests
         var channel = CreateChannel("https://discord.com/api/webhooks/TEST");
         var changes = new Dictionary<string, object>
         {
-            ["IntervalSeconds"] = 300,
+            ["Schedule"] = 300,
             ["TimeoutSeconds"] = 60
         };
         var context = CreateLifecycleContext(
@@ -473,7 +473,7 @@ public class DiscordChannelHandlerTests
         Assert.AreNotEqual(JsonValueKind.Undefined, changedFieldsField.ValueKind);
 
         var changedFieldsValue = changedFieldsField.GetProperty("value").GetString();
-        Assert.Contains("IntervalSeconds", changedFieldsValue!);
+        Assert.Contains("Schedule", changedFieldsValue!);
     }
 
     [TestMethod]

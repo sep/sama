@@ -65,7 +65,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             ConfigurationJson = []
@@ -92,7 +92,7 @@ public class EditModelTests
             Name = "My Check",
             Description = "My Description",
             CheckType = CheckTypes.Tcp,
-            IntervalSeconds = 120,
+            Schedule = "120",
             TimeoutSeconds = 45,
             Enabled = false,
             ConfigurationJson = []
@@ -108,7 +108,7 @@ public class EditModelTests
         Assert.AreEqual("My Check", _pageModel.Input.Name);
         Assert.AreEqual("My Description", _pageModel.Input.Description);
         Assert.AreEqual(CheckTypes.Tcp, _pageModel.Input.CheckType);
-        Assert.AreEqual(120, _pageModel.Input.IntervalSeconds);
+        Assert.AreEqual("120", _pageModel.Input.Schedule);
         Assert.AreEqual(45, _pageModel.Input.TimeoutSeconds);
         Assert.IsFalse(_pageModel.Input.Enabled);
     }
@@ -129,7 +129,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             ConfigurationJson = configJson
@@ -157,7 +157,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             ConfigurationJson = []
@@ -189,7 +189,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             ConfigurationJson = []
@@ -225,7 +225,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -237,7 +237,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Update Test",
             CheckType = CheckTypes.Ping,
-            IntervalSeconds = 90,
+            Schedule = "90",
             TimeoutSeconds = 20,
             Enabled = true
         };
@@ -262,7 +262,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -274,7 +274,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Build Test",
             CheckType = CheckTypes.Script,
-            IntervalSeconds = 300,
+            Schedule = "300",
             TimeoutSeconds = 60,
             Enabled = false
         };
@@ -282,7 +282,7 @@ public class EditModelTests
         await _pageModel.OnPostAsync();
 
         _mockConfigService.Received(1).BuildConfiguration(
-            Arg.Is<EditModel.InputModel>(i => i.CheckType == CheckTypes.Script && i.IntervalSeconds == 300));
+            Arg.Is<EditModel.InputModel>(i => i.CheckType == CheckTypes.Script && i.Schedule == "300"));
     }
 
     [TestMethod]
@@ -303,7 +303,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -316,7 +316,7 @@ public class EditModelTests
             Name = "Updated Check",
             Description = "Updated Description",
             CheckType = CheckTypes.Tls,
-            IntervalSeconds = 3600,
+            Schedule = "3600",
             TimeoutSeconds = 15,
             Enabled = true
         };
@@ -328,7 +328,7 @@ public class EditModelTests
             "Updated Check",
             "Updated Description",
             CheckTypes.Tls,
-            3600,
+            "3600",
             15,
             expectedConfig,
             true,
@@ -348,7 +348,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -360,7 +360,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -386,7 +386,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -398,7 +398,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Enabled Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -426,7 +426,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -438,7 +438,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Disabled Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = false
         };
@@ -467,7 +467,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Invalid Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -503,7 +503,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Invalid Check",
             CheckType = CheckTypes.Tcp,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -528,7 +528,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Invalid Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -542,7 +542,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -572,7 +572,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Dns,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -595,7 +595,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -607,7 +607,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Non-existent Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -630,7 +630,7 @@ public class EditModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -643,7 +643,7 @@ public class EditModelTests
             Name = "No Description",
             Description = null,
             CheckType = CheckTypes.Ping,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -655,7 +655,7 @@ public class EditModelTests
             "No Description",
             Arg.Is<string>(s => s == null),
             CheckTypes.Ping,
-            60,
+            "60",
             30,
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             true,
@@ -684,7 +684,7 @@ public class EditModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };

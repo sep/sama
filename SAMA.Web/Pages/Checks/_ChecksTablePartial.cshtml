@@ -50,14 +50,7 @@ else
                             <span class="badge bg-info">@SAMA.Shared.Constants.CheckTypes.GetShortDisplayName(check.CheckType)</span>
                         </td>
                         <td>
-                            @if (check.IntervalSeconds >= 60)
-                            {
-                                <span>@(check.IntervalSeconds / 60)m</span>
-                            }
-                            else
-                            {
-                                <span>@check.IntervalSeconds s</span>
-                            }
+                            <span>@ScheduleExtensions.ToDisplayString(check.Schedule)</span>
                         </td>
                         <td>
                             @if (!check.Enabled)

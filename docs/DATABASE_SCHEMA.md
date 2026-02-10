@@ -79,7 +79,7 @@ erDiagram
         string Description "nullable"
         string CheckType
         json ConfigurationJson "encrypted"
-        int IntervalSeconds
+        string Schedule
         int TimeoutSeconds
         boolean Enabled
         timestamp CreatedAt

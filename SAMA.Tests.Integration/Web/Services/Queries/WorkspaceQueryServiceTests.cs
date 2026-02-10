@@ -210,7 +210,7 @@ public class WorkspaceQueryServiceTests : IntegrationTestBase
             Name = name,
             CheckType = "Http",
             ConfigurationJson = [],
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             CreatedAt = DateTimeOffset.UtcNow,

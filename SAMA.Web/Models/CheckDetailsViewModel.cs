@@ -14,7 +14,7 @@ public class CheckDetailsViewModel
 
     public string CheckType { get; set; } = string.Empty;
 
-    public int IntervalSeconds { get; set; }
+    public string Schedule { get; set; } = string.Empty;
 
     public int TimeoutSeconds { get; set; }
 

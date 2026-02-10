@@ -10,7 +10,7 @@ public class CheckListItemViewModel
 
     public bool Enabled { get; set; }
 
-    public int IntervalSeconds { get; set; }
+    public string Schedule { get; set; } = string.Empty;
 
     public DateTimeOffset CreatedAt { get; set; }
 

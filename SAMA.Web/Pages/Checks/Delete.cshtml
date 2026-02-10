@@ -28,16 +28,9 @@
                             <span class="badge bg-info">@Model.CheckToDelete.CheckType</span>
                         </dd>
 
-                        <dt class="col-sm-4">Interval</dt>
+                        <dt class="col-sm-4">Schedule</dt>
                         <dd class="col-sm-8">
-                            @if (Model.CheckToDelete.IntervalSeconds >= 60)
-                            {
-                                <span>@(Model.CheckToDelete.IntervalSeconds / 60) minutes</span>
-                            }
-                            else
-                            {
-                                <span>@Model.CheckToDelete.IntervalSeconds seconds</span>
-                            }
+                            <span>@SAMA.Web.Extensions.ScheduleExtensions.ToDetailedDisplayString(Model.CheckToDelete.Schedule)</span>
                         </dd>
 
                         <dt class="col-sm-4">Status</dt>

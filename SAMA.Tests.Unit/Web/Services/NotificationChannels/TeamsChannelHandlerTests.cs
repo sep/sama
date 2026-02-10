@@ -437,7 +437,7 @@ public class TeamsChannelHandlerTests
         var channel = CreateChannel("https://outlook.office.com/webhook/TEST");
         var changes = new Dictionary<string, object>
         {
-            ["IntervalSeconds"] = 300,
+            ["Schedule"] = 300,
             ["TimeoutSeconds"] = 60
         };
         var context = CreateLifecycleContext(
@@ -463,7 +463,7 @@ public class TeamsChannelHandlerTests
 
         var changeFieldsValueBlock = body.FirstOrDefault(b =>
             b.TryGetProperty("text", out var text) &&
-            text.GetString()!.Contains("IntervalSeconds"));
+            text.GetString()!.Contains("Schedule"));
         Assert.AreNotEqual(JsonValueKind.Undefined, changeFieldsValueBlock.ValueKind);
     }
 

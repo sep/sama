@@ -20,7 +20,7 @@ public class DeleteModel(WorkspaceQueryService _workspaceQueryService, CheckQuer
 
         public string CheckType { get; set; } = string.Empty;
 
-        public int IntervalSeconds { get; set; }
+        public string Schedule { get; set; } = string.Empty;
 
         public bool Enabled { get; set; }
 
@@ -55,7 +55,7 @@ public class DeleteModel(WorkspaceQueryService _workspaceQueryService, CheckQuer
             Id = check.Id,
             Name = check.Name,
             CheckType = check.CheckType,
-            IntervalSeconds = check.IntervalSeconds,
+            Schedule = check.Schedule,
             Enabled = check.Enabled,
             CreatedAt = check.CreatedAt,
             ResultCount = check.ResultCount,

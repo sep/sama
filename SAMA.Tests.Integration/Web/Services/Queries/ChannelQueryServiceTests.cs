@@ -85,7 +85,7 @@ public class ChannelQueryServiceTests : IntegrationTestBase
     public async Task GetChannelDetailsAsyncShouldIncludeCounts()
     {
         var channel = await CreateNotificationChannelAsync(_workspace.Id, "Channel", "Email", true);
-        var check = await CreateCheckAsync("Check", "Http", 60, true);
+        var check = await CreateCheckAsync("Check", "Http", "60", true);
         var alert = await CreateAlertAsync(check.Id, "Alert", true, true, 1, true, true);
 
         await AttachChannelToAlertAsync(alert.Id, channel.Id);
@@ -100,7 +100,7 @@ public class ChannelQueryServiceTests : IntegrationTestBase
     public async Task GetChannelDetailsAsyncShouldIncludeAlertsWithNoChannels()
     {
         var channel = await CreateNotificationChannelAsync(_workspace.Id, "Channel", "Email", true);
-        var check = await CreateCheckAsync("Check", "Http", 60, true);
+        var check = await CreateCheckAsync("Check", "Http", "60", true);
         var alertWithNoChannels = await CreateAlertAsync(check.Id, "Alert Without Channels", true, true, 1, true, true);
 
         var result = await _service.GetChannelDetailsAsync(channel.Id);
@@ -113,8 +113,8 @@ public class ChannelQueryServiceTests : IntegrationTestBase
     public async Task GetChannelDetailsAsyncShouldCountBothExplicitAndAllChannelAlerts()
     {
         var channel = await CreateNotificationChannelAsync(_workspace.Id, "Channel", "Email", true);
-        var check1 = await CreateCheckAsync("Check 1", "Http", 60, true);
-        var check2 = await CreateCheckAsync("Check 2", "Http", 60, true);
+        var check1 = await CreateCheckAsync("Check 1", "Http", "60", true);
+        var check2 = await CreateCheckAsync("Check 2", "Http", "60", true);
 
         var alertWithChannel = await CreateAlertAsync(check1.Id, "Alert With Channel", true, true, 1, true, true);
         await AttachChannelToAlertAsync(alertWithChannel.Id, channel.Id);
@@ -133,7 +133,7 @@ public class ChannelQueryServiceTests : IntegrationTestBase
         var channel = await CreateNotificationChannelAsync(_workspace.Id, "Channel", "Email", true);
         var otherWorkspace = await CreateWorkspaceAsync("Other Workspace");
 
-        var check1 = await CreateCheckAsync("Check 1", "Http", 60, true);
+        var check1 = await CreateCheckAsync("Check 1", "Http", "60", true);
         var alert1 = await CreateAlertAsync(check1.Id, "Alert 1", true, true, 1, true, true);
 
         var check2 = new Check
@@ -142,7 +142,7 @@ public class ChannelQueryServiceTests : IntegrationTestBase
             Name = "Check 2",
             CheckType = "Http",
             ConfigurationJson = [],
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -198,7 +198,7 @@ public class ChannelQueryServiceTests : IntegrationTestBase
         return channel;
     }
 
-    private async Task<Check> CreateCheckAsync(string name, string checkType, int intervalSeconds, bool enabled)
+    private async Task<Check> CreateCheckAsync(string name, string checkType, string schedule, bool enabled)
     {
         var check = new Check
         {
@@ -206,7 +206,7 @@ public class ChannelQueryServiceTests : IntegrationTestBase
             Name = name,
             CheckType = checkType,
             ConfigurationJson = [],
-            IntervalSeconds = intervalSeconds,
+            Schedule = schedule,
             TimeoutSeconds = 30,
             Enabled = enabled,
             CreatedAt = DateTimeOffset.UtcNow,

@@ -130,7 +130,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -141,7 +141,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -165,7 +165,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -176,7 +176,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Tcp,
-            IntervalSeconds = 120,
+            Schedule = "120",
             TimeoutSeconds = 15,
             Enabled = false
         };
@@ -184,7 +184,7 @@ public class CreateModelTests
         await _pageModel.OnPostAsync();
 
         _mockCheckConfigService.Received(1).BuildConfiguration(
-            Arg.Is<CreateModel.InputModel>(i => i.CheckType == CheckTypes.Tcp && i.IntervalSeconds == 120));
+            Arg.Is<CreateModel.InputModel>(i => i.CheckType == CheckTypes.Tcp && i.Schedule == "120"));
     }
 
     [TestMethod]
@@ -201,7 +201,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -213,7 +213,7 @@ public class CreateModelTests
             Name = "My Check",
             Description = "My Description",
             CheckType = CheckTypes.Dns,
-            IntervalSeconds = 300,
+            Schedule = "300",
             TimeoutSeconds = 20,
             Enabled = true
         };
@@ -225,7 +225,7 @@ public class CreateModelTests
             "My Check",
             "My Description",
             CheckTypes.Dns,
-            300,
+            "300",
             20,
             expectedConfig,
             true,
@@ -244,7 +244,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -255,7 +255,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -280,7 +280,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -291,7 +291,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Success Check",
             CheckType = CheckTypes.Ping,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -317,7 +317,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Invalid Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -351,7 +351,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Invalid Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -374,7 +374,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Invalid Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -388,7 +388,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -416,7 +416,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Tcp,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -438,7 +438,7 @@ public class CreateModelTests
             Arg.Any<string>(),
             Arg.Any<string?>(),
             Arg.Any<string>(),
-            Arg.Any<int>(),
+            Arg.Any<string>(),
             Arg.Any<int>(),
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             Arg.Any<bool>(),
@@ -450,7 +450,7 @@ public class CreateModelTests
             Name = "Test Check",
             Description = null,
             CheckType = CheckTypes.Script,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
@@ -462,7 +462,7 @@ public class CreateModelTests
             "Test Check",
             Arg.Is<string?>(d => d == null),
             CheckTypes.Script,
-            60,
+            "60",
             30,
             Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>(),
             true,
@@ -489,7 +489,7 @@ public class CreateModelTests
             WorkspaceId = workspaceId,
             Name = "Test Check",
             CheckType = CheckTypes.Http,
-            IntervalSeconds = 60,
+            Schedule = "60",
             TimeoutSeconds = 30,
             Enabled = true
         };
