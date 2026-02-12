@@ -11,6 +11,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
 {
     private CheckQueryService _service = null!;
     private ApplicationStateService _mockAppState = null!;
+    private GlobalSettingsService _mockGlobalSettings = null!;
     private SensitiveDataMaskingService _mockMaskingService = null!;
     private Workspace _workspace = null!;
     private DateTimeOffset _testStartTime;
@@ -23,14 +24,17 @@ public class CheckQueryServiceTests : IntegrationTestBase
         _testStartTime = DateTimeOffset.UtcNow;
         _workspace = await CreateWorkspaceAsync("Test Workspace");
         _mockAppState = Substitute.For<ApplicationStateService>();
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!);
         _mockMaskingService = Substitute.For<SensitiveDataMaskingService>();
 
         _mockMaskingService.MaskCheckConfig(Arg.Any<string>(), Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>())
             .Returns(new Dictionary<string, object> { ["test"] = "masked" });
 
+        _mockGlobalSettings.TimeZone.Returns("UTC");
+
         _mockAppState.StartupTime.Returns(_testStartTime.AddMinutes(-10));
 
-        _service = new CheckQueryService(DbContext, _mockAppState, _mockMaskingService);
+        _service = new CheckQueryService(DbContext, _mockAppState, _mockGlobalSettings, _mockMaskingService);
     }
 
     [TestMethod]

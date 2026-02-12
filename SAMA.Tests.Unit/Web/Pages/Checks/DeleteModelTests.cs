@@ -22,7 +22,7 @@ public class DeleteModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
+        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
 

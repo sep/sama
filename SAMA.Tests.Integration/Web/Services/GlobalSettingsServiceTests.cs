@@ -335,6 +335,37 @@ public class GlobalSettingsServiceTests : IntegrationTestBase
         Assert.IsTrue(setting.UpdatedAt >= before && setting.UpdatedAt <= after);
     }
 
+    [TestMethod]
+    public void TimeZoneShouldReturnDefaultWhenNotInDatabase()
+    {
+        var value = _service.TimeZone;
+
+        Assert.AreEqual("UTC", value);
+    }
+
+    [TestMethod]
+    public async Task TimeZoneShouldReturnDatabaseValueWhenSet()
+    {
+        await CreateDbSettingAsync("TimeZone", "America/New_York");
+
+        var value = _service.TimeZone;
+
+        Assert.AreEqual("America/New_York", value);
+    }
+
+    [TestMethod]
+    public async Task TimeZoneShouldUpdateDatabaseAndCache()
+    {
+        _service.TimeZone = "Europe/London";
+
+        var setting = await DbContext.GlobalSettings.FindAsync("TimeZone");
+        Assert.IsNotNull(setting);
+        Assert.AreEqual("Europe/London", setting.Value);
+
+        var cachedValue = _service.TimeZone;
+        Assert.AreEqual("Europe/London", cachedValue);
+    }
+
     private async Task<GlobalSetting> CreateDbSettingAsync(string key, string value)
     {
         var setting = new GlobalSetting

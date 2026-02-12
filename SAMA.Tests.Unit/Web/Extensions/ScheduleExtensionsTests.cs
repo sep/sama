@@ -112,4 +112,22 @@ public class ScheduleExtensionsTests
 
         Assert.AreEqual("Cron: 0 */5 * * * ?", result);
     }
+
+    [TestMethod]
+    public void GetExpectedIntervalSecondsShouldAcceptTimeZoneParameter()
+    {
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+        var result = ScheduleExtensions.GetExpectedIntervalSeconds("0 */5 * * * ?", ReferenceTime, tz);
+
+        Assert.AreEqual(300, result);
+    }
+
+    [TestMethod]
+    public void GetExpectedIntervalSecondsShouldIgnoreTimeZoneForNumericSchedule()
+    {
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+        var result = ScheduleExtensions.GetExpectedIntervalSeconds("60", ReferenceTime, tz);
+
+        Assert.AreEqual(60, result);
+    }
 }

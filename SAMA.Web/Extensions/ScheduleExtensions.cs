@@ -11,7 +11,7 @@ public static class ScheduleExtensions
     /// For numeric schedules, returns the value directly.
     /// For cron expressions, computes the next fire time after <paramref name="after"/> to handle uneven schedules correctly.
     /// </summary>
-    public static int GetExpectedIntervalSeconds(string schedule, DateTimeOffset after)
+    public static int GetExpectedIntervalSeconds(string schedule, DateTimeOffset after, TimeZoneInfo? timeZone = null)
     {
         if (int.TryParse(schedule, out var seconds))
         {
@@ -21,6 +21,10 @@ public static class ScheduleExtensions
         try
         {
             var cron = new CronExpression(schedule);
+            if (timeZone != null)
+            {
+                cron.TimeZone = timeZone;
+            }
             var nextFire = cron.GetNextValidTimeAfter(after);
             if (nextFire.HasValue)
             {

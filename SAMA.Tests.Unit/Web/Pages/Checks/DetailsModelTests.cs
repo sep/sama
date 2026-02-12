@@ -24,7 +24,7 @@ public class DetailsModelTests
     public void Setup()
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
-        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
+        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockScriptOutputBuffer = new ScriptOutputBuffer(Substitute.For<ILogger<ScriptOutputBuffer>>());
 
         _pageModel = new DetailsModel(_mockWorkspaceQuery, _mockCheckQuery, _mockScriptOutputBuffer);

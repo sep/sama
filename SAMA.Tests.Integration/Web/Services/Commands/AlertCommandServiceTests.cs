@@ -26,7 +26,7 @@ public class AlertCommandServiceTests : IntegrationTestBase
 
         _workspace = await CreateWorkspaceAsync("Test Workspace");
         _check = await CreateCheckAsync("Test Check", CheckTypes.Http, "60", true);
-        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null);
+        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null, null);
         _mockEventService = Substitute.For<EventSubscriptionService>(null, null, null);
 
         var alertChangeDetectionService = new AlertChangeDetectionService();

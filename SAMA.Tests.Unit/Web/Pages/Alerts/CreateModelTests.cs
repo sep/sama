@@ -23,7 +23,7 @@ public class CreateModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
+        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockChannelQuery = Substitute.For<ChannelQueryService>(null!, null!);
         _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);

@@ -89,7 +89,7 @@
                             Check Execution
                         </h5>
                         <p class="text-muted mb-4">
-                            Configure default timeout for new checks.
+                            Configure default timeout and scheduling time zone for checks. The time zone applies to cron schedule expressions only; simple interval schedules are unaffected.
                         </p>
 
                         <div class="row">
@@ -98,6 +98,13 @@
                                 <input asp-for="Input.DefaultCheckTimeoutSeconds" class="form-control" type="number" min="5" max="3600" required />
                                 <span asp-validation-for="Input.DefaultCheckTimeoutSeconds" class="text-danger"></span>
                                 <div class="form-text">Default timeout for new checks (default: 30 seconds)</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.TimeZone" class="form-label"></label>
+                                <select asp-for="Input.TimeZone" asp-items="Model.AvailableTimeZones" class="form-select"></select>
+                                <span asp-validation-for="Input.TimeZone" class="text-danger"></span>
+                                <div class="form-text">Time zone for cron expressions (default: UTC)</div>
                             </div>
                         </div>
                     </div>

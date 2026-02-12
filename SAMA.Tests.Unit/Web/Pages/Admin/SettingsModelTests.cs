@@ -47,6 +47,7 @@ public class SettingsModelTests
         _mockGlobalSettings.MaxRecentAlerts.Returns(50);
         _mockGlobalSettings.DefaultCheckTimeoutSeconds.Returns(60);
         _mockGlobalSettings.NotificationTimeoutSeconds.Returns(45);
+        _mockGlobalSettings.TimeZone.Returns("America/New_York");
         _mockGlobalSettings.AnonymousDefaultWorkspaceId.Returns(workspaceId);
 
         await _pageModel.OnGetAsync();
@@ -58,6 +59,7 @@ public class SettingsModelTests
         Assert.AreEqual(50, _pageModel.Input.MaxRecentAlerts);
         Assert.AreEqual(60, _pageModel.Input.DefaultCheckTimeoutSeconds);
         Assert.AreEqual(45, _pageModel.Input.NotificationTimeoutSeconds);
+        Assert.AreEqual("America/New_York", _pageModel.Input.TimeZone);
         Assert.AreEqual(workspaceId, _pageModel.Input.AnonymousDefaultWorkspaceId);
     }
 
@@ -74,6 +76,7 @@ public class SettingsModelTests
             MaxRecentAlerts = 50,
             DefaultCheckTimeoutSeconds = 60,
             NotificationTimeoutSeconds = 45,
+            TimeZone = "Europe/London",
             AnonymousDefaultWorkspaceId = workspaceId
         };
 
@@ -87,6 +90,7 @@ public class SettingsModelTests
         _mockGlobalSettings.Received(1).MaxRecentAlerts = 50;
         _mockGlobalSettings.Received(1).DefaultCheckTimeoutSeconds = 60;
         _mockGlobalSettings.Received(1).NotificationTimeoutSeconds = 45;
+        _mockGlobalSettings.Received(1).TimeZone = "Europe/London";
         _mockGlobalSettings.Received(1).AnonymousDefaultWorkspaceId = workspaceId;
     }
 

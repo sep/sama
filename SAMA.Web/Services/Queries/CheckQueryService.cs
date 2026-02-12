@@ -6,7 +6,7 @@ using SAMA.Web.Models;
 
 namespace SAMA.Web.Services.Queries;
 
-public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateService _appStateService, SensitiveDataMaskingService _maskingService)
+public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateService _appStateService, GlobalSettingsService _globalSettings, SensitiveDataMaskingService _maskingService)
 {
     private const int MaxHistoryHours = 168; // 7 days
 
@@ -236,7 +236,8 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var lastResult = checkResults[^1];
         var now = DateTimeOffset.UtcNow;
         var timeSinceLastCheck = now - lastResult.CheckedAt;
-        var expectedIntervalSeconds = ScheduleExtensions.GetExpectedIntervalSeconds(check.Schedule, lastResult.CheckedAt);
+        var expectedIntervalSeconds = ScheduleExtensions.GetExpectedIntervalSeconds(
+            check.Schedule, lastResult.CheckedAt, TimeZoneExtensions.FindTimeZoneByIanaId(_globalSettings.TimeZone));
         var maxLastStateDuration = TimeSpan.FromSeconds(expectedIntervalSeconds * 2);
         var lastStateDuration = timeSinceLastCheck > maxLastStateDuration
             ? maxLastStateDuration

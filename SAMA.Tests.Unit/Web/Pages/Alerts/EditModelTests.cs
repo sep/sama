@@ -24,7 +24,7 @@ public class EditModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
+        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockChannelQuery = Substitute.For<ChannelQueryService>(null!, null!);
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
         _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!);

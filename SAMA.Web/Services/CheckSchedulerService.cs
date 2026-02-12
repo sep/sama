@@ -1,8 +1,9 @@
 using Quartz;
+using SAMA.Web.Extensions;
 
 namespace SAMA.Web.Services;
 
-public class CheckSchedulerService(ISchedulerFactory _schedulerFactory, ILogger<CheckSchedulerService> _logger)
+public class CheckSchedulerService(ISchedulerFactory _schedulerFactory, GlobalSettingsService _globalSettings, ILogger<CheckSchedulerService> _logger)
 {
     public virtual async Task ScheduleCheckAsync(Guid checkId, string schedule, CancellationToken cancellationToken = default)
     {
@@ -31,7 +32,8 @@ public class CheckSchedulerService(ISchedulerFactory _schedulerFactory, ILogger<
         }
         else
         {
-            triggerBuilder.WithCronSchedule(schedule);
+            var timeZone = TimeZoneExtensions.FindTimeZoneByIanaId(_globalSettings.TimeZone);
+            triggerBuilder.WithCronSchedule(schedule, x => x.InTimeZone(timeZone));
         }
 
         var trigger = triggerBuilder.Build();

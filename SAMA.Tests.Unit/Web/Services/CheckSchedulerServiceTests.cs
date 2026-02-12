@@ -10,6 +10,7 @@ public class CheckSchedulerServiceTests
 {
     private ISchedulerFactory _mockSchedulerFactory = null!;
     private IScheduler _mockScheduler = null!;
+    private GlobalSettingsService _mockGlobalSettings = null!;
     private ILogger<CheckSchedulerService> _mockLogger = null!;
     private CheckSchedulerService _service = null!;
 
@@ -18,12 +19,15 @@ public class CheckSchedulerServiceTests
     {
         _mockSchedulerFactory = Substitute.For<ISchedulerFactory>();
         _mockScheduler = Substitute.For<IScheduler>();
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!);
         _mockLogger = Substitute.For<ILogger<CheckSchedulerService>>();
+
+        _mockGlobalSettings.TimeZone.Returns("UTC");
 
         _mockSchedulerFactory.GetScheduler(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(_mockScheduler));
 
-        _service = new CheckSchedulerService(_mockSchedulerFactory, _mockLogger);
+        _service = new CheckSchedulerService(_mockSchedulerFactory, _mockGlobalSettings, _mockLogger);
     }
 
     [TestMethod]
@@ -326,6 +330,53 @@ public class CheckSchedulerServiceTests
         await _mockScheduler.Received(1).ScheduleJob(
             Arg.Is<IJobDetail>(j => j.Key.Name == $"check-{checkId:N}" && j.Key.Group == "checks"),
             Arg.Is<ITrigger>(t => t.Key.Name == $"check-{checkId:N}-trigger" && t.Key.Group == "checks"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task ScheduleCheckAsyncWithCronShouldApplyConfiguredTimeZone()
+    {
+        var checkId = Guid.NewGuid();
+        var schedule = "0 0 8 * * ?";
+        _mockGlobalSettings.TimeZone.Returns("America/New_York");
+
+        await _service.ScheduleCheckAsync(checkId, schedule);
+
+        await _mockScheduler.Received(1).ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Is<ITrigger>(t =>
+                t is ICronTrigger && ((ICronTrigger)t).TimeZone.Id == TimeZoneInfo.FindSystemTimeZoneById("America/New_York").Id),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task ScheduleCheckAsyncWithCronShouldUseUtcByDefault()
+    {
+        var checkId = Guid.NewGuid();
+        var schedule = "0 0 8 * * ?";
+        _mockGlobalSettings.TimeZone.Returns("UTC");
+
+        await _service.ScheduleCheckAsync(checkId, schedule);
+
+        await _mockScheduler.Received(1).ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Is<ITrigger>(t =>
+                t is ICronTrigger && ((ICronTrigger)t).TimeZone.Id == TimeZoneInfo.Utc.Id),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task ScheduleCheckAsyncWithIntervalShouldNotBeAffectedByTimeZone()
+    {
+        var checkId = Guid.NewGuid();
+        var schedule = "60";
+        _mockGlobalSettings.TimeZone.Returns("America/New_York");
+
+        await _service.ScheduleCheckAsync(checkId, schedule);
+
+        await _mockScheduler.Received(1).ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Is<ITrigger>(t => t is ISimpleTrigger),
             Arg.Any<CancellationToken>());
     }
 }

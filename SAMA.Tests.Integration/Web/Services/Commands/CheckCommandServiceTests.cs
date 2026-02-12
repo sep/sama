@@ -23,7 +23,7 @@ public class CheckCommandServiceTests : IntegrationTestBase
         await base.InitializeTestAsync();
 
         _workspace = await CreateWorkspaceAsync("Test Workspace");
-        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null);
+        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null, null);
         _mockEventService = Substitute.For<EventSubscriptionService>(null, null, null);
 
         var changeDetectionService = new CheckChangeDetectionService();

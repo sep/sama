@@ -21,7 +21,7 @@ public class IndexModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!);
+        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
 

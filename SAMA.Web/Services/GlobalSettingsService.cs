@@ -32,6 +32,10 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     private const string KeyNotificationTimeoutSeconds = "NotificationTimeoutSeconds";
     private const int DefaultNotificationTimeoutSeconds = 30;
 
+    // Scheduling
+    private const string KeyTimeZone = "TimeZone";
+    private const string DefaultTimeZone = "UTC";
+
     // Anonymous Users
     private const string KeyAnonymousDefaultWorkspaceId = "AnonymousDefaultWorkspaceId";
 
@@ -79,6 +83,12 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     {
         get => GetIntAsync(KeyNotificationTimeoutSeconds, DefaultNotificationTimeoutSeconds).GetAwaiter().GetResult();
         set => SetIntAsync(KeyNotificationTimeoutSeconds, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string TimeZone
+    {
+        get => GetStringAsync(KeyTimeZone, DefaultTimeZone).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyTimeZone, value).GetAwaiter().GetResult();
     }
 
     public virtual Guid? AnonymousDefaultWorkspaceId
@@ -151,6 +161,69 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
         await context.SaveChangesAsync();
 
         _cache[key] = value.ToString();
+
+        _logger.LogInformation("Updated global setting {Key} to {Value}", key, value);
+    }
+
+    private async Task<string> GetStringAsync(string key, string defaultValue)
+    {
+        if (_cache.TryGetValue(key, out var cachedValue))
+        {
+            return cachedValue;
+        }
+
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<SamaDbContext>();
+
+            var setting = await context.GlobalSettings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Key == key);
+
+            if (setting != null && !string.IsNullOrEmpty(setting.Value))
+            {
+                _logger.LogDebug("Loaded global setting {Key} = {Value}", key, setting.Value);
+                _cache[key] = setting.Value;
+                return setting.Value;
+            }
+
+            _logger.LogDebug("Using default value for global setting {Key} = {Value}", key, defaultValue);
+            _cache[key] = defaultValue;
+            return defaultValue;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load global setting {Key}, using default {Value}", key, defaultValue);
+            return defaultValue;
+        }
+    }
+
+    private async Task SetStringAsync(string key, string value)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<SamaDbContext>();
+
+        var setting = await context.GlobalSettings.FindAsync(key);
+        if (setting == null)
+        {
+            setting = new GlobalSetting
+            {
+                Key = key,
+                Value = value,
+                UpdatedAt = DateTimeOffset.UtcNow
+            };
+            context.GlobalSettings.Add(setting);
+        }
+        else
+        {
+            setting.Value = value;
+            setting.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
+        await context.SaveChangesAsync();
+
+        _cache[key] = value;
 
         _logger.LogInformation("Updated global setting {Key} to {Value}", key, value);
     }

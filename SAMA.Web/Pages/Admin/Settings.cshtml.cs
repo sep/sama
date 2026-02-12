@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAMA.Web.Constants;
+using SAMA.Web.Extensions;
 using SAMA.Web.Models.Export;
 using SAMA.Web.Services;
 using SAMA.Web.Services.Queries;
@@ -29,6 +30,8 @@ public class SettingsModel(
     public ImportInputModel ImportInput { get; set; } = new();
 
     public List<SelectListItem> AvailableWorkspaces { get; set; } = [];
+
+    public List<SelectListItem> AvailableTimeZones { get; set; } = [];
 
     public List<SelectListItem> ImportStrategyOptions { get; set; } =
     [
@@ -74,6 +77,10 @@ public class SettingsModel(
         [Display(Name = "Notification Timeout (seconds)")]
         public int NotificationTimeoutSeconds { get; set; }
 
+        [Required(ErrorMessage = "Time zone is required")]
+        [Display(Name = "Time Zone")]
+        public string TimeZone { get; set; } = "UTC";
+
         [Display(Name = "Default Workspace")]
         public Guid? AnonymousDefaultWorkspaceId { get; set; }
     }
@@ -100,15 +107,14 @@ public class SettingsModel(
 
     public async Task OnGetAsync()
     {
-        await LoadWorkspacesAsync();
-        LoadCurrentSettings();
+        await LoadPageDataAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
-            await LoadWorkspacesAsync();
+            await LoadPageDataAsync();
             return Page();
         }
 
@@ -121,6 +127,7 @@ public class SettingsModel(
             _globalSettings.MaxRecentAlerts = Input.MaxRecentAlerts;
             _globalSettings.DefaultCheckTimeoutSeconds = Input.DefaultCheckTimeoutSeconds;
             _globalSettings.NotificationTimeoutSeconds = Input.NotificationTimeoutSeconds;
+            _globalSettings.TimeZone = Input.TimeZone;
             _globalSettings.AnonymousDefaultWorkspaceId = Input.AnonymousDefaultWorkspaceId;
 
             _logger.LogInformation(
@@ -133,11 +140,11 @@ public class SettingsModel(
         {
             _logger.LogError(ex, "Error updating global settings");
             ModelState.AddModelError(string.Empty, "An error occurred while saving settings. Please try again.");
-            await LoadWorkspacesAsync();
+            await LoadPageDataAsync();
             return Page();
         }
 
-        await LoadWorkspacesAsync();
+        await LoadPageDataAsync();
         return Page();
     }
 
@@ -148,8 +155,7 @@ public class SettingsModel(
         if (string.IsNullOrWhiteSpace(ExportInput.Password) || ExportInput.Password.Length < 14)
         {
             TempData["ExportError"] = "Password must be at least 14 characters.";
-            await LoadWorkspacesAsync();
-            LoadCurrentSettings();
+            await LoadPageDataAsync();
             return Page();
         }
 
@@ -168,8 +174,7 @@ public class SettingsModel(
         {
             _logger.LogError(ex, "Error exporting configuration");
             TempData["ExportError"] = "An error occurred while exporting configuration.";
-            await LoadWorkspacesAsync();
-            LoadCurrentSettings();
+            await LoadPageDataAsync();
             return Page();
         }
     }
@@ -181,16 +186,14 @@ public class SettingsModel(
         if (ImportInput.File == null || ImportInput.File.Length == 0)
         {
             TempData["ImportError"] = "Please select an export file.";
-            await LoadWorkspacesAsync();
-            LoadCurrentSettings();
+            await LoadPageDataAsync();
             return Page();
         }
 
         if (string.IsNullOrWhiteSpace(ImportInput.Password))
         {
             TempData["ImportError"] = "Password is required for decryption.";
-            await LoadWorkspacesAsync();
-            LoadCurrentSettings();
+            await LoadPageDataAsync();
             return Page();
         }
 
@@ -204,8 +207,7 @@ public class SettingsModel(
             if (export == null)
             {
                 TempData["ImportError"] = "Invalid export file format.";
-                await LoadWorkspacesAsync();
-                LoadCurrentSettings();
+                await LoadPageDataAsync();
                 return Page();
             }
 
@@ -271,9 +273,15 @@ public class SettingsModel(
             TempData["ImportError"] = "An error occurred while importing configuration.";
         }
 
-        await LoadWorkspacesAsync();
-        LoadCurrentSettings();
+        await LoadPageDataAsync();
         return Page();
+    }
+
+    private async Task LoadPageDataAsync()
+    {
+        await LoadWorkspacesAsync();
+        LoadTimeZones();
+        LoadCurrentSettings();
     }
 
     private void LoadCurrentSettings()
@@ -285,6 +293,7 @@ public class SettingsModel(
         Input.MaxRecentAlerts = _globalSettings.MaxRecentAlerts;
         Input.DefaultCheckTimeoutSeconds = _globalSettings.DefaultCheckTimeoutSeconds;
         Input.NotificationTimeoutSeconds = _globalSettings.NotificationTimeoutSeconds;
+        Input.TimeZone = _globalSettings.TimeZone;
         Input.AnonymousDefaultWorkspaceId = _globalSettings.AnonymousDefaultWorkspaceId;
     }
 
@@ -298,5 +307,13 @@ public class SettingsModel(
             new SelectListItem("None (show workspace list)", "")
         ];
         AvailableWorkspaces.AddRange(publicWorkspaces.Select(w => new SelectListItem(w.Name, w.Id.ToString())));
+    }
+
+    private void LoadTimeZones()
+    {
+        var currentTimeZone = _globalSettings.TimeZone;
+        AvailableTimeZones = TimeZoneExtensions.GetIanaTimeZones()
+            .Select(tz => new SelectListItem($"{tz.DisplayName} ({tz.IanaId})", tz.IanaId))
+            .ToList();
     }
 }

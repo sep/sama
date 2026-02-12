@@ -22,7 +22,7 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     {
         await base.InitializeTestAsync();
         var encryptionService = new AesEncryptionService();
-        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null);
+        _mockScheduler = Substitute.For<CheckSchedulerService>(null, null, null);
         _importService = new ConfigurationImportService(DbContext, encryptionService, _mockScheduler);
     }
 

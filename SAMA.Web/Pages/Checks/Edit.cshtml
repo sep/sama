@@ -1,6 +1,7 @@
 @page
 @using SAMA.Shared.Constants
 @model SAMA.Web.Pages.Checks.EditModel
+@inject SAMA.Web.Services.GlobalSettingsService GlobalSettings
 @{
     ViewData["Title"] = "Edit Check";
     Layout = "_WorkspaceLayout";
@@ -113,7 +114,7 @@
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='21600'">6h</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='86400'">24h</button>
                     </div>
-                    <div class="form-text">Interval in seconds (e.g., <code>60</code>) or a cron expression with seconds (e.g., <code>* */5 * * * *</code>).</div>
+                    <div class="form-text">Interval in seconds (e.g., <code>60</code>) or a cron expression with seconds (e.g., <code>* */5 * * * *</code>). Cron expressions are evaluated in the <strong>@GlobalSettings.TimeZone</strong> time zone.</div>
                 </div>
 
                 <div class="mb-3">
