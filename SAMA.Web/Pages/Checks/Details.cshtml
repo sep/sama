@@ -128,7 +128,16 @@ else if (Model.Check.LastStatus == CheckStatuses.Down)
 
             <dt class="col-sm-3">Schedule</dt>
             <dd class="col-sm-9">
-                <span>@ScheduleExtensions.ToDetailedDisplayString(Model.Check.Schedule)</span>
+                @if (ScheduleExtensions.IsCronExpression(Model.Check.Schedule))
+                {
+                    <span>@ScheduleExtensions.GetCronDescription(Model.Check.Schedule)</span>
+                    <br />
+                    <code class="text-muted small">@Model.Check.Schedule</code>
+                }
+                else
+                {
+                    <span>@ScheduleExtensions.ToDisplayString(Model.Check.Schedule)</span>
+                }
             </dd>
 
             <dt class="col-sm-3">Timeout</dt>

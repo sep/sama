@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SAMA.Web.Authorization;
+using SAMA.Web.Extensions;
 using SAMA.Web.Models;
 using SAMA.Web.Pages.Shared;
 using SAMA.Web.Services;
@@ -100,6 +101,12 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, CheckQueryS
     public async Task<IActionResult> OnPostAsync()
     {
         _checkConfigService.ValidateConfiguration(ModelState, Input);
+
+        var scheduleError = ScheduleExtensions.ValidateSchedule(Input.Schedule);
+        if (scheduleError != null)
+        {
+            ModelState.AddModelError("Input.Schedule", scheduleError);
+        }
 
         if (!ModelState.IsValid)
         {

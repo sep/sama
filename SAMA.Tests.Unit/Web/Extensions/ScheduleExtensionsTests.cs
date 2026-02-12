@@ -82,35 +82,43 @@ public class ScheduleExtensionsTests
     }
 
     [TestMethod]
-    public void ToDisplayStringShouldReturnMinutesForEvenMinuteInterval()
+    public void ToDisplayStringShouldReturnPluralMinutes()
     {
         var result = ScheduleExtensions.ToDisplayString("300");
 
-        Assert.AreEqual("Every 5m", result);
+        Assert.AreEqual("Every 5 minutes", result);
     }
 
     [TestMethod]
-    public void ToDisplayStringShouldReturnCronExpressionAsIs()
+    public void ToDisplayStringShouldReturnSingularMinute()
+    {
+        var result = ScheduleExtensions.ToDisplayString("60");
+
+        Assert.AreEqual("Every minute", result);
+    }
+
+    [TestMethod]
+    public void ToDisplayStringShouldReturnPluralHours()
+    {
+        var result = ScheduleExtensions.ToDisplayString("7200");
+
+        Assert.AreEqual("Every 2 hours", result);
+    }
+
+    [TestMethod]
+    public void ToDisplayStringShouldReturnSingularDay()
+    {
+        var result = ScheduleExtensions.ToDisplayString("86400");
+
+        Assert.AreEqual("Every day", result);
+    }
+
+    [TestMethod]
+    public void ToDisplayStringShouldReturnFriendlyDescriptionForCron()
     {
         var result = ScheduleExtensions.ToDisplayString("0 */5 * * * ?");
 
-        Assert.AreEqual("0 */5 * * * ?", result);
-    }
-
-    [TestMethod]
-    public void ToDetailedDisplayStringShouldReturnMinutesForEvenMinuteInterval()
-    {
-        var result = ScheduleExtensions.ToDetailedDisplayString("300");
-
-        Assert.AreEqual("Every 5 minute(s)", result);
-    }
-
-    [TestMethod]
-    public void ToDetailedDisplayStringShouldReturnCronPrefixForCronExpression()
-    {
-        var result = ScheduleExtensions.ToDetailedDisplayString("0 */5 * * * ?");
-
-        Assert.AreEqual("Cron: 0 */5 * * * ?", result);
+        Assert.AreEqual("Every 5 minutes", result);
     }
 
     [TestMethod]
@@ -129,5 +137,78 @@ public class ScheduleExtensionsTests
         var result = ScheduleExtensions.GetExpectedIntervalSeconds("60", ReferenceTime, tz);
 
         Assert.AreEqual(60, result);
+    }
+
+    [TestMethod]
+    public void IsCronExpressionShouldReturnFalseForNumericSchedule()
+    {
+        Assert.IsFalse(ScheduleExtensions.IsCronExpression("300"));
+    }
+
+    [TestMethod]
+    public void IsCronExpressionShouldReturnTrueForCronSchedule()
+    {
+        Assert.IsTrue(ScheduleExtensions.IsCronExpression("0 */5 * * * ?"));
+    }
+
+    [TestMethod]
+    public void GetCronDescriptionShouldReturnHumanReadableDescription()
+    {
+        var result = ScheduleExtensions.GetCronDescription("0 */5 * * * ?");
+
+        Assert.AreEqual("Every 5 minutes", result);
+    }
+
+    [TestMethod]
+    public void GetCronDescriptionShouldReturnInputForInvalidExpression()
+    {
+        var result = ScheduleExtensions.GetCronDescription("not-valid");
+
+        Assert.AreEqual("not-valid", result);
+    }
+
+    [TestMethod]
+    public void ValidateScheduleShouldReturnNullForValidInterval()
+    {
+        Assert.IsNull(ScheduleExtensions.ValidateSchedule("60"));
+    }
+
+    [TestMethod]
+    public void ValidateScheduleShouldReturnNullForMaxInterval()
+    {
+        Assert.IsNull(ScheduleExtensions.ValidateSchedule("86400"));
+    }
+
+    [TestMethod]
+    public void ValidateScheduleShouldReturnErrorForIntervalTooLow()
+    {
+        var result = ScheduleExtensions.ValidateSchedule("5");
+
+        Assert.IsNotNull(result);
+        StringAssert.Contains(result, "at least");
+    }
+
+    [TestMethod]
+    public void ValidateScheduleShouldReturnErrorForIntervalTooHigh()
+    {
+        var result = ScheduleExtensions.ValidateSchedule("86401");
+
+        Assert.IsNotNull(result);
+        StringAssert.Contains(result, "cannot exceed");
+    }
+
+    [TestMethod]
+    public void ValidateScheduleShouldReturnNullForValidCron()
+    {
+        Assert.IsNull(ScheduleExtensions.ValidateSchedule("0 */5 * * * ?"));
+    }
+
+    [TestMethod]
+    public void ValidateScheduleShouldReturnErrorForInvalidCron()
+    {
+        var result = ScheduleExtensions.ValidateSchedule("not-valid");
+
+        Assert.IsNotNull(result);
+        StringAssert.Contains(result, "Invalid schedule");
     }
 }
