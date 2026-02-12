@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using SAMA.Data;
 using SAMA.Data.Entities;
@@ -20,7 +21,7 @@ public class ConfigurationImportService(
     /// <summary>
     /// Current schema version supported by this import service.
     /// </summary>
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     /// <summary>
     /// Result of an import operation.
@@ -76,6 +77,12 @@ public class ConfigurationImportService(
         try
         {
             var decryptedJson = _encryptionService.Decrypt(export.EncryptedData, password);
+
+            if (export.SchemaVersion < CurrentSchemaVersion)
+            {
+                decryptedJson = MigrateJson(decryptedJson, export.SchemaVersion, result);
+            }
+
             workspaces = JsonSerializer.Deserialize<List<WorkspaceExportDto>>(decryptedJson) ?? [];
         }
         catch (CryptographicException)
@@ -91,11 +98,6 @@ public class ConfigurationImportService(
             return result;
         }
 
-        if (export.SchemaVersion < CurrentSchemaVersion)
-        {
-            workspaces = MigrateWorkspaces(workspaces, export.SchemaVersion, result);
-        }
-
         // Import workspaces
         foreach (var workspaceDto in workspaces)
         {
@@ -105,6 +107,44 @@ public class ConfigurationImportService(
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return result;
+    }
+
+    /// <summary>
+    /// Migrates raw JSON from an older schema version to the current version.
+    /// Operates on the JSON string before deserialization so removed/renamed properties are handled correctly.
+    /// </summary>
+    private static string MigrateJson(string json, int fromVersion, ImportResult result)
+    {
+        if (fromVersion < 2)
+        {
+            var workspaces = JsonNode.Parse(json)!.AsArray();
+            foreach (var workspace in workspaces)
+            {
+                var checks = workspace?["Checks"]?.AsArray();
+                if (checks == null)
+                {
+                    continue;
+                }
+
+                foreach (var check in checks)
+                {
+                    if (check is not JsonObject checkObj)
+                    {
+                        continue;
+                    }
+
+                    if (checkObj.Remove("IntervalSeconds", out var intervalNode))
+                    {
+                        checkObj["Schedule"] = intervalNode!.GetValue<int>().ToString();
+                    }
+                }
+            }
+
+            json = workspaces.ToJsonString();
+            result.Warnings.Add("Migrated export from schema v1 to v2 (IntervalSeconds → Schedule).");
+        }
+
+        return json;
     }
 
     private async Task ImportWorkspaceAsync(
@@ -335,22 +375,5 @@ public class ConfigurationImportService(
         }
 
         return alert;
-    }
-
-    /// <summary>
-    /// Migrates workspaces from an older schema version to the current version.
-    /// Add migration logic here as schema evolves.
-    /// </summary>
-    private List<WorkspaceExportDto> MigrateWorkspaces(List<WorkspaceExportDto> workspaces, int fromVersion, ImportResult result)
-    {
-        // Future: Add migration logic for each schema version upgrade
-        // Example:
-        // if (fromVersion == 1)
-        // {
-        //     // Migrate from v1 to v2
-        //     result.Warnings.Add("Migrated export from schema v1 to v2");
-        // }
-        result.Warnings.Add($"Export schema version {fromVersion} migrated to version {CurrentSchemaVersion}");
-        return workspaces;
     }
 }

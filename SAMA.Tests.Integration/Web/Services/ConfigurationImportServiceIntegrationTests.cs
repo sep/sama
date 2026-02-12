@@ -253,6 +253,57 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task ImportAsyncShouldMigrateV1ExportWithIntervalSeconds()
+    {
+        var v1Workspaces = new[]
+        {
+            new
+            {
+                Name = "V1 Workspace",
+                Description = "Exported from v1",
+                IsPublic = true,
+                NotificationChannels = Array.Empty<object>(),
+                Checks = new[]
+                {
+                    new
+                    {
+                        Name = "HTTP Check",
+                        CheckType = CheckTypes.Http,
+                        Configuration = new Dictionary<string, JsonElement>(),
+                        IntervalSeconds = 60,
+                        TimeoutSeconds = 30,
+                        Enabled = true,
+                        Alerts = Array.Empty<object>()
+                    }
+                }
+            }
+        };
+
+        var payloadJson = JsonSerializer.Serialize(v1Workspaces);
+        var encryptionService = new AesEncryptionService();
+        var encryptedData = encryptionService.Encrypt(payloadJson, TestPassword);
+
+        var export = new SamaExportDto
+        {
+            SchemaVersion = 1,
+            ExportedFromVersion = "1.0.0",
+            ExportedAt = DateTimeOffset.UtcNow,
+            EncryptedData = encryptedData
+        };
+
+        var result = await _importService.ImportAsync(export, TestPassword);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(1, result.WorkspacesCreated);
+        Assert.AreEqual(1, result.ChecksCreated);
+        Assert.IsTrue(result.Warnings.Any(w => w.Contains("v1 to v2")));
+
+        var check = await DbContext.Checks.FirstOrDefaultAsync(c => c.Name == "HTTP Check");
+        Assert.IsNotNull(check);
+        Assert.AreEqual("60", check.Schedule);
+    }
+
+    [TestMethod]
     public async Task ImportAsyncShouldFailWithWrongPassword()
     {
         var export = CreateEncryptedExport([new WorkspaceExportDto { Name = "Test Workspace", IsPublic = true }]);
@@ -615,7 +666,7 @@ public class ConfigurationImportServiceIntegrationTests : IntegrationTestBase
 
         return new SamaExportDto
         {
-            SchemaVersion = 1,
+            SchemaVersion = 2,
             ExportedFromVersion = "1.0.0",
             ExportedAt = DateTimeOffset.UtcNow,
             EncryptedData = encryptedData

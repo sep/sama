@@ -29,7 +29,7 @@ public class ConfigurationExportServiceIntegrationTests : IntegrationTestBase
     {
         var result = await _exportService.ExportAllAsync(TestPassword);
 
-        Assert.AreEqual(1, result.SchemaVersion);
+        Assert.AreEqual(2, result.SchemaVersion);
         Assert.IsNotNull(result.ExportedFromVersion);
         Assert.IsTrue(result.ExportedAt <= DateTimeOffset.UtcNow);
         Assert.IsFalse(string.IsNullOrEmpty(result.EncryptedData));

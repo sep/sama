@@ -9,7 +9,7 @@ public class SamaExportDto
     /// <summary>
     /// Gets or sets the schema version for migration support. Increment when making breaking changes.
     /// </summary>
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the SAMA version that generated this export.

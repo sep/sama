@@ -40,7 +40,7 @@ public class ConfigurationExportService(
 
         return new SamaExportDto
         {
-            SchemaVersion = 1,
+            SchemaVersion = 2,
             ExportedFromVersion = _appStateService.Version,
             ExportedAt = DateTimeOffset.UtcNow,
             EncryptedData = encryptedData
