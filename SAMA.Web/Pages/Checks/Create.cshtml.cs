@@ -70,6 +70,22 @@ public class CreateModel(
         return Page();
     }
 
+    public IActionResult OnGetSchedulePreview([FromQuery(Name = "Input.Schedule")] string schedule)
+    {
+        if (string.IsNullOrWhiteSpace(schedule))
+        {
+            return Content("--");
+        }
+
+        var error = ScheduleExtensions.ValidateSchedule(schedule);
+        if (error != null)
+        {
+            return Content($"⚠ {error}");
+        }
+
+        return Content($"⮩ {ScheduleExtensions.ToDisplayString(schedule)}");
+    }
+
     public async Task<IActionResult> OnPostAsync()
     {
         _checkConfigService.ValidateConfiguration(ModelState, Input);

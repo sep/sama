@@ -492,9 +492,10 @@ body {
    Modern Buttons with Depth
    ============================================ */
 .btn {
+    --bs-btn-padding-y: 0.625rem;
+    --bs-btn-padding-x: 1.5rem;
     font-weight: var(--font-weight-semibold);
     border-radius: var(--radius-lg);
-    padding: 0.625rem 1.5rem;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;

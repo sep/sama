@@ -98,24 +98,38 @@
                     }
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Input.Schedule" class="form-label">Schedule</label>
+                <div class="mb-3" hx-disinherit="*">
+                    <div>
+                        <label asp-for="Input.Schedule" class="form-label">Schedule</label>
+                        <div class="btn-group btn-group-sm mb-1 ms-2" role="group" aria-label="Quick interval selections">
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('30')">30s</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('60')">1m</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('300')">5m</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('600')">10m</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('1800')">30m</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('3600')">1h</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('21600')">6h</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setSchedule('86400')">24h</button>
+                        </div>
+                    </div>
                     <input asp-for="Input.Schedule" 
                            id="schedule-input"
-                           class="form-control" 
-                           required />
-                    <div class="btn-group btn-group-sm mt-1" role="group" aria-label="Quick interval selections">
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='30'">30s</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='60'">1m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='300'">5m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='600'">10m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='1800'">30m</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='3600'">1h</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='21600'">6h</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('schedule-input').value='86400'">24h</button>
-                    </div>
-                    <div class="form-text">Interval in seconds (e.g., <code>60</code>) or a cron expression with seconds (e.g., <code>* */5 * * * *</code>). Cron expressions are evaluated in the <strong>@GlobalSettings.TimeZone</strong> time zone.</div>
+                           class="form-control"
+                           autocomplete="off"
+                           required
+                           hx-get="/Checks/Edit?handler=SchedulePreview&id=@Model.Input.Id"
+                           hx-trigger="load, input delay:300ms"
+                           hx-target="#schedule-preview" />
+                    <div id="schedule-preview" class="form-text fw-semibold ms-3">--</div>
+                    <div class="form-text">Interval in seconds (e.g., <code>60</code>) or a <a href="https://www.quartz-scheduler.net/documentation/quartz-3.x/tutorial/crontriggers.html#cron-expressions" target="_blank" rel="noopener noreferrer">cron expression</a> with seconds (e.g., <code>0 */5 * * * ?</code>). Cron expressions are evaluated in the <strong>@GlobalSettings.TimeZone</strong> time zone.</div>
                 </div>
+                <script>
+                    function setSchedule(value) {
+                        const input = document.getElementById('schedule-input');
+                        input.value = value;
+                        htmx.trigger(input, 'input');
+                    }
+                </script>
 
                 <div class="mb-3">
                     <label asp-for="Input.TimeoutSeconds" class="form-label">Timeout (seconds)</label>
