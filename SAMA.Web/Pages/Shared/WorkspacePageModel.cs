@@ -53,9 +53,9 @@ public abstract class WorkspacePageModel : PageModel
         WorkspaceName = workspace.Name;
 
         var userId = User.GetUserId();
-        var canEdit = userId.HasValue && HttpContext.RequestServices
+        var canEdit = userId.HasValue && await HttpContext.RequestServices
             .GetRequiredService<WorkspaceAuthorizationService>()
-            .CanEditWorkspace(userId.Value, workspace.Id).Result;
+            .CanEditWorkspace(userId.Value, workspace.Id);
 
         ViewData["WorkspaceId"] = workspace.Id.ToString("D");
         ViewData["WorkspaceName"] = workspace.Name;
