@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using SAMA.Web.Authorization;
+using SAMA.Web.Pages.Shared;
 using SAMA.Web.Services;
 using SAMA.Web.Services.Commands;
 using SAMA.Web.Services.Queries;
@@ -13,7 +13,7 @@ public class EditModel(
     WorkspaceQueryService _workspaceQueryService,
     WorkspaceCommandService _workspaceCommandService,
     MarkdownService _markdownService)
-    : PageModel
+    : WorkspacePageModel(_workspaceQueryService)
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -39,12 +39,13 @@ public class EditModel(
 
     public async Task<IActionResult> OnGetAsync(Guid? id)
     {
-        if (!id.HasValue)
+        var result = await LoadWorkspaceContextAsync(id, "Settings");
+        if (result != null)
         {
-            return NotFound();
+            return result;
         }
 
-        var workspace = await _workspaceQueryService.GetWorkspaceDetailsAsync(id.Value);
+        var workspace = await _workspaceQueryService.GetWorkspaceByIdAsync(WorkspaceId);
         if (workspace == null)
         {
             return NotFound();
@@ -61,11 +62,6 @@ public class EditModel(
 
         DashboardMessagePreview = _markdownService.RenderToHtml(workspace.DashboardMessage);
 
-        // Set ViewData for workspace layout
-        ViewData["WorkspaceId"] = workspace.Id.ToString();
-        ViewData["WorkspaceName"] = workspace.Name;
-        ViewData["ActiveTab"] = "Settings";
-
         return Page();
     }
 
@@ -73,15 +69,7 @@ public class EditModel(
     {
         if (!ModelState.IsValid)
         {
-            // Reload workspace info for layout on validation failure
-            var ws = await _workspaceQueryService.GetWorkspaceDetailsAsync(Input.Id);
-            if (ws != null)
-            {
-                ViewData["WorkspaceId"] = ws.Id.ToString();
-                ViewData["WorkspaceName"] = ws.Name;
-                ViewData["ActiveTab"] = "Settings";
-            }
-
+            await LoadWorkspaceContextAsync(Input.Id, "Settings");
             return Page();
         }
 

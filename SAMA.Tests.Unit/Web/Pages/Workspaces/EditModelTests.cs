@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
 using SAMA.Data;
+using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
-using SAMA.Web.Models;
 using SAMA.Web.Pages.Workspaces;
 using SAMA.Web.Services;
 using SAMA.Web.Services.Commands;
@@ -31,19 +31,19 @@ public class EditModelTests
     }
 
     [TestMethod]
-    public async Task OnGetAsyncShouldReturnNotFoundWhenIdIsNull()
+    public async Task OnGetAsyncShouldRedirectWhenIdIsNull()
     {
         var result = await _pageModel.OnGetAsync(null);
 
-        Assert.IsInstanceOfType<NotFoundResult>(result);
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
     }
 
     [TestMethod]
     public async Task OnGetAsyncShouldReturnNotFoundWhenWorkspaceDoesNotExist()
     {
         var workspaceId = Guid.NewGuid();
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(null));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(null));
 
         var result = await _pageModel.OnGetAsync(workspaceId);
 
@@ -54,21 +54,16 @@ public class EditModelTests
     public async Task OnGetAsyncShouldReturnPageWhenWorkspaceExists()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "Test Workspace",
             Description = "Test Description",
-            IsPublic = true,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = true
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         var result = await _pageModel.OnGetAsync(workspaceId);
 
@@ -79,21 +74,16 @@ public class EditModelTests
     public async Task OnGetAsyncShouldPopulateInputFromWorkspace()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "Edit Workspace",
             Description = "Edit Description",
-            IsPublic = false,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = false
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         await _pageModel.OnGetAsync(workspaceId);
 
@@ -107,25 +97,20 @@ public class EditModelTests
     public async Task OnGetAsyncShouldSetViewDataForLayout()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "Layout Workspace",
             Description = null,
-            IsPublic = true,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = true
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         await _pageModel.OnGetAsync(workspaceId);
 
-        Assert.AreEqual(workspaceId.ToString(), _pageModel.ViewData["WorkspaceId"]);
+        Assert.AreEqual(workspaceId.ToString("D"), _pageModel.ViewData["WorkspaceId"]);
         Assert.AreEqual("Layout Workspace", _pageModel.ViewData["WorkspaceName"]);
         Assert.AreEqual("Settings", _pageModel.ViewData["ActiveTab"]);
     }
@@ -134,20 +119,15 @@ public class EditModelTests
     public async Task OnPostAsyncShouldReturnPageWhenModelStateIsInvalid()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "Test Workspace",
-            IsPublic = false,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = false
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         _pageModel.Input = new EditModel.InputModel { Id = workspaceId };
         _pageModel.ModelState.AddModelError("Input.Name", "Name is required");
@@ -277,20 +257,15 @@ public class EditModelTests
     public async Task OnPostAsyncShouldNotCallUpdateWorkspaceAsyncWhenModelStateIsInvalid()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "Test Workspace",
-            IsPublic = false,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = false
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         _pageModel.Input = new EditModel.InputModel { Id = workspaceId };
         _pageModel.ModelState.AddModelError("Input.Name", "Name is required");
@@ -311,27 +286,22 @@ public class EditModelTests
     public async Task OnPostAsyncShouldRepopulateViewDataWhenValidationFails()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "Test Workspace",
-            IsPublic = false,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = false
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         _pageModel.Input = new EditModel.InputModel { Id = workspaceId };
         _pageModel.ModelState.AddModelError("Input.Name", "Name is required");
 
         await _pageModel.OnPostAsync();
 
-        Assert.AreEqual(workspaceId.ToString(), _pageModel.ViewData["WorkspaceId"]);
+        Assert.AreEqual(workspaceId.ToString("D"), _pageModel.ViewData["WorkspaceId"]);
         Assert.AreEqual("Test Workspace", _pageModel.ViewData["WorkspaceName"]);
         Assert.AreEqual("Settings", _pageModel.ViewData["ActiveTab"]);
     }
@@ -405,21 +375,16 @@ public class EditModelTests
     public async Task OnGetAsyncShouldHandleWorkspaceWithoutDescription()
     {
         var workspaceId = Guid.NewGuid();
-        var workspace = new WorkspaceDetailsViewModel
+        var workspace = new Workspace
         {
             Id = workspaceId,
             Name = "No Description",
             Description = null,
-            IsPublic = true,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            CheckCount = 0,
-            NotificationChannelCount = 0,
-            UserCount = 0
+            IsPublic = true
         };
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(workspaceId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<WorkspaceDetailsViewModel?>(workspace));
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId)
+            .Returns(Task.FromResult<Workspace?>(workspace));
 
         await _pageModel.OnGetAsync(workspaceId);
 
