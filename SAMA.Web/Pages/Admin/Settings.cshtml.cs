@@ -311,7 +311,6 @@ public class SettingsModel(
 
     private void LoadTimeZones()
     {
-        var currentTimeZone = _globalSettings.TimeZone;
         AvailableTimeZones = TimeZoneExtensions.GetIanaTimeZones()
             .Select(tz => new SelectListItem($"{tz.DisplayName} ({tz.IanaId})", tz.IanaId))
             .ToList();
