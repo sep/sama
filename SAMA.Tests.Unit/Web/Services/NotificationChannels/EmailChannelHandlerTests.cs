@@ -29,7 +29,7 @@ public class EmailChannelHandlerTests
         _mockSmtpClient = Substitute.For<ISmtpClient>();
         _mockFactory = Substitute.For<SmtpClientFactory>();
         _mockFactory.CreateClient().Returns(_mockSmtpClient);
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _mockGlobalSettings.NotificationTimeoutSeconds.Returns(30);
         _logger = Substitute.For<ILogger<EmailChannelHandler>>();
         _handler = new EmailChannelHandler(_mockFactory, _mockGlobalSettings, _logger);

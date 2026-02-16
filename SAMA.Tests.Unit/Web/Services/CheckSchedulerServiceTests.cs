@@ -19,7 +19,7 @@ public class CheckSchedulerServiceTests
     {
         _mockSchedulerFactory = Substitute.For<ISchedulerFactory>();
         _mockScheduler = Substitute.For<IScheduler>();
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
         _mockLogger = Substitute.For<ILogger<CheckSchedulerService>>();
 
         _mockGlobalSettings.TimeZone.Returns("UTC");

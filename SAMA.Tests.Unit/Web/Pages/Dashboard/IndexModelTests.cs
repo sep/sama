@@ -27,7 +27,7 @@ public class IndexModelTests
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _markdownService = new MarkdownService();
 
         _pageModel = new IndexModel(_mockWorkspaceQuery, _mockCheckQuery, _mockAlertQuery, _mockGlobalSettings, _markdownService);

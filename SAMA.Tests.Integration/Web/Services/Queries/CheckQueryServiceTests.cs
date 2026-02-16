@@ -24,7 +24,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         _testStartTime = DateTimeOffset.UtcNow;
         _workspace = await CreateWorkspaceAsync("Test Workspace");
         _mockAppState = Substitute.For<ApplicationStateService>();
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _mockMaskingService = Substitute.For<SensitiveDataMaskingService>();
 
         _mockMaskingService.MaskCheckConfig(Arg.Any<string>(), Arg.Any<Dictionary<string, System.Text.Json.JsonElement>>())

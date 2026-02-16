@@ -29,7 +29,7 @@ public class DiscordChannelHandlerTests
         _testHandler = new TestHttpMessageHandler();
         _httpClient = new HttpClient(_testHandler);
         _mockHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(_httpClient);
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _mockGlobalSettings.NotificationTimeoutSeconds.Returns(30);
         _mockLogger = Substitute.For<ILogger<DiscordChannelHandler>>();
         _handler = new DiscordChannelHandler(_mockHttpClientFactory, _mockGlobalSettings, _mockLogger);

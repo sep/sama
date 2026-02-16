@@ -1,0 +1,33 @@
+@{
+    Layout = "_Layout";
+    var activeTab = ViewData["ActiveSettingsTab"]?.ToString();
+}
+
+<h2 class="mb-3 page-header">System Options</h2>
+
+<ul class="nav nav-tabs mb-0">
+    <li class="nav-item">
+        <a class="nav-link @(activeTab == "General" ? "active" : "")"
+           asp-page="/Admin/Settings/Index">
+            <i class="icon-settings icon-sm"></i>
+            General
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(activeTab == "ImportExport" ? "active" : "")"
+           asp-page="/Admin/Settings/ImportExport">
+            <i class="icon-arrow-up-down icon-sm"></i>
+            Import / Export
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(activeTab == "Ldap" ? "active" : "")"
+           asp-page="/Admin/Settings/Ldap">
+            <i class="icon-folder-tree icon-sm"></i>
+            LDAP
+        </a>
+    </li>
+</ul>
+<hr class="mt-0" />
+
+@RenderBody()

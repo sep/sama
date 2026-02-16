@@ -2,37 +2,32 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SAMA.Data;
-using SAMA.Data.Services;
 using SAMA.Tests.Unit.TestUtilities;
-using SAMA.Web.Pages.Admin;
+using SAMA.Web.Pages.Admin.Settings;
 using SAMA.Web.Services;
 using SAMA.Web.Services.Queries;
 
-namespace SAMA.Tests.Unit.Web.Pages.Admin;
+namespace SAMA.Tests.Unit.Web.Pages.Admin.Settings;
 
 [TestClass]
-public class SettingsModelTests
+public class IndexModelTests
 {
     private GlobalSettingsService _mockGlobalSettings = null!;
     private WorkspaceQueryService _mockWorkspaceQuery = null!;
-    private ConfigurationExportService _mockExportService = null!;
-    private ConfigurationImportService _mockImportService = null!;
-    private ILogger<SettingsModel> _mockLogger = null!;
-    private SettingsModel _pageModel = null!;
+    private ILogger<IndexModel> _mockLogger = null!;
+    private IndexModel _pageModel = null!;
 
     [TestInitialize]
     public void Setup()
     {
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
-        _mockExportService = Substitute.For<ConfigurationExportService>(null!, null!, null!);
-        _mockImportService = Substitute.For<ConfigurationImportService>(null!, null!, null!);
-        _mockLogger = Substitute.For<ILogger<SettingsModel>>();
+        _mockLogger = Substitute.For<ILogger<IndexModel>>();
 
         _mockWorkspaceQuery.GetWorkspacesAsync(Arg.Any<List<Guid>?>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new List<SAMA.Web.Models.WorkspaceDetailsViewModel>()));
 
-        _pageModel = new SettingsModel(_mockGlobalSettings, _mockWorkspaceQuery, _mockExportService, _mockImportService, _mockLogger);
+        _pageModel = new IndexModel(_mockGlobalSettings, _mockWorkspaceQuery, _mockLogger);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 
@@ -67,7 +62,7 @@ public class SettingsModelTests
     public async Task OnPostShouldUpdateAllSettingsWhenModelStateIsValid()
     {
         var workspaceId = Guid.NewGuid();
-        _pageModel.Input = new SettingsModel.InputModel
+        _pageModel.Input = new IndexModel.InputModel
         {
             CheckResultsRetentionDays = 180,
             AlertHistoryRetentionDays = 90,
@@ -97,7 +92,7 @@ public class SettingsModelTests
     [TestMethod]
     public async Task OnPostShouldSetSuccessMessageWhenSaveSucceeds()
     {
-        _pageModel.Input = new SettingsModel.InputModel
+        _pageModel.Input = new IndexModel.InputModel
         {
             CheckResultsRetentionDays = 365,
             AlertHistoryRetentionDays = 365,
@@ -127,7 +122,7 @@ public class SettingsModelTests
     [TestMethod]
     public async Task OnPostShouldAddModelErrorWhenExceptionOccurs()
     {
-        _pageModel.Input = new SettingsModel.InputModel
+        _pageModel.Input = new IndexModel.InputModel
         {
             CheckResultsRetentionDays = 365,
             AlertHistoryRetentionDays = 365,
@@ -151,7 +146,7 @@ public class SettingsModelTests
     [TestMethod]
     public async Task OnPostShouldHandleMinimumValidValues()
     {
-        _pageModel.Input = new SettingsModel.InputModel
+        _pageModel.Input = new IndexModel.InputModel
         {
             CheckResultsRetentionDays = 30,
             AlertHistoryRetentionDays = 30,
@@ -172,7 +167,7 @@ public class SettingsModelTests
     [TestMethod]
     public async Task OnPostShouldHandleMaximumValidValues()
     {
-        _pageModel.Input = new SettingsModel.InputModel
+        _pageModel.Input = new IndexModel.InputModel
         {
             CheckResultsRetentionDays = 3650,
             AlertHistoryRetentionDays = 3650,
@@ -193,7 +188,7 @@ public class SettingsModelTests
     [TestMethod]
     public async Task OnPostShouldSaveAnonymousDefaultWorkspaceIdAsNull()
     {
-        _pageModel.Input = new SettingsModel.InputModel
+        _pageModel.Input = new IndexModel.InputModel
         {
             CheckResultsRetentionDays = 365,
             AlertHistoryRetentionDays = 365,

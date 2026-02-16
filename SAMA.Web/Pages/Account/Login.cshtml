@@ -18,12 +18,14 @@
                           hx-swap="outerHTML"
                           hx-select="#login-form-container"
                           hx-indicator="#login-spinner">
-                        
+
                         <partial name="_ValidationSummary" model="ViewData.ModelState" />
 
                         <div class="mb-3">
-                            <label asp-for="Input.Email" class="form-label">Email</label>
-                            <input asp-for="Input.Email" class="form-control" type="email" required autofocus />
+                            <label asp-for="Input.EmailOrUsername" class="form-label">
+                                @(Model.LdapEnabled ? "Email or Username" : "Email")
+                            </label>
+                            <input asp-for="Input.EmailOrUsername" class="form-control" type="text" autocomplete="username" required autofocus />
                         </div>
 
                         <div class="mb-3">

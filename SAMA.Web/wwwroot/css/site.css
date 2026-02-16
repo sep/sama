@@ -19,6 +19,22 @@ body {
   background: linear-gradient(135deg, #0d0f13 0%, var(--color-background) 50%, #0d0f13 100%);
 }
 
+h5 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
+h6 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
@@ -693,7 +709,6 @@ body {
    ============================================ */
 .alert {
     border-radius: var(--radius-lg);
-    padding: 1rem 1.5rem;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border: none;

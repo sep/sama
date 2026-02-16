@@ -5,12 +5,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SAMA.Data.Entities;
+using SAMA.Web.Constants;
+using SAMA.Web.Services;
 
 namespace SAMA.Web.Pages.Account;
 
 [AllowAnonymous]
 public class LoginModel(
     SignInManager<ApplicationUser> signInManager,
+    LdapAuthenticationService ldapService,
     ILogger<LoginModel> logger) : PageModel
 {
     [BindProperty]
@@ -18,11 +21,13 @@ public class LoginModel(
 
     public string? ReturnUrl { get; set; }
 
+    public bool LdapEnabled => ldapService.IsLdapEnabled;
+
     public class InputModel
     {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
-        public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Email or username is required")]
+        [Display(Name = "Email or Username")]
+        public string EmailOrUsername { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = string.Empty;
@@ -50,21 +55,57 @@ public class LoginModel(
             return Page();
         }
 
-        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+        var identifier = Input.EmailOrUsername.Trim();
+
+        // If LDAP is enabled, try LDAP authentication first
+        if (ldapService.IsLdapEnabled)
+        {
+            var ldapResult = await ldapService.AuthenticateAsync(identifier, Input.Password);
+
+            if (ldapResult.Succeeded)
+            {
+                try
+                {
+                    var user = await ldapService.ProvisionOrUpdateUserAsync(ldapResult);
+                    await signInManager.SignInAsync(user, Input.RememberMe);
+                    logger.LogInformation("User {Email} logged in via LDAP", ldapResult.Email);
+                    return LocalRedirect(returnUrl);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error during LDAP login for user {Identifier}", identifier);
+                    ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again.");
+                    return Page();
+                }
+            }
+        }
+
+        // Fall back to local password authentication
+        // Block local login for LDAP-sourced users
+        var localUser = await signInManager.UserManager.FindByEmailAsync(identifier);
+        if (localUser != null)
+        {
+            var logins = await signInManager.UserManager.GetLoginsAsync(localUser);
+            if (logins.Any(l => l.LoginProvider == AuthConstants.LdapSource))
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
+        }
+
+        var result = await signInManager.PasswordSignInAsync(identifier, Input.Password, Input.RememberMe, lockoutOnFailure: true);
 
         if (result.Succeeded)
         {
-            logger.LogInformation("User {Email} logged in", Input.Email);
+            logger.LogInformation("User {Email} logged in", identifier);
             return LocalRedirect(returnUrl);
         }
 
-        // Log lockout attempts but don't expose to user
         if (result.IsLockedOut)
         {
-            logger.LogWarning("Login attempt for locked out account: {Email}", Input.Email);
+            logger.LogWarning("Login attempt for locked out account: {Email}", identifier);
         }
 
-        // Generic error message for all failure cases to prevent information disclosure
         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
         return Page();
     }

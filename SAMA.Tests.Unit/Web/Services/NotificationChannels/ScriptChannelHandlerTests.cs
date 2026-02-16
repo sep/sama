@@ -27,7 +27,7 @@ public class ScriptChannelHandlerTests
         _mockWrapper = Substitute.For<ProcessWrapper>();
         _mockFactory = Substitute.For<ProcessFactory>();
         _mockFactory.CreateProcess().Returns(_mockWrapper);
-        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _mockGlobalSettings.NotificationTimeoutSeconds.Returns(30);
         _logger = Substitute.For<ILogger<ScriptChannelHandler>>();
         _handler = new ScriptChannelHandler(_mockFactory, _mockGlobalSettings, _logger);

@@ -1,0 +1,117 @@
+@page
+@model SAMA.Web.Pages.Admin.Settings.ImportExportModel
+@{
+    Layout = "_SettingsLayout";
+    ViewData["Title"] = "System Options - Import / Export";
+    ViewData["ActiveSettingsTab"] = "ImportExport";
+}
+
+<div class="row">
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-download icon-lg me-2"></i>
+                    Export Configuration
+                </h5>
+                <p class="text-muted mb-3">
+                    Export all workspaces, checks, alerts, and notification channels to an encrypted file.
+                </p>
+
+                @if (TempData["ExportError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div class="me-3">
+                            <i class="icon-circle-alert icon-sm me-2"></i>
+                            @TempData["ExportError"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form method="post" asp-page-handler="Export">
+                    <div class="mb-3">
+                        <label asp-for="ExportInput.Password" class="form-label"></label>
+                        <input asp-for="ExportInput.Password" class="form-control" type="password" placeholder="Enter encryption password" />
+                        <div class="form-text">Minimum 14 characters. You'll need this password to import.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="icon-download icon-sm me-1"></i>
+                        Download Export
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-upload icon-lg me-2"></i>
+                    Import Configuration
+                </h5>
+                <p class="text-muted mb-3">
+                    Import workspaces, checks, alerts, and notification channels from an export file.
+                </p>
+
+                @if (TempData["ImportError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div class="me-3">
+                            <i class="icon-circle-alert icon-sm me-2"></i>
+                            @TempData["ImportError"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["ImportSuccess"] != null)
+                {
+                    var importWarnings = TempData["ImportWarnings"] as List<string>;
+                    var hasWarnings = importWarnings?.Count > 0;
+                    <div class="alert @(hasWarnings ? "alert-warning" : "alert-success") alert-dismissible fade show" role="alert">
+                        <div class="me-3">
+                            <i class="@(hasWarnings ? "icon-triangle-alert" : "icon-circle-check") icon-sm me-2"></i>
+                            @TempData["ImportSuccess"]
+                            @if (hasWarnings)
+                            {
+                                <ul class="mb-0 mt-2">
+                                    @foreach (var warning in importWarnings!)
+                                    {
+                                        <li>@warning</li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form method="post" asp-page-handler="Import" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label asp-for="ImportInput.File" class="form-label"></label>
+                        <input asp-for="ImportInput.File" class="form-control" type="file" accept=".json" />
+                        <div class="form-text">Select a SAMA export file (.json)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ImportInput.Password" class="form-label"></label>
+                        <input asp-for="ImportInput.Password" class="form-control" type="password" placeholder="Enter decryption password" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="ImportInput.ImportStrategy" class="form-label"></label>
+                        <select asp-for="ImportInput.ImportStrategy" asp-items="Model.ImportStrategyOptions" class="form-select"></select>
+                        <div class="form-text">
+                            Choose how to handle workspaces that already exist.<br />
+                            <span class="fw-bold">Note:</span> Importing with "Merge" will not overwrite existing checks or notification channels.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="icon-upload icon-sm me-1"></i>
+                        Import
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

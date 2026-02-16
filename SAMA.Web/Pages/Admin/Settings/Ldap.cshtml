@@ -1,0 +1,246 @@
+@page
+@model SAMA.Web.Pages.Admin.Settings.LdapModel
+@{
+    Layout = "_SettingsLayout";
+    ViewData["Title"] = "System Options - LDAP";
+    ViewData["ActiveSettingsTab"] = "Ldap";
+}
+
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-folder-tree icon-lg me-2"></i>
+                    LDAP / Active Directory
+                </h5>
+                <p class="text-muted mb-4">
+                    Configure LDAP or Active Directory authentication. When enabled, users can log in with their directory credentials. Use a bind template for direct binding, or a service account for search-based authentication.
+                </p>
+
+                @if (TempData["LdapSuccess"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="icon-circle-check icon-sm me-2"></i>
+                            @TempData["LdapSuccess"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["LdapError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="icon-circle-alert icon-sm me-2"></i>
+                            @TempData["LdapError"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["LdapTestMessage"] != null)
+                {
+                    var testSuccess = TempData["LdapTestSuccess"] is true;
+                    var testGroupsRaw = TempData["LdapTestGroups"] as string;
+                    var testGroups = testGroupsRaw?.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    var testWarningsRaw = TempData["LdapTestWarnings"] as string;
+                    var testWarnings = testWarningsRaw?.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    <div class="alert @(testSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="@(testSuccess ? "icon-circle-check" : "icon-circle-alert") icon-sm me-2"></i>
+                            @TempData["LdapTestMessage"]
+                        </div>
+                        @if (testSuccess && testGroups != null)
+                        {
+                            if (testGroups.Length > 0)
+                            {
+                                <div class="mt-2">
+                                    <strong>Groups:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        @foreach (var group in testGroups)
+                                        {
+                                            <li><small>@group</small></li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mt-2"><small>No group memberships found.</small></div>
+                            }
+                        }
+                        @if (testWarnings is { Length: > 0 })
+                        {
+                            <div class="mt-2 text-bg-warning p-2 rounded">
+                                <i class="icon-triangle-alert icon-xs me-1"></i>
+                                @foreach (var warning in testWarnings)
+                                {
+                                    <small>@warning</small>
+                                }
+                            </div>
+                        }
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form method="post" hx-boost="true">
+                    <div class="mb-3 form-check form-switch">
+                        <input asp-for="LdapInput.Enabled" class="form-check-input" type="checkbox" role="switch" />
+                        <label asp-for="LdapInput.Enabled" class="form-check-label">Enable LDAP Authentication</label>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Connection</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.Host" class="form-label"></label>
+                            <input asp-for="LdapInput.Host" class="form-control" placeholder="ldap.example.com" />
+                            <div class="form-text">Hostname or IP address of the LDAP server</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="LdapInput.Port" class="form-label"></label>
+                            <input asp-for="LdapInput.Port" class="form-control" type="number" min="1" max="65535" />
+                            <div class="form-text">Default: 389 (LDAP) or 636 (LDAPS)</div>
+                        </div>
+                        <div class="col-md-3 mb-3 d-flex flex-column justify-content-center pt-2">
+                            <div class="form-check form-switch">
+                                <input asp-for="LdapInput.UseSsl" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="LdapInput.UseSsl" class="form-check-label">Use SSL (LDAPS)</label>
+                            </div>
+                            <div class="form-check form-switch mt-1">
+                                <input asp-for="LdapInput.UseStartTls" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="LdapInput.UseStartTls" class="form-check-label">Use StartTLS</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LdapInput.CustomRootCa" class="form-label">Custom Root CA Certificate</label>
+                        <textarea asp-for="LdapInput.CustomRootCa" class="form-control font-monospace" rows="4"
+                                  placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"></textarea>
+                        <div class="form-text">
+                            Optional PEM-encoded root CA certificate for verifying the LDAP server's TLS certificate. Only needed if your server uses a private/internal CA.
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Authentication</h6>
+                    <div class="mb-3">
+                        <label asp-for="LdapInput.BindTemplate" class="form-label"></label>
+                        <input asp-for="LdapInput.BindTemplate" class="form-control" placeholder="uid={0},ou=users,dc=example,dc=com" />
+                        <div class="form-text">
+                            Direct bind template. Use <code>{0}</code> as placeholder for the username.
+                            When set, authenticates by binding directly as the user (no service account needed). This is often used with Active Directory.
+                            <br />Leave empty to use a service account for user search instead.
+                            <br />Example: <code>uid={0},ou=users,dc=example,dc=com</code> or <code>{0}@@example.com</code>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">User Search</h6>
+                    <p class="text-muted small mb-3">Required for both direct bind and service account modes. Used to resolve user attributes (DN, email, display name, groups).</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.SearchBase" class="form-label"></label>
+                            <input asp-for="LdapInput.SearchBase" class="form-control" placeholder="DC=example,DC=com" />
+                            <div class="form-text">Base DN for searching users (required)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.SearchFilter" class="form-label"></label>
+                            <input asp-for="LdapInput.SearchFilter" class="form-control" />
+                            <div class="form-text">
+                                LDAP filter to find users. Use <code>{0}</code> as placeholder for the username.
+                                <br />Common for AD: <code>(&amp;(objectClass=user)(sAMAccountName={0}))</code>
+                                <br />For OpenLDAP: <code>(&amp;(objectClass=inetOrgPerson)(uid={0}))</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Service Account (for search mode)</h6>
+                    <p class="text-muted small mb-3">Used when Bind Template is empty. A service account searches the directory for the user, then verifies credentials.</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.BindDn" class="form-label"></label>
+                            <input asp-for="LdapInput.BindDn" class="form-control" placeholder="CN=svc-sama,OU=Service Accounts,DC=example,DC=com" />
+                            <div class="form-text">Distinguished Name of the service account for LDAP searches</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.BindPassword" class="form-label"></label>
+                            <input asp-for="LdapInput.BindPassword" class="form-control" type="password"
+                                   placeholder="@(Model.HasExistingBindPassword ? "••••••••" : "")" />
+                            <div class="form-text">
+                                @if (Model.HasExistingBindPassword)
+                                {
+                                    <text>Password is set. Leave unmodified to keep existing password, or enter a new one to change it.</text>
+                                }
+                                else
+                                {
+                                    <text>Password for the service account (stored encrypted)</text>
+                                }
+                            </div>
+                            @if (Model.HasExistingBindPassword)
+                            {
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" id="ClearBindPassword" name="ClearBindPassword"
+                                           value="true" class="form-check-input" />
+                                    <label for="ClearBindPassword" class="form-check-label">Clear existing password</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Group Search (Optional)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.GroupSearchBase" class="form-label"></label>
+                            <input asp-for="LdapInput.GroupSearchBase" class="form-control" placeholder="DC=example,DC=com" />
+                            <div class="form-text">Base DN for searching groups. Leave empty to skip group queries.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LdapInput.GroupSearchFilter" class="form-label"></label>
+                            <input asp-for="LdapInput.GroupSearchFilter" class="form-control" />
+                            <div class="form-text">
+                                LDAP filter for group membership. Use <code>{0}</code> as placeholder for the user DN.
+                                <br />Default: <code>(&amp;(objectClass=group)(member={0}))</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="icon-save icon-sm me-1"></i>
+                            Save LDAP Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-user-check icon-lg me-2"></i>
+                    Test Login
+                </h5>
+                <p class="text-muted small mb-3">
+                    Enter a username and password to verify that the saved LDAP settings are working correctly.
+                </p>
+                <form method="post" asp-page-handler="TestLogin" hx-boost="true">
+                    <div class="mb-3">
+                        <label asp-for="TestLoginInput.Username" class="form-label"></label>
+                        <input asp-for="TestLoginInput.Username" class="form-control" placeholder="jdoe" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="TestLoginInput.Password" class="form-label"></label>
+                        <input asp-for="TestLoginInput.Password" class="form-control" type="password" />
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary w-100">
+                        <i class="icon-test-tube icon-sm me-1"></i>
+                        Test Login
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -25,7 +25,7 @@ public class IndexModelTests
         _mockUserManager = Substitute.For<UserManager<ApplicationUser>>(
             Substitute.For<IUserStore<ApplicationUser>>(), null, null, null, null, null, null, null, null);
         _mockUserPreferencesService = Substitute.For<UserPreferencesService>(_mockUserManager);
-        _mockGlobalSettingsService = Substitute.For<GlobalSettingsService>(null!, null!);
+        _mockGlobalSettingsService = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
 
         _pageModel = new IndexModel(_mockAuthService, _mockUserPreferencesService, _mockGlobalSettingsService, _mockUserManager);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
