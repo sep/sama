@@ -45,6 +45,18 @@
                         }
                     </dd>
 
+                    <dt class="col-sm-4">Authentication</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.UserDetails.IsExternalUser)
+                        {
+                            <span class="badge bg-info">LDAP</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Local</span>
+                        }
+                    </dd>
+
                     <dt class="col-sm-4">Workspaces</dt>
                     <dd class="col-sm-8">@Model.UserDetails.WorkspaceCount</dd>
                 </dl>
@@ -57,7 +69,10 @@
                 Back to List
             </a>
             <a asp-page="Edit" asp-route-id="@Model.UserDetails.Id" class="btn btn-primary">Edit User</a>
-            <a asp-page="ResetPassword" asp-route-id="@Model.UserDetails.Id" class="btn btn-warning">Reset Password</a>
+            @if (!Model.UserDetails.IsExternalUser)
+            {
+                <a asp-page="ResetPassword" asp-route-id="@Model.UserDetails.Id" class="btn btn-warning">Reset Password</a>
+            }
             @if (Model.UserDetails.IsLockedOut)
             {
                 <form method="post" 

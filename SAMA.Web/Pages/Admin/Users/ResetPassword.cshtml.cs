@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SAMA.Web.Constants;
+using SAMA.Web.Models;
 using SAMA.Web.Services.Commands;
 using SAMA.Web.Services.Queries;
 
@@ -45,6 +46,11 @@ public class ResetPasswordModel(
             return NotFound();
         }
 
+        if (user.IsExternalUser)
+        {
+            return RedirectToPage("Details", new { id });
+        }
+
         UserEmail = user.Email;
         Input.UserId = user.Id;
 
@@ -53,12 +59,17 @@ public class ResetPasswordModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
+        var existingUser = await _userQueryService.GetUserByIdAsync(Input.UserId);
+        if (existingUser?.IsExternalUser == true)
+        {
+            return RedirectToPage("Details", new { id = Input.UserId });
+        }
+
         if (!ModelState.IsValid)
         {
-            var user = await _userQueryService.GetUserByIdAsync(Input.UserId);
-            if (user != null)
+            if (existingUser != null)
             {
-                UserEmail = user.Email;
+                UserEmail = existingUser.Email;
             }
             return Page();
         }
@@ -77,10 +88,9 @@ public class ResetPasswordModel(
         {
             ModelState.AddModelError(string.Empty, ex.Message);
 
-            var user = await _userQueryService.GetUserByIdAsync(Input.UserId);
-            if (user != null)
+            if (existingUser != null)
             {
-                UserEmail = user.Email;
+                UserEmail = existingUser.Email;
             }
 
             return Page();

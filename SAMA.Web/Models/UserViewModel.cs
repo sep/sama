@@ -12,5 +12,7 @@ public class UserViewModel
 
     public bool IsLockedOut { get; set; }
 
+    public bool IsExternalUser { get; set; }
+
     public int WorkspaceCount { get; set; }
 }

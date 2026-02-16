@@ -60,6 +60,10 @@ else
                             {
                                 <span class="badge bg-success">Active</span>
                             }
+                            @if (user.IsExternalUser)
+                            {
+                                <span class="badge bg-info">LDAP</span>
+                            }
                         </td>
                         <td>
                             <div class="d-flex gap-3">
