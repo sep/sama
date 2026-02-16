@@ -131,6 +131,7 @@
                         <div class="form-text">
                             Direct bind template. Use <code>{0}</code> as placeholder for the username.
                             When set, authenticates by binding directly as the user (no service account needed). This is often used with Active Directory.
+                            <br />If the user enters an email address (contains <code>@@</code>), it is used directly for binding and this template is skipped. This allows users to log in with either a username or email.
                             <br />Leave empty to use a service account for user search instead.
                             <br />Example: <code>uid={0},ou=users,dc=example,dc=com</code> or <code>{0}@@example.com</code>
                         </div>
@@ -149,7 +150,7 @@
                             <input asp-for="LdapInput.SearchFilter" class="form-control" />
                             <div class="form-text">
                                 LDAP filter to find users. Use <code>{0}</code> as placeholder for the username.
-                                <br />Common for AD: <code>(&amp;(objectClass=user)(sAMAccountName={0}))</code>
+                                <br />Common for AD: <code>(&amp;(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))</code>
                                 <br />For OpenLDAP: <code>(&amp;(objectClass=inetOrgPerson)(uid={0}))</code>
                             </div>
                         </div>

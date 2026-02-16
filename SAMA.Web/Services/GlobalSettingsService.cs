@@ -52,7 +52,7 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     private const string KeyLdapBindTemplate = "LdapBindTemplate";
     private const string KeyLdapSearchBase = "LdapSearchBase";
     private const string KeyLdapSearchFilter = "LdapSearchFilter";
-    private const string DefaultLdapSearchFilter = "(&(objectClass=user)(sAMAccountName={0}))";
+    private const string DefaultLdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
     private const string KeyLdapGroupSearchBase = "LdapGroupSearchBase";
     private const string KeyLdapGroupSearchFilter = "LdapGroupSearchFilter";
     private const string DefaultLdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";

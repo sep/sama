@@ -46,7 +46,7 @@ public class LdapAuthenticationService(
 
         if (useDirectBind)
         {
-            userDn = string.Format(bindTemplate, EscapeLdapFilter(username));
+            userDn = ResolveBindDn(username, bindTemplate);
 
             LdapConnection? connection = null;
             try
@@ -493,6 +493,15 @@ public class LdapAuthenticationService(
         }
 
         return ex.Message;
+    }
+
+    internal static string ResolveBindDn(string username, string bindTemplate)
+    {
+        // If the input looks like an email, use it directly for binding
+        // (AD accepts UPN as a bind identity); otherwise apply the template
+        return username.Contains('@')
+            ? username
+            : string.Format(bindTemplate, EscapeLdapFilter(username));
     }
 
     private static string EscapeLdapFilter(string input)

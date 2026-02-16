@@ -65,7 +65,7 @@ public class LdapModel(
         public string SearchBase { get; set; } = string.Empty;
 
         [Display(Name = "User Search Filter")]
-        public string SearchFilter { get; set; } = "(&(objectClass=user)(sAMAccountName={0}))";
+        public string SearchFilter { get; set; } = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
 
         [Display(Name = "Group Search Base DN")]
         public string GroupSearchBase { get; set; } = string.Empty;

@@ -430,6 +430,38 @@ public class LdapAuthenticationServiceTests : IntegrationTestBase
         Assert.AreEqual("Admins", result);
     }
 
+    [TestMethod]
+    public void ResolveBindDnShouldApplyTemplateForPlainUsername()
+    {
+        var result = LdapAuthenticationService.ResolveBindDn("jdoe", "DOMAIN\\{0}");
+
+        Assert.AreEqual("DOMAIN\\jdoe", result);
+    }
+
+    [TestMethod]
+    public void ResolveBindDnShouldUseEmailDirectlyWhenInputContainsAt()
+    {
+        var result = LdapAuthenticationService.ResolveBindDn("jdoe@example.com", "DOMAIN\\{0}");
+
+        Assert.AreEqual("jdoe@example.com", result);
+    }
+
+    [TestMethod]
+    public void ResolveBindDnShouldEscapeSpecialCharsInUsername()
+    {
+        var result = LdapAuthenticationService.ResolveBindDn("j(doe)", "uid={0},ou=users,dc=example,dc=com");
+
+        Assert.AreEqual("uid=j\\28doe\\29,ou=users,dc=example,dc=com", result);
+    }
+
+    [TestMethod]
+    public void ResolveBindDnShouldNotEscapeEmailInput()
+    {
+        var result = LdapAuthenticationService.ResolveBindDn("j(doe)@example.com", "DOMAIN\\{0}");
+
+        Assert.AreEqual("j(doe)@example.com", result);
+    }
+
     private async Task EnsureAdminRoleExistsAsync()
     {
         if (!await _roleManager.RoleExistsAsync(AuthConstants.AdminRole))
