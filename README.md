@@ -40,7 +40,7 @@ SAMA is a comprehensive service availability monitoring solution that helps you:
 ### Future Enhancements (Phase 2+)
 - **Geo-Distributed Agents**: Run checks from multiple regions  
 - **Advanced Check Types**: Playwright-based browser automation, Database connectivity checks
-- **Enterprise SSO**: OIDC and SAML authentication
+- **Enterprise SSO**: LDAP and OIDC authentication
 - **Audit Logging**: Track all configuration changes
 
 ### Security & Compliance
