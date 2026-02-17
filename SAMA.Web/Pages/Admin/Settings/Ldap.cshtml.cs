@@ -77,6 +77,9 @@ public class LdapModel(
         public string CustomRootCa { get; set; } = string.Empty;
     }
 
+    private const string DefaultSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+    private const string DefaultGroupSearchFilter = "(&(objectClass=group)(member={0}))";
+
     private static bool IsValidLdapFilterFormat(string? filter)
     {
         if (string.IsNullOrWhiteSpace(filter) || !filter.Contains("{0}"))
@@ -129,7 +132,7 @@ public class LdapModel(
             // If empty or invalid, fall back to default to prevent string.Format exceptions
             if (!IsValidLdapFilterFormat(LdapInput.SearchFilter))
             {
-                _globalSettings.LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+                _globalSettings.LdapSearchFilter = DefaultSearchFilter;
             }
             else
             {
@@ -142,7 +145,7 @@ public class LdapModel(
             // If empty or invalid, fall back to default to prevent string.Format exceptions
             if (!IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
             {
-                _globalSettings.LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
+                _globalSettings.LdapGroupSearchFilter = DefaultGroupSearchFilter;
             }
             else
             {
