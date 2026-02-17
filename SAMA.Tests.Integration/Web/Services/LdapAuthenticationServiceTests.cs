@@ -348,6 +348,129 @@ public class LdapAuthenticationServiceTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task ProvisionOrUpdateUserShouldRevokeAdminWhenItWasTheOnlyMapping()
+    {
+        await CreateGroupMappingAsync(null, "LDAP", "Admins", AuthConstants.AdminRole);
+
+        var firstLogin = LdapLoginResult.Success(
+            "CN=Solo Admin,DC=example,DC=com",
+            "soloadmin@example.com",
+            "Solo Admin",
+            ["CN=Admins,OU=Groups,DC=example,DC=com"]);
+        var user = await _service.ProvisionOrUpdateUserAsync(firstLogin);
+        DbContext.ChangeTracker.Clear();
+
+        var isAdminBefore = await _userManager.IsInRoleAsync(user, AuthConstants.AdminRole);
+        Assert.IsTrue(isAdminBefore);
+
+        var secondLogin = LdapLoginResult.Success(
+            "CN=Solo Admin,DC=example,DC=com",
+            "soloadmin@example.com",
+            "Solo Admin",
+            []);
+        await _service.ProvisionOrUpdateUserAsync(secondLogin);
+        DbContext.ChangeTracker.Clear();
+
+        var refreshedUser = await _userManager.FindByEmailAsync("soloadmin@example.com");
+        var isAdminAfter = await _userManager.IsInRoleAsync(refreshedUser!, AuthConstants.AdminRole);
+        Assert.IsFalse(isAdminAfter);
+    }
+
+    [TestMethod]
+    public async Task ProvisionOrUpdateUserShouldRevokeAdminWhenGroupMappingIsDeleted()
+    {
+        var mapping = new WorkspaceGroupMapping
+        {
+            WorkspaceId = null,
+            IdentityProvider = "LDAP",
+            ExternalGroupId = "Admins",
+            Role = AuthConstants.AdminRole,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+        };
+        DbContext.WorkspaceGroupMappings.Add(mapping);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        var firstLogin = LdapLoginResult.Success(
+            "CN=Admin,DC=example,DC=com",
+            "deletedmapping@example.com",
+            "Admin",
+            ["CN=Admins,OU=Groups,DC=example,DC=com"]);
+        var user = await _service.ProvisionOrUpdateUserAsync(firstLogin);
+        DbContext.ChangeTracker.Clear();
+
+        var isAdminBefore = await _userManager.IsInRoleAsync(user, AuthConstants.AdminRole);
+        Assert.IsTrue(isAdminBefore);
+
+        var storedMapping = await DbContext.WorkspaceGroupMappings.FindAsync(mapping.Id);
+        DbContext.WorkspaceGroupMappings.Remove(storedMapping!);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        var secondLogin = LdapLoginResult.Success(
+            "CN=Admin,DC=example,DC=com",
+            "deletedmapping@example.com",
+            "Admin",
+            ["CN=Admins,OU=Groups,DC=example,DC=com"]);
+        await _service.ProvisionOrUpdateUserAsync(secondLogin);
+        DbContext.ChangeTracker.Clear();
+
+        var refreshedUser = await _userManager.FindByEmailAsync("deletedmapping@example.com");
+        var isAdminAfter = await _userManager.IsInRoleAsync(refreshedUser!, AuthConstants.AdminRole);
+        Assert.IsFalse(isAdminAfter);
+    }
+
+    [TestMethod]
+    public async Task ProvisionOrUpdateUserShouldRemoveWorkspaceAssignmentWhenGroupMappingIsDeleted()
+    {
+        var workspace = await CreateWorkspaceAsync("Mapped Workspace");
+        var mapping = new WorkspaceGroupMapping
+        {
+            WorkspaceId = workspace.Id,
+            IdentityProvider = "LDAP",
+            ExternalGroupId = "Developers",
+            Role = AuthConstants.EditorRole,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+        };
+        DbContext.WorkspaceGroupMappings.Add(mapping);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        var firstLogin = LdapLoginResult.Success(
+            "CN=Dev User,DC=example,DC=com",
+            "deletedwsmap@example.com",
+            "Dev User",
+            ["CN=Developers,OU=Groups,DC=example,DC=com"]);
+        var user = await _service.ProvisionOrUpdateUserAsync(firstLogin);
+        DbContext.ChangeTracker.Clear();
+
+        var assignmentsBefore = await DbContext.UserWorkspaces
+            .Where(uw => uw.UserId == user.Id && uw.Source == AuthConstants.LdapSource)
+            .ToListAsync();
+        Assert.HasCount(1, assignmentsBefore);
+
+        var storedMapping = await DbContext.WorkspaceGroupMappings.FindAsync(mapping.Id);
+        DbContext.WorkspaceGroupMappings.Remove(storedMapping!);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        var secondLogin = LdapLoginResult.Success(
+            "CN=Dev User,DC=example,DC=com",
+            "deletedwsmap@example.com",
+            "Dev User",
+            ["CN=Developers,OU=Groups,DC=example,DC=com"]);
+        await _service.ProvisionOrUpdateUserAsync(secondLogin);
+        DbContext.ChangeTracker.Clear();
+
+        var assignmentsAfter = await DbContext.UserWorkspaces
+            .Where(uw => uw.UserId == user.Id && uw.Source == AuthConstants.LdapSource)
+            .ToListAsync();
+        Assert.HasCount(0, assignmentsAfter);
+    }
+
+    [TestMethod]
     public void ValidateWithCustomCaShouldReturnTrueWhenNoErrors()
     {
         var result = LdapAuthenticationService.ValidateWithCustomCa(

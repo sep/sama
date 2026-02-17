@@ -1,0 +1,171 @@
+@page
+@model SAMA.Web.Pages.Admin.Settings.GroupMappingsModel
+@{
+    Layout = "_SettingsLayout";
+    ViewData["Title"] = "System Options - Group Mappings";
+    ViewData["ActiveSettingsTab"] = "GroupMappings";
+}
+
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-users icon-lg me-2"></i>
+                    Group Mappings
+                </h5>
+                <p class="text-muted mb-4">
+                    Map external identity provider groups to workspace roles. When users log in, their group memberships are checked and workspace access is granted or revoked automatically.
+                    Use "Global Admin" (no workspace) to grant the system Admin role based on group membership.
+                </p>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="icon-circle-check icon-sm me-2"></i>
+                            @TempData["Success"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="icon-circle-alert icon-sm me-2"></i>
+                            @TempData["Error"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (!Model.Mappings.Any())
+                {
+                    <div class="alert alert-info">
+                        <i class="icon-info icon-sm me-2"></i>
+                        No group mappings configured. Add a mapping below to automatically assign workspace access based on identity provider groups.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-nowrap">External Group</th>
+                                    <th class="text-nowrap">Provider</th>
+                                    <th class="text-nowrap">Workspace</th>
+                                    <th class="text-nowrap">Role</th>
+                                    <th class="text-nowrap">Created</th>
+                                    <th style="width: 1%;" class="text-nowrap">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var mapping in Model.Mappings)
+                                {
+                                    <tr>
+                                        <td class="text-break" style="max-width: 300px;">
+                                            <code>@mapping.ExternalGroupId</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@mapping.IdentityProvider</span>
+                                        </td>
+                                        <td>
+                                            @if (mapping.WorkspaceId == null)
+                                            {
+                                                <span class="text-muted fst-italic">Global</span>
+                                            }
+                                            else
+                                            {
+                                                @mapping.WorkspaceName
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (mapping.Role == "Admin")
+                                            {
+                                                <span class="badge bg-danger">Admin</span>
+                                            }
+                                            else if (mapping.Role == "Editor")
+                                            {
+                                                <span class="badge bg-primary">Editor</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Viewer</span>
+                                            }
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <time data-timestamp="@mapping.CreatedAt.ToString("O")" data-format="yyyy-MM-dd">
+                                                @mapping.CreatedAt.ToString("yyyy-MM-dd")
+                                            </time>
+                                        </td>
+                                        <td>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@mapping.Id"
+                                                  hx-boost="true"
+                                                  hx-confirm="Remove this group mapping?">
+                                                <button type="submit" class="btn btn-link btn-danger" title="Delete">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-plus icon-lg me-2"></i>
+                    Add Mapping
+                </h5>
+                <form method="post" asp-page-handler="Add" hx-boost="true">
+                    <div class="mb-3">
+                        <label asp-for="Input.ExternalGroupId" class="form-label"></label>
+                        <input asp-for="Input.ExternalGroupId" class="form-control" placeholder="CN=Developers,OU=Groups,DC=example,DC=com" />
+                        <div class="form-text">
+                            The LDAP group DN or CN. Must match what appears in the user's group memberships. Use the LDAP Test Login to discover group names.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.WorkspaceId" class="form-label"></label>
+                        <select asp-for="Input.WorkspaceId" asp-items="Model.AvailableWorkspaces" class="form-select"></select>
+                        <div class="form-text">
+                            Select a workspace to grant access to, or "Global Admin" to grant the system Admin role.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.Role" class="form-label"></label>
+                        <select asp-for="Input.Role" class="form-select">
+                            <option value="Editor">Editor</option>
+                            <option value="Viewer">Viewer</option>
+                            <option value="Admin">Admin (global only)</option>
+                        </select>
+                        <div class="form-text">
+                            Editor: can create/edit checks and alerts. Viewer: read-only. Admin: full system access (only for global mappings).
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Input.IdentityProvider" class="form-label"></label>
+                        <select asp-for="Input.IdentityProvider" class="form-select">
+                            <option value="LDAP">LDAP</option>
+                        </select>
+                        <div class="form-text">The identity provider that supplies group membership.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="icon-plus icon-sm me-1"></i>
+                        Add Group Mapping
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

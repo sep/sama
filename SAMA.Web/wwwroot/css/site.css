@@ -524,6 +524,11 @@ h6 {
     text-decoration: none !important;
 }
 
+.btn-sm {
+    --bs-btn-padding-y: 0.25rem;
+    --bs-btn-padding-x: 0.5rem;
+}
+
 .btn::before {
     content: '';
     position: absolute;

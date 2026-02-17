@@ -525,11 +525,6 @@ public class LdapAuthenticationService(
             .Where(m => m.IdentityProvider == "LDAP")
             .ToListAsync();
 
-        if (mappings.Count == 0)
-        {
-            return;
-        }
-
         // Expand raw DNs to include extracted CNs for flexible matching
         var expandedGroups = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var group in ldapGroups)

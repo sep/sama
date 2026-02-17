@@ -220,6 +220,7 @@ builder.Services.AddScoped<ConfigurationImportService>();
 builder.Services.AddScoped<LdapAuthenticationService>();
 
 // Register CQRS-lite query services
+builder.Services.AddScoped<GroupMappingQueryService>();
 builder.Services.AddScoped<WorkspaceQueryService>();
 builder.Services.AddScoped<CheckQueryService>();
 builder.Services.AddScoped<AlertQueryService>();
@@ -231,6 +232,7 @@ builder.Services.AddScoped<UserQueryService>();
 builder.Services.AddScoped<CheckCommandService>();
 builder.Services.AddScoped<AlertCommandService>();
 builder.Services.AddScoped<ChannelCommandService>();
+builder.Services.AddScoped<GroupMappingCommandService>();
 builder.Services.AddScoped<WorkspaceCommandService>();
 builder.Services.AddScoped<EventSubscriptionCommandService>();
 builder.Services.AddScoped<UserCommandService>();
