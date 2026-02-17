@@ -87,10 +87,22 @@ public class LdapModel(
         try
         {
             // Test the format string with a placeholder value to ensure it's valid
+            // and that it only requires exactly one argument
             _ = string.Format(filter, "test");
+
+            // Verify that no additional placeholders are present (e.g., {1}, {2})
+            // by checking that the filter doesn't contain any digit after a { except 0
+            for (var i = 0; i < filter.Length - 1; i++)
+            {
+                if (filter[i] == '{' && char.IsDigit(filter[i + 1]) && filter[i + 1] != '0')
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
-        catch (FormatException)
+        catch (Exception ex) when (ex is FormatException or ArgumentNullException)
         {
             return false;
         }
