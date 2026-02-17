@@ -65,7 +65,7 @@ public abstract class SystemTestBase
     protected async Task LoginAsync(string email = "admin@example.com", string password = "TestPassword123!")
     {
         await Page.GotoAsync($"{BaseUrl}/Account/Login");
-        await Page.FillAsync("input[name='Input.Email']", email);
+        await Page.FillAsync("input[name='Input.EmailOrUsername']", email);
         await Page.FillAsync("input[name='Input.Password']", password);
         await Page.ClickAsync("button[type='submit']");
         await Page.WaitForURLAsync($"{BaseUrl}/**");
