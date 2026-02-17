@@ -886,7 +886,6 @@ h6 {
     filter: brightness(1.2);
     text-decoration: underline !important;
     box-shadow: none;
-    outline: none;
     background: transparent;
 }
 

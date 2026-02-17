@@ -522,7 +522,7 @@ public class LdapAuthenticationService(
     {
         var mappings = await dbContext.WorkspaceGroupMappings
             .AsNoTracking()
-            .Where(m => m.IdentityProvider == "LDAP")
+            .Where(m => m.IdentityProvider == AuthConstants.LdapSource)
             .ToListAsync();
 
         // Expand raw DNs to include extracted CNs for flexible matching
