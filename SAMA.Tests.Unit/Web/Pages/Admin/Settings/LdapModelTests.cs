@@ -437,4 +437,20 @@ public class LdapModelTests
 
         _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
     }
+
+    [TestMethod]
+    public void OnPostShouldAcceptSearchFilterWithMultipleSamePlaceholders()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(uid={0})(cn={0}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(uid={0})(cn={0}))";
+    }
 }
