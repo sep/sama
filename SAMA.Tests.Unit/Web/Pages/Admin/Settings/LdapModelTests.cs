@@ -272,4 +272,120 @@ public class LdapModelTests
         Assert.AreEqual("Username and password are required.", _pageModel.TempData["LdapTestMessage"]);
         await _mockLdapService.DidNotReceive().AuthenticateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>());
     }
+
+    [TestMethod]
+    public void OnPostShouldFallbackToDefaultSearchFilterWhenEmpty()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldFallbackToDefaultSearchFilterWhenMissingPlaceholder()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(sAMAccountName=invalid))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenEmptyAndGroupSearchEnabled()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenMissingPlaceholderAndGroupSearchEnabled()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "(&(objectClass=group)(member=invalid))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldAllowEmptyGroupSearchFilterWhenGroupSearchDisabled()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            GroupSearchBase = "",
+            GroupSearchFilter = "",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "";
+    }
+
+    [TestMethod]
+    public void OnPostShouldUseValidSearchFilter()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=person)(uid={0}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(objectClass=person)(uid={0}))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldUseValidGroupSearchFilter()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "(&(objectClass=posixGroup)(memberUid={0}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=posixGroup)(memberUid={0}))";
+    }
 }

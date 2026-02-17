@@ -102,9 +102,37 @@ public class LdapModel(
             _globalSettings.LdapBindDn = LdapInput.BindDn;
             _globalSettings.LdapBindTemplate = LdapInput.BindTemplate;
             _globalSettings.LdapSearchBase = LdapInput.SearchBase;
-            _globalSettings.LdapSearchFilter = LdapInput.SearchFilter;
+
+            // Validate and set SearchFilter: must be non-empty and contain {0} placeholder
+            // If empty or invalid, fall back to default to prevent string.Format exceptions
+            if (string.IsNullOrWhiteSpace(LdapInput.SearchFilter) || !LdapInput.SearchFilter.Contains("{0}"))
+            {
+                _globalSettings.LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+            }
+            else
+            {
+                _globalSettings.LdapSearchFilter = LdapInput.SearchFilter;
+            }
+
             _globalSettings.LdapGroupSearchBase = LdapInput.GroupSearchBase;
-            _globalSettings.LdapGroupSearchFilter = LdapInput.GroupSearchFilter;
+
+            // Validate and set GroupSearchFilter: if group search is enabled, must be non-empty and contain {0}
+            // If empty or invalid, fall back to default to prevent string.Format exceptions
+            if (!string.IsNullOrWhiteSpace(LdapInput.GroupSearchBase))
+            {
+                if (string.IsNullOrWhiteSpace(LdapInput.GroupSearchFilter) || !LdapInput.GroupSearchFilter.Contains("{0}"))
+                {
+                    _globalSettings.LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
+                }
+                else
+                {
+                    _globalSettings.LdapGroupSearchFilter = LdapInput.GroupSearchFilter;
+                }
+            }
+            else
+            {
+                _globalSettings.LdapGroupSearchFilter = LdapInput.GroupSearchFilter;
+            }
 
             if (!string.IsNullOrEmpty(LdapInput.BindPassword))
             {
