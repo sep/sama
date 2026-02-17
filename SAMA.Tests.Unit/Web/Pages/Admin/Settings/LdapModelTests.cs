@@ -306,7 +306,7 @@ public class LdapModelTests
     }
 
     [TestMethod]
-    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenEmptyAndGroupSearchEnabled()
+    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenEmpty()
     {
         _pageModel.LdapInput = new LdapModel.LdapInputModel
         {
@@ -323,7 +323,7 @@ public class LdapModelTests
     }
 
     [TestMethod]
-    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenMissingPlaceholderAndGroupSearchEnabled()
+    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenMissingPlaceholder()
     {
         _pageModel.LdapInput = new LdapModel.LdapInputModel
         {
