@@ -136,26 +136,7 @@ public class TlsCheckExecutor(
                 if (validationResult != null)
                 {
                     var certDetails = new List<string>();
-
-                    if (!string.IsNullOrEmpty(validationResult.Subject))
-                    {
-                        certDetails.Add($"Subject: {validationResult.Subject}");
-                    }
-
-                    if (!string.IsNullOrEmpty(validationResult.Issuer))
-                    {
-                        certDetails.Add($"Issuer: {validationResult.Issuer}");
-                    }
-
-                    if (!string.IsNullOrEmpty(validationResult.Thumbprint))
-                    {
-                        certDetails.Add($"Thumbprint: {validationResult.Thumbprint}");
-                    }
-
-                    if (validationResult.ChainStatusInfo != null && validationResult.ChainStatusInfo.Count > 0)
-                    {
-                        certDetails.Add($"Chain status: {string.Join("; ", validationResult.ChainStatusInfo)}");
-                    }
+                    AddCertificateDetailsToList(certDetails, validationResult);
 
                     if (certDetails.Count > 0)
                     {
@@ -284,6 +265,13 @@ public class TlsCheckExecutor(
 
         messages.Add($"Certificate validation failed: {BuildSslErrorMessage(validationResult.Errors)}");
 
+        AddCertificateDetailsToList(messages, validationResult);
+
+        return string.Join(" | ", messages);
+    }
+
+    private static void AddCertificateDetailsToList(List<string> messages, CertificateValidationResult validationResult)
+    {
         if (!string.IsNullOrEmpty(validationResult.Subject))
         {
             messages.Add($"Subject: {validationResult.Subject}");
@@ -303,8 +291,6 @@ public class TlsCheckExecutor(
         {
             messages.Add($"Chain status: {string.Join("; ", validationResult.ChainStatusInfo)}");
         }
-
-        return string.Join(" | ", messages);
     }
 
     private CertificateValidationResult? ValidateServerCertificate(
