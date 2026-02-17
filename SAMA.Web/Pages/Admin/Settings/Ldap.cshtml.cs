@@ -146,7 +146,7 @@ public class LdapModel(
             }
             else if (Request.Form["ClearBindPassword"].ToString() == "true")
             {
-                _globalSettings.LdapBindPassword = null!;
+                _globalSettings.LdapBindPassword = string.Empty;
             }
 
             _globalSettings.LdapCustomRootCa = LdapInput.CustomRootCa;
