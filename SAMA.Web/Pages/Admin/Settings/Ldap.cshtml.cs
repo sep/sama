@@ -135,18 +135,11 @@ public class LdapModel(
 
             _globalSettings.LdapGroupSearchBase = LdapInput.GroupSearchBase;
 
-            // Validate and set GroupSearchFilter: if group search is enabled, must be a valid format string
+            // Validate and set GroupSearchFilter: must be a valid format string when provided
             // If empty or invalid, fall back to default to prevent string.Format exceptions
-            if (!string.IsNullOrWhiteSpace(LdapInput.GroupSearchBase))
+            if (!IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
             {
-                if (!IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
-                {
-                    _globalSettings.LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
-                }
-                else
-                {
-                    _globalSettings.LdapGroupSearchFilter = LdapInput.GroupSearchFilter;
-                }
+                _globalSettings.LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
             }
             else
             {

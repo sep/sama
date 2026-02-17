@@ -340,7 +340,7 @@ public class LdapModelTests
     }
 
     [TestMethod]
-    public void OnPostShouldAllowEmptyGroupSearchFilterWhenGroupSearchDisabled()
+    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenEmptyEvenIfGroupSearchDisabled()
     {
         _pageModel.LdapInput = new LdapModel.LdapInputModel
         {
@@ -353,7 +353,7 @@ public class LdapModelTests
 
         _pageModel.OnPost();
 
-        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "";
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
     }
 
     [TestMethod]
