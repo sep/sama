@@ -340,7 +340,7 @@ public class LdapModelTests
     }
 
     [TestMethod]
-    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenEmptyEvenIfGroupSearchDisabled()
+    public void OnPostShouldFallbackToDefaultGroupSearchFilterWhenEmptyRegardlessOfGroupSearchBase()
     {
         _pageModel.LdapInput = new LdapModel.LdapInputModel
         {

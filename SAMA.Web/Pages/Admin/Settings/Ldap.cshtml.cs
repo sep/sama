@@ -87,8 +87,9 @@ public class LdapModel(
         try
         {
             // Test the format string with a placeholder value to ensure it's valid
-            // This will throw FormatException if the filter requires more than one argument
-            // (e.g., if it contains {1}, {2}, etc.) or has invalid format specifiers
+            // This will throw FormatException for various format string issues:
+            // - Additional placeholders like {1}, {2}, etc. when only one argument is provided
+            // - Invalid format specifiers for the given argument type
             _ = string.Format(filter, "test");
             return true;
         }
