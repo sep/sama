@@ -92,7 +92,7 @@ public class LdapModel(
             _ = string.Format(filter, "test");
             return true;
         }
-        catch (Exception)
+        catch (FormatException)
         {
             return false;
         }

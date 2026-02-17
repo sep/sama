@@ -281,7 +281,7 @@ public class LdapModelTests
             Host = "ldap.example.com",
             Port = 389,
             SearchBase = "DC=example,DC=com",
-            SearchFilter = "",
+            SearchFilter = string.Empty,
         };
 
         _pageModel.OnPost();
@@ -314,7 +314,7 @@ public class LdapModelTests
             Port = 389,
             SearchBase = "DC=example,DC=com",
             GroupSearchBase = "OU=Groups,DC=example,DC=com",
-            GroupSearchFilter = "",
+            GroupSearchFilter = string.Empty,
         };
 
         _pageModel.OnPost();
@@ -347,8 +347,8 @@ public class LdapModelTests
             Host = "ldap.example.com",
             Port = 389,
             SearchBase = "DC=example,DC=com",
-            GroupSearchBase = "",
-            GroupSearchFilter = "",
+            GroupSearchBase = string.Empty,
+            GroupSearchFilter = string.Empty,
         };
 
         _pageModel.OnPost();
