@@ -105,24 +105,24 @@ Note, these are all subject to change.
   - [ ] Agent health dashboard
   - [ ] LastSeenAt tracking
   - [ ] Alert on agent disconnection
-- [ ] LDAP/Active Directory Integration
-  - [ ] LDAP authentication handler
-  - [ ] LDAP server configuration UI
-  - [ ] Group membership queries
+- [x] LDAP/Active Directory Integration
+  - [x] LDAP authentication handler
+  - [x] LDAP server configuration UI
+  - [x] Group membership queries
   - [ ] Testing with Active Directory and OpenLDAP
 - [ ] OIDC Integration
   - [ ] OIDC authentication handler
   - [ ] OIDC provider configuration UI
   - [ ] User claim mapping
   - [ ] Testing with common providers (Azure AD/Entra, Okta, Auth0)
-- [ ] Enhanced Authorization
-  - [ ] WorkspaceGroupMappings table and UI
-  - [ ] External group-to-workspace role mapping
-  - [ ] Just-in-time user provisioning on login
-  - [ ] Auto-sync workspace access based on IdP groups
-- [ ] Account Management
-  - [ ] Local vs external account handling
-  - [ ] Account linking
+- [x] Enhanced Authorization (LDAP)
+  - [x] WorkspaceGroupMappings table and UI
+  - [x] External group-to-workspace role mapping
+  - [x] Just-in-time user provisioning on login
+  - [x] Auto-sync workspace access based on IdP groups
+- [x] Account Management (LDAP)
+  - [x] Local vs external account handling
+  - [x] Account linking
   - [ ] Profile management
 - [ ] Docker Support
   - [ ] Dockerfile for main app
@@ -134,7 +134,7 @@ Note, these are all subject to change.
   - [ ] Agent API integration tests
   - [ ] Agent application tests
   - [ ] Multi-region scenario tests
-  - [ ] LDAP/AD authentication tests
+  - [x] LDAP/AD authentication tests
   - [ ] OIDC flow tests
   - [ ] Multi-provider tests
 - [ ] Documentation

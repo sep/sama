@@ -225,14 +225,21 @@ SAMA provides two complementary notification systems:
 ## Security Architecture
 
 ### Authentication
-**MVP (Phase 1)**:
-- Local accounts with ASP.NET Core Identity
+**Local Accounts**:
+- ASP.NET Core Identity
 - Passphrase-friendly password policy: minimum 14 characters, no complexity requirements
 - Account lockout protection
 - Future enhancement: Passkey support
 
-**Phase 2**:
-- LDAP/Active Directory integration (on-prem AD, OpenLDAP)
+**LDAP/Active Directory**:
+- Direct bind and search+bind authentication modes
+- SSL/TLS and StartTLS support with custom Root CA certificates
+- Admin UI for LDAP server configuration and test login
+- JIT user provisioning on successful LDAP login
+- Account linking: existing local users matched by email are linked to LDAP; local password login is then disabled
+- Group membership queries for role/workspace auto-provisioning
+
+**Future**:
 - OIDC integration (Azure AD/Entra, Okta, Auth0, etc.)
 - SAML2 SSO support may be added based on demand
 
@@ -357,10 +364,11 @@ SAMA provides two complementary notification systems:
 - Basic alerting
 - Core dashboard
 - Automatic migrations on startup
+- LDAP/Active Directory authentication
+- Group-based workspace provisioning (LDAP)
 
 ### Phase 2
 - Agent support with advanced checks (Playwright, Database)
-- LDAP/Active Directory authentication
 - OIDC authentication
 - Enhanced alerting rules
 
