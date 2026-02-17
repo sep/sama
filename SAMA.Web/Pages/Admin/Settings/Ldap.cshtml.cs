@@ -77,6 +77,28 @@ public class LdapModel(
         public string CustomRootCa { get; set; } = string.Empty;
     }
 
+    private static bool IsValidLdapFilterFormat(string? filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter) || !filter.Contains("{0}"))
+        {
+            return false;
+        }
+
+        try
+        {
+            // Test the format string with a placeholder value to ensure it's valid
+            // This will throw FormatException for various format string issues:
+            // - Additional placeholders like {1}, {2}, etc. when only one argument is provided
+            // - Invalid format specifiers for the given argument type
+            _ = string.Format(filter, "test");
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
     public void OnGet()
     {
         LoadCurrentSettings();
@@ -89,6 +111,20 @@ public class LdapModel(
         if (LdapInput.Enabled && string.IsNullOrWhiteSpace(LdapInput.SearchBase))
         {
             TempData["LdapError"] = "User Search Base DN is required when LDAP is enabled.";
+            return RedirectToPage();
+        }
+
+        // Validate SearchFilter
+        if (!IsValidLdapFilterFormat(LdapInput.SearchFilter))
+        {
+            TempData["LdapError"] = "User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.";
+            return RedirectToPage();
+        }
+
+        // Validate GroupSearchFilter if GroupSearchBase is configured
+        if (!string.IsNullOrWhiteSpace(LdapInput.GroupSearchBase) && !IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
+        {
+            TempData["LdapError"] = "Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.";
             return RedirectToPage();
         }
 

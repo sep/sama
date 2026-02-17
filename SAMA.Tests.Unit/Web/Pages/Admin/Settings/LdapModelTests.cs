@@ -272,4 +272,205 @@ public class LdapModelTests
         Assert.AreEqual("Username and password are required.", _pageModel.TempData["LdapTestMessage"]);
         await _mockLdapService.DidNotReceive().AuthenticateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>());
     }
+
+    [TestMethod]
+    public void OnPostShouldReturnErrorWhenSearchFilterIsEmpty()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = string.Empty,
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldReturnErrorWhenSearchFilterMissingPlaceholder()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(sAMAccountName=invalid))",
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldReturnErrorWhenGroupSearchFilterIsEmptyWithGroupSearchBase()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0}))",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = string.Empty,
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapGroupSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldReturnErrorWhenGroupSearchFilterMissingPlaceholder()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0}))",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "(&(objectClass=group)(member=invalid))",
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapGroupSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldAllowInvalidGroupSearchFilterWhenGroupSearchBaseIsEmpty()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0}))",
+            GroupSearchBase = string.Empty,
+            GroupSearchFilter = string.Empty,
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("LDAP settings saved successfully.", _pageModel.TempData["LdapSuccess"]);
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = string.Empty;
+    }
+
+    [TestMethod]
+    public void OnPostShouldUseValidSearchFilter()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=person)(uid={0}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(objectClass=person)(uid={0}))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldUseValidGroupSearchFilter()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "(&(objectClass=posixGroup)(memberUid={0}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=posixGroup)(memberUid={0}))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldRejectSearchFilterWithMultiplePlaceholders()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0})(cn={1}))",
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldRejectSearchFilterWithInvalidFormatSpecifier()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0:D}))",
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldRejectGroupSearchFilterWithMultiplePlaceholders()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0}))",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "(&(objectClass=group)(member={0})(owner={1}))",
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
+        _mockGlobalSettings.DidNotReceive().LdapGroupSearchFilter = Arg.Any<string>();
+    }
+
+    [TestMethod]
+    public void OnPostShouldAcceptSearchFilterWithMultipleSamePlaceholders()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(uid={0})(cn={0}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(uid={0})(cn={0}))";
+    }
 }
