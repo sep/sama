@@ -543,6 +543,51 @@ public class TlsCheckExecutorTests
     }
 
     [TestMethod]
+    public async Task ExecuteAsyncShouldIncludeCertificateDetailsInErrorMessage()
+    {
+        var config = new Dictionary<string, JsonElement>
+        {
+            [ConfigurationKeys.TlsCheck.Url] = JsonSerializer.SerializeToElement("https://test.example.com"),
+            [ConfigurationKeys.TlsCheck.DaysBeforeExpiryWarning] = JsonSerializer.SerializeToElement(30),
+            [ConfigurationKeys.Common.TimeoutSeconds] = JsonSerializer.SerializeToElement(10)
+        };
+
+        _mockTcpClientWrapper.ConnectAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        RemoteCertificateValidationCallback? capturedCallback = null;
+        _mockSslFactory.CreateSslStream(Arg.Any<Stream>(), Arg.Any<RemoteCertificateValidationCallback>())
+            .Returns(callInfo =>
+            {
+                capturedCallback = callInfo.ArgAt<RemoteCertificateValidationCallback>(1);
+                return _mockSslStreamWrapper;
+            });
+
+        _mockSslStreamWrapper.AuthenticateAsClientAsync(Arg.Any<SslClientAuthenticationOptions>(), Arg.Any<CancellationToken>())
+            .Returns(async callInfo =>
+            {
+                var testCert = CreateTestCertificate(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(365));
+
+                // Create a mock chain to simulate chain errors
+                var chain = new X509Chain();
+
+                capturedCallback?.Invoke(null!, testCert, chain, SslPolicyErrors.RemoteCertificateChainErrors);
+                await Task.Delay(10);
+            });
+
+        var result = await _executor.ExecuteAsync(config);
+
+        Assert.AreEqual(CheckStatuses.Down, result.Status);
+        Assert.IsNotNull(result.ErrorMessage);
+
+        // Verify error message contains detailed information
+        Assert.Contains("Certificate validation failed", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Subject:", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Issuer:", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Thumbprint:", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [TestMethod]
     public async Task ExecuteAsyncShouldReturnDownForCertificateNotYetValid()
     {
         var config = new Dictionary<string, JsonElement>

@@ -21,7 +21,11 @@ public class TlsCheckExecutor(
         DateTimeOffset NotBefore,
         DateTimeOffset NotAfter,
         SslPolicyErrors Errors,
-        bool IsValid);
+        bool IsValid,
+        string? Subject,
+        string? Issuer,
+        string? Thumbprint,
+        List<string>? ChainStatusInfo);
 
     public async Task<CheckExecutionResult> ExecuteAsync(Dictionary<string, JsonElement> configuration, CancellationToken cancellationToken = default)
     {
@@ -126,11 +130,44 @@ public class TlsCheckExecutor(
             catch (AuthenticationException ex)
             {
                 var connectionTime = Stopwatch.GetElapsedTime(timestamp.Value);
+                var errorMessage = $"TLS authentication failed: {ex.Message}";
+
+                // Include certificate details if we have them
+                if (validationResult != null)
+                {
+                    var certDetails = new List<string>();
+
+                    if (!string.IsNullOrEmpty(validationResult.Subject))
+                    {
+                        certDetails.Add($"Subject: {validationResult.Subject}");
+                    }
+
+                    if (!string.IsNullOrEmpty(validationResult.Issuer))
+                    {
+                        certDetails.Add($"Issuer: {validationResult.Issuer}");
+                    }
+
+                    if (!string.IsNullOrEmpty(validationResult.Thumbprint))
+                    {
+                        certDetails.Add($"Thumbprint: {validationResult.Thumbprint}");
+                    }
+
+                    if (validationResult.ChainStatusInfo != null && validationResult.ChainStatusInfo.Count > 0)
+                    {
+                        certDetails.Add($"Chain status: {string.Join("; ", validationResult.ChainStatusInfo)}");
+                    }
+
+                    if (certDetails.Count > 0)
+                    {
+                        errorMessage += $" | {string.Join(" | ", certDetails)}";
+                    }
+                }
+
                 return new CheckExecutionResult
                 {
                     Status = CheckStatuses.Down,
                     ResponseTimeMs = (int)connectionTime.TotalMilliseconds,
-                    ErrorMessage = $"TLS authentication failed: {ex.Message}"
+                    ErrorMessage = errorMessage
                 };
             }
 
@@ -148,12 +185,12 @@ public class TlsCheckExecutor(
 
             if (validationResult.Errors != SslPolicyErrors.None)
             {
-                var errorMessage = BuildSslErrorMessage(validationResult.Errors);
+                var errorMessage = BuildDetailedErrorMessage(validationResult);
                 return new CheckExecutionResult
                 {
                     Status = CheckStatuses.Down,
                     ResponseTimeMs = (int)elapsedTime.TotalMilliseconds,
-                    ErrorMessage = $"Certificate validation failed: {errorMessage}"
+                    ErrorMessage = errorMessage
                 };
             }
 
@@ -241,6 +278,35 @@ public class TlsCheckExecutor(
         return string.Join(", ", messages);
     }
 
+    private static string BuildDetailedErrorMessage(CertificateValidationResult validationResult)
+    {
+        var messages = new List<string>();
+
+        messages.Add($"Certificate validation failed: {BuildSslErrorMessage(validationResult.Errors)}");
+
+        if (!string.IsNullOrEmpty(validationResult.Subject))
+        {
+            messages.Add($"Subject: {validationResult.Subject}");
+        }
+
+        if (!string.IsNullOrEmpty(validationResult.Issuer))
+        {
+            messages.Add($"Issuer: {validationResult.Issuer}");
+        }
+
+        if (!string.IsNullOrEmpty(validationResult.Thumbprint))
+        {
+            messages.Add($"Thumbprint: {validationResult.Thumbprint}");
+        }
+
+        if (validationResult.ChainStatusInfo != null && validationResult.ChainStatusInfo.Count > 0)
+        {
+            messages.Add($"Chain status: {string.Join("; ", validationResult.ChainStatusInfo)}");
+        }
+
+        return string.Join(" | ", messages);
+    }
+
     private CertificateValidationResult? ValidateServerCertificate(
         X509Certificate? certificate,
         X509Chain? chain,
@@ -256,6 +322,19 @@ public class TlsCheckExecutor(
 
         bool isValid = (policyErrors == SslPolicyErrors.None);
         var effectivePolicyErrors = policyErrors;
+        var chainStatusInfo = new List<string>();
+
+        // Capture certificate chain status information
+        if (chain != null && chain.ChainStatus.Length > 0)
+        {
+            foreach (var status in chain.ChainStatus)
+            {
+                if (status.Status != X509ChainStatusFlags.NoError)
+                {
+                    chainStatusInfo.Add($"{status.Status}: {status.StatusInformation}");
+                }
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(customCaCertificatePem))
         {
@@ -271,6 +350,10 @@ public class TlsCheckExecutor(
             new DateTimeOffset(cert.NotBefore.ToUniversalTime(), TimeSpan.Zero),
             new DateTimeOffset(cert.NotAfter.ToUniversalTime(), TimeSpan.Zero),
             effectivePolicyErrors,
-            isValid);
+            isValid,
+            cert.Subject,
+            cert.Issuer,
+            cert.Thumbprint,
+            chainStatusInfo.Count > 0 ? chainStatusInfo : null);
     }
 }
