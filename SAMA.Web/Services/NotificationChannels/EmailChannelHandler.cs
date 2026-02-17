@@ -326,6 +326,7 @@ public class EmailChannelHandler(
 
             using var client = _smtpClientFactory.CreateClient();
 
+            // Implicit SSL/TLS supersedes StartTLS
             var secureSocketOptions = useSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTlsWhenAvailable;
             await client.ConnectAsync(smtpHost, smtpPort, secureSocketOptions, cts.Token);
 

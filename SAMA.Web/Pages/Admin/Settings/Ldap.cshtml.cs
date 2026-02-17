@@ -45,7 +45,7 @@ public class LdapModel(
         [Range(1, 65535, ErrorMessage = "Port must be between 1 and 65535")]
         public int Port { get; set; } = 389;
 
-        [Display(Name = "Use SSL (LDAPS)")]
+        [Display(Name = "Use Implicit SSL/TLS")]
         public bool UseSsl { get; set; }
 
         [Display(Name = "Use StartTLS")]
@@ -106,8 +106,6 @@ public class LdapModel(
 
     public IActionResult OnPost()
     {
-        ModelState.Clear();
-
         if (LdapInput.Enabled && string.IsNullOrWhiteSpace(LdapInput.SearchBase))
         {
             TempData["LdapError"] = "User Search Base DN is required when LDAP is enabled.";

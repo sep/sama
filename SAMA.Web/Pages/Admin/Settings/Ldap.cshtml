@@ -98,20 +98,26 @@
                             <input asp-for="LdapInput.Host" class="form-control" placeholder="ldap.example.com" />
                             <div class="form-text">Hostname or IP address of the LDAP server</div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label asp-for="LdapInput.Port" class="form-label"></label>
                             <input asp-for="LdapInput.Port" class="form-control" type="number" min="1" max="65535" />
                             <div class="form-text">Default: 389 (LDAP) or 636 (LDAPS)</div>
                         </div>
-                        <div class="col-md-3 mb-3 d-flex flex-column justify-content-center pt-2">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <div class="form-check form-switch">
                                 <input asp-for="LdapInput.UseSsl" class="form-check-input" type="checkbox" role="switch" />
-                                <label asp-for="LdapInput.UseSsl" class="form-check-label">Use SSL (LDAPS)</label>
+                                <label asp-for="LdapInput.UseSsl" class="form-check-label">Use Implicit SSL/TLS</label>
                             </div>
-                            <div class="form-check form-switch mt-1">
+                            <div class="form-text">Often used with port 636 (LDAPS)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch">
                                 <input asp-for="LdapInput.UseStartTls" class="form-check-input" type="checkbox" role="switch" />
                                 <label asp-for="LdapInput.UseStartTls" class="form-check-label">Use StartTLS</label>
                             </div>
+                            <div class="form-text">Usually on port 389; ignored when Implicit SSL/TLS is enabled</div>
                         </div>
                     </div>
 

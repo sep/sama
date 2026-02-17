@@ -30,7 +30,7 @@ public class LdapAuthenticationService(
         var host = _globalSettings.LdapHost;
         var port = _globalSettings.LdapPort;
         var useSsl = _globalSettings.LdapUseSsl;
-        var useStartTls = _globalSettings.LdapUseStartTls;
+        var useStartTls = !useSsl && _globalSettings.LdapUseStartTls;
         var bindDn = _globalSettings.LdapBindDn;
         var bindPassword = _globalSettings.LdapBindPassword;
         var bindTemplate = _globalSettings.LdapBindTemplate;

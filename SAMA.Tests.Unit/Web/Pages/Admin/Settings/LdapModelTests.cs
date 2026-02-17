@@ -98,6 +98,37 @@ public class LdapModelTests
     }
 
     [TestMethod]
+    public void OnPostShouldSaveBothSslAndStartTlsWhenBothEnabled()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 636,
+            UseSsl = true,
+            UseStartTls = true,
+            SearchBase = "DC=example,DC=com",
+        };
+
+        var result = _pageModel.OnPost();
+
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
+        _mockGlobalSettings.Received(1).LdapUseSsl = true;
+        _mockGlobalSettings.Received(1).LdapUseStartTls = true;
+    }
+
+    [TestMethod]
+    public void OnGetShouldLoadBothSslAndStartTlsValues()
+    {
+        _mockGlobalSettings.LdapUseSsl.Returns(true);
+        _mockGlobalSettings.LdapUseStartTls.Returns(true);
+
+        _pageModel.OnGet();
+
+        Assert.IsTrue(_pageModel.LdapInput.UseSsl);
+        Assert.IsTrue(_pageModel.LdapInput.UseStartTls);
+    }
+
+    [TestMethod]
     public void OnGetShouldLoadCustomRootCa()
     {
         _mockGlobalSettings.LdapCustomRootCa.Returns("-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----");
