@@ -117,14 +117,14 @@ public class LdapModel(
         // Validate SearchFilter
         if (!IsValidLdapFilterFormat(LdapInput.SearchFilter))
         {
-            TempData["LdapError"] = "User Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the username.";
+            TempData["LdapError"] = "User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.";
             return RedirectToPage();
         }
 
         // Validate GroupSearchFilter if GroupSearchBase is configured
         if (!string.IsNullOrWhiteSpace(LdapInput.GroupSearchBase) && !IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
         {
-            TempData["LdapError"] = "Group Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the user DN.";
+            TempData["LdapError"] = "Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.";
             return RedirectToPage();
         }
 

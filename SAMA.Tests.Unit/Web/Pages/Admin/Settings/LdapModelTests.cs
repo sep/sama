@@ -287,7 +287,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
     }
 
@@ -305,7 +305,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
     }
 
@@ -325,7 +325,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapGroupSearchFilter = Arg.Any<string>();
     }
 
@@ -345,7 +345,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapGroupSearchFilter = Arg.Any<string>();
     }
 
@@ -416,7 +416,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
     }
 
@@ -434,7 +434,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("User Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the username.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapSearchFilter = Arg.Any<string>();
     }
 
@@ -454,7 +454,7 @@ public class LdapModelTests
         var result = _pageModel.OnPost();
 
         Assert.IsInstanceOfType<RedirectToPageResult>(result);
-        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
+        Assert.AreEqual("Group Search Filter is invalid. It must be non-empty and contain at least one {0} placeholder for the user DN.", _pageModel.TempData["LdapError"]);
         _mockGlobalSettings.DidNotReceive().LdapGroupSearchFilter = Arg.Any<string>();
     }
 
