@@ -868,36 +868,41 @@ h6 {
 }
 
 /* Table Action Links */
-.table td a:not(.badge):not(.btn) {
+.table-action-link {
+    text-decoration: none;
+    font-weight: var(--font-weight-semibold);
+    padding: 0;
+    border: 0;
+    background: transparent;
     color: var(--color-primary);
     transition: all var(--transition-base);
-    text-decoration: none;
+    cursor: pointer;
+    box-shadow: none;
+    outline: none;
 }
 
-.table td a:not(.badge):not(.btn):hover {
+.table-action-link:hover,
+.table-action-link:focus {
     filter: brightness(1.2);
-    text-decoration: underline;
+    text-decoration: underline !important;
+    box-shadow: none;
+    outline: none;
+    background: transparent;
 }
 
-.table td a.text-secondary {
-    color: var(--color-text-secondary);
-    text-decoration: none;
+.table-action-link::before {
+    display: none;
 }
 
-.table td a.text-secondary:hover {
-    color: var(--color-primary) !important;
-    text-decoration: underline;
-}
-
-.table td a.text-danger {
+.table-action-link.text-danger {
     color: var(--color-danger);
-    text-decoration: none;
 }
 
-.table td a.text-danger:hover {
+.table-action-link.text-danger:hover,
+.table-action-link.text-danger:focus {
     color: #FF4757 !important;
     filter: brightness(1.1);
-    text-decoration: underline;
+    text-decoration: underline !important;
 }
 
 /* ============================================
