@@ -98,7 +98,7 @@ public abstract class SystemTestBase
         await Page.GotoAsync($"{BaseUrl}/Admin/Settings/ImportExport");
         await Page.Locator("input[name='ImportInput.File']").SetInputFilesAsync(resourcesPath);
         await Page.FillAsync("input[name='ImportInput.Password']", "system-test-password");
-        await Page.Locator("form[action*='Import'] button[type='submit']").ClickAsync();
+        await Page.Locator("form[action*='handler=Import'] button[type='submit']").ClickAsync();
         await Page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle);
     }
 
