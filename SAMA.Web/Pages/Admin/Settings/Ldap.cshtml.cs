@@ -77,6 +77,25 @@ public class LdapModel(
         public string CustomRootCa { get; set; } = string.Empty;
     }
 
+    private static bool IsValidLdapFilterFormat(string? filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter) || !filter.Contains("{0}"))
+        {
+            return false;
+        }
+
+        try
+        {
+            // Test the format string with a placeholder value to ensure it's valid
+            _ = string.Format(filter, "test");
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
     public void OnGet()
     {
         LoadCurrentSettings();
@@ -103,9 +122,9 @@ public class LdapModel(
             _globalSettings.LdapBindTemplate = LdapInput.BindTemplate;
             _globalSettings.LdapSearchBase = LdapInput.SearchBase;
 
-            // Validate and set SearchFilter: must be non-empty and contain {0} placeholder
+            // Validate and set SearchFilter: must be a valid format string with exactly one {0} placeholder
             // If empty or invalid, fall back to default to prevent string.Format exceptions
-            if (string.IsNullOrWhiteSpace(LdapInput.SearchFilter) || !LdapInput.SearchFilter.Contains("{0}"))
+            if (!IsValidLdapFilterFormat(LdapInput.SearchFilter))
             {
                 _globalSettings.LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
             }
@@ -116,11 +135,11 @@ public class LdapModel(
 
             _globalSettings.LdapGroupSearchBase = LdapInput.GroupSearchBase;
 
-            // Validate and set GroupSearchFilter: if group search is enabled, must be non-empty and contain {0}
+            // Validate and set GroupSearchFilter: if group search is enabled, must be a valid format string
             // If empty or invalid, fall back to default to prevent string.Format exceptions
             if (!string.IsNullOrWhiteSpace(LdapInput.GroupSearchBase))
             {
-                if (string.IsNullOrWhiteSpace(LdapInput.GroupSearchFilter) || !LdapInput.GroupSearchFilter.Contains("{0}"))
+                if (!IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
                 {
                     _globalSettings.LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
                 }

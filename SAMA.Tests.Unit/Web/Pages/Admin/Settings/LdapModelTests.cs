@@ -388,4 +388,53 @@ public class LdapModelTests
 
         _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=posixGroup)(memberUid={0}))";
     }
+
+    [TestMethod]
+    public void OnPostShouldRejectSearchFilterWithMultiplePlaceholders()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0})(cn={1}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldRejectSearchFilterWithInvalidFormatSpecifier()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            SearchFilter = "(&(objectClass=user)(uid={0:D}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
+    }
+
+    [TestMethod]
+    public void OnPostShouldRejectGroupSearchFilterWithMultiplePlaceholders()
+    {
+        _pageModel.LdapInput = new LdapModel.LdapInputModel
+        {
+            Host = "ldap.example.com",
+            Port = 389,
+            SearchBase = "DC=example,DC=com",
+            GroupSearchBase = "OU=Groups,DC=example,DC=com",
+            GroupSearchFilter = "(&(objectClass=group)(member={0})(owner={1}))",
+        };
+
+        _pageModel.OnPost();
+
+        _mockGlobalSettings.Received(1).LdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
+    }
 }
