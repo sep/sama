@@ -85,6 +85,11 @@
                     </div>
                 }
 
+                <div class="alert alert-info small mb-4 mt-4">
+                    <i class="icon-info icon-sm me-1"></i>
+                    <strong>How LDAP interacts with local accounts:</strong> When LDAP is enabled, login attempts first try LDAP, then fall back to local password authentication. If a local user successfully logs in via LDAP (matched by email), their account is linked to LDAP and local password login is permanently disabled for that account.
+                </div>
+
                 <form method="post" hx-boost="true">
                     <div class="mb-3 form-check form-switch">
                         <input asp-for="LdapInput.Enabled" class="form-check-input" type="checkbox" role="switch" />
