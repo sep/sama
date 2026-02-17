@@ -77,9 +77,6 @@ public class LdapModel(
         public string CustomRootCa { get; set; } = string.Empty;
     }
 
-    private const string DefaultSearchFilter = "(&(objectClass=user)(|(sAMAccountName={0})(userPrincipalName={0})))";
-    private const string DefaultGroupSearchFilter = "(&(objectClass=group)(member={0}))";
-
     private static bool IsValidLdapFilterFormat(string? filter)
     {
         if (string.IsNullOrWhiteSpace(filter) || !filter.Contains("{0}"))
@@ -117,6 +114,20 @@ public class LdapModel(
             return RedirectToPage();
         }
 
+        // Validate SearchFilter
+        if (!IsValidLdapFilterFormat(LdapInput.SearchFilter))
+        {
+            TempData["LdapError"] = "User Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the username.";
+            return RedirectToPage();
+        }
+
+        // Validate GroupSearchFilter if GroupSearchBase is configured
+        if (!string.IsNullOrWhiteSpace(LdapInput.GroupSearchBase) && !IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
+        {
+            TempData["LdapError"] = "Group Search Filter is invalid. It must be non-empty and contain exactly one {0} placeholder for the user DN.";
+            return RedirectToPage();
+        }
+
         try
         {
             _globalSettings.LdapEnabled = LdapInput.Enabled;
@@ -127,30 +138,9 @@ public class LdapModel(
             _globalSettings.LdapBindDn = LdapInput.BindDn;
             _globalSettings.LdapBindTemplate = LdapInput.BindTemplate;
             _globalSettings.LdapSearchBase = LdapInput.SearchBase;
-
-            // Validate and set SearchFilter: must be a valid format string with exactly one {0} placeholder
-            // If empty or invalid, fall back to default to prevent string.Format exceptions
-            if (!IsValidLdapFilterFormat(LdapInput.SearchFilter))
-            {
-                _globalSettings.LdapSearchFilter = DefaultSearchFilter;
-            }
-            else
-            {
-                _globalSettings.LdapSearchFilter = LdapInput.SearchFilter;
-            }
-
+            _globalSettings.LdapSearchFilter = LdapInput.SearchFilter;
             _globalSettings.LdapGroupSearchBase = LdapInput.GroupSearchBase;
-
-            // Validate and set GroupSearchFilter: must be a valid format string when provided
-            // If empty or invalid, fall back to default to prevent string.Format exceptions
-            if (!IsValidLdapFilterFormat(LdapInput.GroupSearchFilter))
-            {
-                _globalSettings.LdapGroupSearchFilter = DefaultGroupSearchFilter;
-            }
-            else
-            {
-                _globalSettings.LdapGroupSearchFilter = LdapInput.GroupSearchFilter;
-            }
+            _globalSettings.LdapGroupSearchFilter = LdapInput.GroupSearchFilter;
 
             if (!string.IsNullOrEmpty(LdapInput.BindPassword))
             {
