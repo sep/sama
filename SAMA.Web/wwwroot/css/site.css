@@ -1323,3 +1323,122 @@ pre code {
         transform: scale(1);
     }
 }
+
+/* ============================================
+   Mobile Navigation (below sm breakpoint)
+   ============================================ */
+@media (max-width: 575.98px) {
+    /* Theme toggle looks like a nav link in collapsed menu */
+    .theme-toggle, .theme-toggle:hover {
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-md);
+        margin: 0;
+        padding: 0.5rem 1rem;
+        height: auto;
+        min-width: auto;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        color: var(--color-text-secondary);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    /* User dropdown looks like a nav link in collapsed menu */
+    .navbar-nav .dropdown-toggle, .navbar-nav .dropdown-toggle:hover {
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-md);
+        margin: 0;
+        padding: 0.5rem 1rem !important;
+        height: auto;
+        width: 100%;
+        justify-content: flex-start;
+        color: var(--color-text-secondary) !important;
+    }
+
+    /* Collapsed menu spacing */
+    .navbar-collapse {
+        padding: 0.5rem 0;
+        border-top: 1px solid rgba(204, 85, 0, 0.1);
+        margin-top: 0.5rem;
+    }
+
+    .navbar-collapse .navbar-nav {
+        gap: 0.125rem;
+    }
+
+    /* Separator between main nav and utility nav */
+    .navbar-collapse > .navbar-nav:last-child {
+        border-top: 1px solid rgba(204, 85, 0, 0.1);
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Dropdown menu sits inline in mobile nav */
+    .navbar-nav .dropdown-menu {
+        border: none;
+        box-shadow: none;
+        padding-left: 1rem;
+        background: transparent;
+    }
+}
+
+/* ============================================
+   Mobile Adjustments
+   ============================================ */
+@media (max-width: 767.98px) {
+    /* Scrollable tab navigation */
+    .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-tabs .nav-item {
+        white-space: nowrap;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+    }
+
+    /* Card headers wrap on mobile */
+    .card-header.d-flex {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Page header rows wrap on mobile */
+    .page-header-row {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Break long URLs and emails */
+    code {
+        word-break: break-all;
+    }
+
+    /* Workspace header wraps on mobile */
+    .workspace-context .d-flex {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Schedule quick-select buttons wrap */
+    .btn-group-wrap {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .btn-group-wrap > .btn {
+        border-radius: var(--radius-md) !important;
+    }
+}

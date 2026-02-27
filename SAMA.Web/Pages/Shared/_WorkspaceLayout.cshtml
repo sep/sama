@@ -22,31 +22,31 @@
             </div>
         </div>
         <div class="container">
-            <ul class="nav nav-tabs border-0" style="margin-bottom: -1px;">
+            <ul class="nav nav-tabs border-0" id="workspace-tabs" style="margin-bottom: -1px;">
                 <li class="nav-item">
                     <a class="nav-link @(activeTab == "Dashboard" ? "active" : "")" 
-                       asp-page="/Dashboard/Index" asp-route-workspaceId="@workspaceId">
+                    asp-page="/Dashboard/Index" asp-route-workspaceId="@workspaceId">
                         <i class="icon-gauge icon-sm"></i>
                         Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(activeTab == "Checks" ? "active" : "")" 
-                       asp-page="/Checks/Index" asp-route-workspaceId="@workspaceId">
+                    asp-page="/Checks/Index" asp-route-workspaceId="@workspaceId">
                         <i class="icon-circle-check icon-sm"></i>
                         Checks
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(activeTab == "Channels" ? "active" : "")" 
-                       asp-page="/NotificationChannels/Index" asp-route-workspaceId="@workspaceId">
+                    asp-page="/NotificationChannels/Index" asp-route-workspaceId="@workspaceId">
                         <i class="icon-bell icon-sm"></i>
                         Channels
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(activeTab == "EventSubscriptions" ? "active" : "")" 
-                       asp-page="/EventSubscriptions/Index" asp-route-workspaceId="@workspaceId">
+                    asp-page="/EventSubscriptions/Index" asp-route-workspaceId="@workspaceId">
                         <i class="icon-zap icon-sm"></i>
                         Events
                     </a>
@@ -55,7 +55,7 @@
                 {
                     <li class="nav-item">
                         <a class="nav-link @(activeTab == "Settings" ? "active" : "")" 
-                           asp-page="/Workspaces/Edit" asp-route-id="@workspaceId">
+                        asp-page="/Workspaces/Edit" asp-route-id="@workspaceId">
                             <i class="icon-settings icon-sm"></i>
                             Settings
                         </a>
@@ -65,5 +65,16 @@
         </div>
     </div>
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tabs = document.getElementById('workspace-tabs');
+        var active = tabs && tabs.querySelector('.nav-link.active');
+        if (tabs && active) {
+            var offset = active.offsetLeft - (tabs.clientWidth / 2) + (active.offsetWidth / 2);
+            tabs.scrollLeft = Math.max(0, offset);
+        }
+    });
+</script>
 
 @RenderBody()
