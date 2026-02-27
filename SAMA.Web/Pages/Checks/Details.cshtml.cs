@@ -12,12 +12,15 @@ namespace SAMA.Web.Pages.Checks;
 public class DetailsModel(
     WorkspaceQueryService _workspaceQueryService,
     CheckQueryService _checkQueryService,
-    ScriptOutputBuffer _scriptOutputBuffer)
+    ScriptOutputBuffer _scriptOutputBuffer,
+    GlobalSettingsService _globalSettings)
     : WorkspacePageModel(_workspaceQueryService)
 {
     public CheckDetailsViewModel Check { get; set; } = new();
 
     public List<ScriptOutputEntry> ScriptOutputs { get; set; } = [];
+
+    public int RefreshIntervalSeconds { get; set; }
 
     public async Task<IActionResult> OnGetAsync(Guid? id)
     {
@@ -45,6 +48,8 @@ public class DetailsModel(
         {
             ScriptOutputs = _scriptOutputBuffer.GetOutputs(check.Id).ToList();
         }
+
+        RefreshIntervalSeconds = _globalSettings.DashboardRefreshIntervalSeconds;
 
         return Page();
     }

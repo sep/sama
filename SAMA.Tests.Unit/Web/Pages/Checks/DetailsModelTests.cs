@@ -18,6 +18,7 @@ public class DetailsModelTests
     private WorkspaceQueryService _mockWorkspaceQuery = null!;
     private CheckQueryService _mockCheckQuery = null!;
     private ScriptOutputBuffer _mockScriptOutputBuffer = null!;
+    private GlobalSettingsService _mockGlobalSettings = null!;
     private DetailsModel _pageModel = null!;
 
     [TestInitialize]
@@ -26,8 +27,10 @@ public class DetailsModelTests
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockScriptOutputBuffer = new ScriptOutputBuffer(Substitute.For<ILogger<ScriptOutputBuffer>>());
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
+        _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(30);
 
-        _pageModel = new DetailsModel(_mockWorkspaceQuery, _mockCheckQuery, _mockScriptOutputBuffer);
+        _pageModel = new DetailsModel(_mockWorkspaceQuery, _mockCheckQuery, _mockScriptOutputBuffer, _mockGlobalSettings);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 
