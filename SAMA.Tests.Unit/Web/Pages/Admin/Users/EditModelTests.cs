@@ -56,8 +56,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 2
+            IsLockedOut = false
         };
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
         _mockUserQuery.GetWorkspacesWithManualAssignmentStatusAsync(userId)
@@ -78,8 +77,7 @@ public class EditModelTests
             Email = "edit@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = true,
-            IsLockedOut = false,
-            WorkspaceCount = 3
+            IsLockedOut = false
         };
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
         _mockUserQuery.GetWorkspacesWithManualAssignmentStatusAsync(userId)
@@ -102,8 +100,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 2
+            IsLockedOut = false
         };
         var workspaces = new List<WorkspaceAssignmentViewModel>
         {
@@ -133,8 +130,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
         _mockUserQuery.GetWorkspacesWithManualAssignmentStatusAsync(userId)
@@ -195,8 +191,7 @@ public class EditModelTests
             Email = "old@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -226,8 +221,7 @@ public class EditModelTests
             Email = "same@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -257,8 +251,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -288,8 +281,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = true,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -319,8 +311,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -351,8 +342,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         var workspaceAssignments = new List<WorkspaceAssignmentViewModel>
@@ -390,8 +380,7 @@ public class EditModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -424,8 +413,7 @@ public class EditModelTests
             Email = "updated@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -459,8 +447,7 @@ public class EditModelTests
             Email = "old@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));

@@ -14,5 +14,5 @@ public class UserViewModel
 
     public bool IsExternalUser { get; set; }
 
-    public int WorkspaceCount { get; set; }
+    public List<UserWorkspaceAssignmentViewModel> Workspaces { get; set; } = [];
 }

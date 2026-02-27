@@ -46,7 +46,7 @@ public class UserQueryServiceTests : IntegrationTestBase
         Assert.AreEqual("test@example.com", result.Email);
         Assert.IsFalse(result.IsAdmin);
         Assert.IsFalse(result.IsLockedOut);
-        Assert.AreEqual(0, result.WorkspaceCount);
+        Assert.AreEqual(0, result.Workspaces.Count);
     }
 
     [TestMethod]
@@ -85,19 +85,29 @@ public class UserQueryServiceTests : IntegrationTestBase
     }
 
     [TestMethod]
-    public async Task GetUserByIdAsyncShouldCountWorkspaceAssignments()
+    public async Task GetUserByIdAsyncShouldReturnWorkspaceAssignments()
     {
         var user = await CreateUserAsync("workspace@example.com", false);
         var workspace1 = await CreateWorkspaceAsync("Workspace 1");
         var workspace2 = await CreateWorkspaceAsync("Workspace 2");
 
         await CreateWorkspaceAssignmentAsync(user.Id, workspace1.Id, AuthConstants.ViewerRole);
-        await CreateWorkspaceAssignmentAsync(user.Id, workspace2.Id, AuthConstants.EditorRole);
+        await CreateWorkspaceAssignmentAsync(user.Id, workspace2.Id, AuthConstants.EditorRole, AuthConstants.LdapSource);
 
         var result = await _service.GetUserByIdAsync(user.Id);
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(2, result.WorkspaceCount);
+        Assert.AreEqual(2, result.Workspaces.Count);
+
+        var ws1 = result.Workspaces.First(w => w.WorkspaceName == "Workspace 1");
+        Assert.AreEqual(workspace1.Id, ws1.WorkspaceId);
+        Assert.AreEqual(AuthConstants.ViewerRole, ws1.Role);
+        Assert.AreEqual(AuthConstants.ManualSource, ws1.Source);
+
+        var ws2 = result.Workspaces.First(w => w.WorkspaceName == "Workspace 2");
+        Assert.AreEqual(workspace2.Id, ws2.WorkspaceId);
+        Assert.AreEqual(AuthConstants.EditorRole, ws2.Role);
+        Assert.AreEqual(AuthConstants.LdapSource, ws2.Source);
     }
 
     [TestMethod]

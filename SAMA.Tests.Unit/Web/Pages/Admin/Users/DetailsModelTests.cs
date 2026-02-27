@@ -55,8 +55,7 @@ public class DetailsModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 2
+            IsLockedOut = false
         };
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
 
@@ -76,7 +75,7 @@ public class DetailsModelTests
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = true,
             IsLockedOut = false,
-            WorkspaceCount = 3
+            Workspaces = [new(), new(), new()]
         };
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
 
@@ -86,7 +85,7 @@ public class DetailsModelTests
         Assert.AreEqual("user@example.com", _pageModel.UserDetails.Email);
         Assert.IsTrue(_pageModel.UserDetails.IsAdmin);
         Assert.IsFalse(_pageModel.UserDetails.IsLockedOut);
-        Assert.AreEqual(3, _pageModel.UserDetails.WorkspaceCount);
+        Assert.AreEqual(3, _pageModel.UserDetails.Workspaces.Count);
     }
 
     [TestMethod]
@@ -99,8 +98,7 @@ public class DetailsModelTests
             Email = "test@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
 

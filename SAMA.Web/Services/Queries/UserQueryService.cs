@@ -20,9 +20,18 @@ public class UserQueryService(
         }
 
         var isAdmin = await _userManager.IsInRoleAsync(user, AuthConstants.AdminRole);
-        var workspaceCount = await _context.UserWorkspaces
+        var workspaces = await _context.UserWorkspaces
             .Where(uw => uw.UserId == userId)
-            .CountAsync();
+            .Include(uw => uw.Workspace)
+            .OrderBy(uw => uw.Workspace.Name)
+            .Select(uw => new UserWorkspaceAssignmentViewModel
+            {
+                WorkspaceId = uw.WorkspaceId,
+                WorkspaceName = uw.Workspace.Name,
+                Role = uw.Role,
+                Source = uw.Source
+            })
+            .ToListAsync();
         var isExternalUser = await _context.UserLogins
             .AnyAsync(ul => ul.UserId == userId && ul.LoginProvider == AuthConstants.LdapSource);
 
@@ -34,7 +43,7 @@ public class UserQueryService(
             IsAdmin = isAdmin,
             IsLockedOut = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow,
             IsExternalUser = isExternalUser,
-            WorkspaceCount = workspaceCount
+            Workspaces = workspaces
         };
     }
 
@@ -62,8 +71,7 @@ public class UserQueryService(
             CreatedAt = u.CreatedAt,
             IsAdmin = adminUserIds.Contains(u.Id),
             IsLockedOut = u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow,
-            IsExternalUser = externalUserIdSet.Contains(u.Id),
-            WorkspaceCount = 0
+            IsExternalUser = externalUserIdSet.Contains(u.Id)
         }).ToList();
     }
 

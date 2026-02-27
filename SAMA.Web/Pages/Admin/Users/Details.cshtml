@@ -1,4 +1,5 @@
 @page
+@using SAMA.Web.Constants
 @model SAMA.Web.Pages.Admin.Users.DetailsModel
 @{
     ViewData["Title"] = "User Details";
@@ -56,11 +57,59 @@
                             <span class="badge bg-secondary">Local</span>
                         }
                     </dd>
-
-                    <dt class="col-sm-4">Workspaces</dt>
-                    <dd class="col-sm-8">@Model.UserDetails.WorkspaceCount</dd>
                 </dl>
             </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                Assigned Workspaces (@Model.UserDetails.Workspaces.Count)
+            </div>
+            @if (Model.UserDetails.Workspaces.Count == 0)
+            {
+                <div class="card-body">
+                    <span class="text-muted">None</span>
+                </div>
+            }
+            else
+            {
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Workspace</th>
+                            <th>Role</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var workspace in Model.UserDetails.Workspaces)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-page="/Dashboard/Index" asp-route-workspaceId="@workspace.WorkspaceId">@workspace.WorkspaceName</a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@workspace.Role</span>
+                                </td>
+                                <td>
+                                    @if (workspace.Source == AuthConstants.LdapSource)
+                                    {
+                                        <span class="badge bg-info">LDAP</span>
+                                    }
+                                    else if (workspace.Source == AuthConstants.OidcSource)
+                                    {
+                                        <span class="badge bg-info">OIDC</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Manual</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </div>
 
         <div class="d-flex gap-2 flex-wrap">

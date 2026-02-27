@@ -75,8 +75,7 @@ public class DeleteModelTests
             Email = "delete@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 2
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -99,7 +98,7 @@ public class DeleteModelTests
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = true,
             IsLockedOut = false,
-            WorkspaceCount = 5
+            Workspaces = [new(), new(), new(), new(), new()]
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -109,7 +108,7 @@ public class DeleteModelTests
         Assert.AreEqual(userId, _pageModel.UserToDelete.Id);
         Assert.AreEqual("delete@example.com", _pageModel.UserToDelete.Email);
         Assert.IsTrue(_pageModel.UserToDelete.IsAdmin);
-        Assert.AreEqual(5, _pageModel.UserToDelete.WorkspaceCount);
+        Assert.AreEqual(5, _pageModel.UserToDelete.Workspaces.Count);
     }
 
     [TestMethod]
@@ -159,8 +158,7 @@ public class DeleteModelTests
             Email = "delete@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -181,8 +179,7 @@ public class DeleteModelTests
             Email = "delete@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -206,8 +203,7 @@ public class DeleteModelTests
             Email = "deleted@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -233,8 +229,7 @@ public class DeleteModelTests
             Email = "delete@example.com",
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
-            IsLockedOut = false,
-            WorkspaceCount = 0
+            IsLockedOut = false
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -260,7 +255,7 @@ public class DeleteModelTests
             CreatedAt = DateTimeOffset.UtcNow,
             IsAdmin = false,
             IsLockedOut = false,
-            WorkspaceCount = 3
+            Workspaces = [new(), new(), new()]
         };
 
         _mockUserQuery.GetUserByIdAsync(userId).Returns(Task.FromResult<UserViewModel?>(user));
@@ -271,7 +266,7 @@ public class DeleteModelTests
 
         Assert.AreEqual(userId, _pageModel.UserToDelete.Id);
         Assert.AreEqual("delete@example.com", _pageModel.UserToDelete.Email);
-        Assert.AreEqual(3, _pageModel.UserToDelete.WorkspaceCount);
+        Assert.AreEqual(3, _pageModel.UserToDelete.Workspaces.Count);
     }
 
     [TestMethod]
