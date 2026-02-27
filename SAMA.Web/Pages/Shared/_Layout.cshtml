@@ -1,6 +1,25 @@
 @using SAMA.Web.Services
 @inject ApplicationStateService AppState
 
+@functions {
+    bool IsActiveNav(string section)
+    {
+        var path = ViewContext.HttpContext.Request.Path.Value ?? "";
+        return section switch
+        {
+            "Workspaces" => path.StartsWith("/Workspaces", StringComparison.OrdinalIgnoreCase)
+                         || path.StartsWith("/Dashboard", StringComparison.OrdinalIgnoreCase)
+                         || path.StartsWith("/Checks", StringComparison.OrdinalIgnoreCase)
+                         || path.StartsWith("/Alerts", StringComparison.OrdinalIgnoreCase)
+                         || path.StartsWith("/NotificationChannels", StringComparison.OrdinalIgnoreCase),
+            "Users" => path.StartsWith("/Admin/Users", StringComparison.OrdinalIgnoreCase),
+            "Settings" => path.StartsWith("/Admin/Settings", StringComparison.OrdinalIgnoreCase),
+            "About" => path.StartsWith("/About", StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
+    }
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,23 +46,20 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
-                        </li>
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Workspaces/Index">Workspaces</a>
+                                <a class="nav-link @(IsActiveNav("Workspaces") ? "active" : "")" asp-page="/Workspaces/Index">Workspaces</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Admin/Users/Index">Users</a>
+                                <a class="nav-link @(IsActiveNav("Users") ? "active" : "")" asp-page="/Admin/Users/Index">Users</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Admin/Settings/Index">System Options</a>
+                                <a class="nav-link @(IsActiveNav("Settings") ? "active" : "")" asp-page="/Admin/Settings/Index">System Options</a>
                             </li>
                         }
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/About">About</a>
+                            <a class="nav-link @(IsActiveNav("About") ? "active" : "")" asp-page="/About">About</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav">
