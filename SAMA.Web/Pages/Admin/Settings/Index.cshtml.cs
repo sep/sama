@@ -107,8 +107,7 @@ public class IndexModel(
             return Page();
         }
 
-        await LoadPageDataAsync();
-        return Page();
+        return RedirectToPage();
     }
 
     private async Task LoadPageDataAsync()
