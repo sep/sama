@@ -22,7 +22,6 @@ public class UserQueryService(
         var isAdmin = await _userManager.IsInRoleAsync(user, AuthConstants.AdminRole);
         var workspaces = await _context.UserWorkspaces
             .Where(uw => uw.UserId == userId)
-            .Include(uw => uw.Workspace)
             .OrderBy(uw => uw.Workspace.Name)
             .Select(uw => new UserWorkspaceAssignmentViewModel
             {
