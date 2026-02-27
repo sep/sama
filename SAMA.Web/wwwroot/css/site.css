@@ -1292,3 +1292,34 @@ pre code {
     border-top: 1px solid var(--color-border);
     margin: 1rem 0;
 }
+
+/* Live refresh indicator */
+.live-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--bs-secondary);
+    opacity: 0.3;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    animation: live-blip 0.8s ease-out forwards;
+}
+
+@keyframes live-blip {
+    0% {
+        background-color: var(--bs-success);
+        opacity: 1;
+        transform: scale(1.8);
+    }
+    40% {
+        background-color: var(--bs-success);
+        opacity: 0.8;
+        transform: scale(1.2);
+    }
+    100% {
+        background-color: var(--bs-secondary);
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}

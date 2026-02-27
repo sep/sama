@@ -9,7 +9,7 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0 page-header">Checks</h2>
+    <h2 class="mb-0 page-header">Checks <span class="live-indicator" id="live-indicator" title="Live — content refreshes automatically" hx-swap-oob="true"></span></h2>
     @if (canEdit)
     {
         <a asp-page="Create" asp-route-workspaceId="@Model.WorkspaceId" class="btn btn-primary">
