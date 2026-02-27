@@ -11,7 +11,8 @@
                          || path.StartsWith("/Dashboard", StringComparison.OrdinalIgnoreCase)
                          || path.StartsWith("/Checks", StringComparison.OrdinalIgnoreCase)
                          || path.StartsWith("/Alerts", StringComparison.OrdinalIgnoreCase)
-                         || path.StartsWith("/NotificationChannels", StringComparison.OrdinalIgnoreCase),
+                         || path.StartsWith("/NotificationChannels", StringComparison.OrdinalIgnoreCase)
+                         || path.StartsWith("/EventSubscriptions", StringComparison.OrdinalIgnoreCase),
             "Users" => path.StartsWith("/Admin/Users", StringComparison.OrdinalIgnoreCase),
             "Settings" => path.StartsWith("/Admin/Settings", StringComparison.OrdinalIgnoreCase),
             "About" => path.StartsWith("/About", StringComparison.OrdinalIgnoreCase),
