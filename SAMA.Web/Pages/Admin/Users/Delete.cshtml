@@ -23,7 +23,7 @@
                         <dd class="col-sm-8">@Model.UserToDelete.Email</dd>
 
                         <dt class="col-sm-4">Created</dt>
-                        <dd class="col-sm-8">@Model.UserToDelete.CreatedAt.ToString("MMMM dd, yyyy")</dd>
+                        <dd class="col-sm-8"><time data-timestamp="@Model.UserToDelete.CreatedAt.ToString("O")" data-format="long">@Model.UserToDelete.CreatedAt.ToString("MMMM dd, yyyy")</time></dd>
 
                         <dt class="col-sm-4">Role</dt>
                         <dd class="col-sm-8">

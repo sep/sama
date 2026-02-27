@@ -41,7 +41,7 @@
                         </dd>
 
                         <dt class="col-sm-4">Created</dt>
-                        <dd class="col-sm-8">@Model.ChannelToDelete.CreatedAt.ToString("MMMM dd, yyyy")</dd>
+                        <dd class="col-sm-8"><time data-timestamp="@Model.ChannelToDelete.CreatedAt.ToString("O")" data-format="long">@Model.ChannelToDelete.CreatedAt.ToString("MMMM dd, yyyy")</time></dd>
 
                         <dt class="col-sm-4">Alerts Using Channel</dt>
                         <dd class="col-sm-8">
