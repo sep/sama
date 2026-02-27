@@ -290,3 +290,19 @@
         document.body.addEventListener('htmx:afterSwap', initializePopovers);
     }
 })();
+
+// Keep loading indicators visible during redirects
+(function() {
+    'use strict';
+
+    if (typeof htmx === 'undefined') {
+        return;
+    }
+
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        var xhr = event.detail.xhr;
+        if (xhr && xhr.getResponseHeader('HX-Redirect')) {
+            event.detail.elt.classList.add('htmx-request');
+        }
+    });
+})();
