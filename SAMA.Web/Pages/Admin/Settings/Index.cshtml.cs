@@ -40,9 +40,9 @@ public class IndexModel(
         [Display(Name = "Audit Log Retention (days)")]
         public int AuditLogRetentionDays { get; set; }
 
-        [Required(ErrorMessage = "Dashboard refresh interval is required")]
-        [Range(1, 300, ErrorMessage = "Dashboard refresh interval must be between 1 and 300 seconds")]
-        [Display(Name = "Dashboard Refresh Interval (seconds)")]
+        [Required(ErrorMessage = "Auto-refresh interval is required")]
+        [Range(1, 300, ErrorMessage = "Auto-refresh interval must be between 1 and 300 seconds")]
+        [Display(Name = "Auto-Refresh Interval (seconds)")]
         public int DashboardRefreshIntervalSeconds { get; set; }
 
         [Required(ErrorMessage = "Max recent alerts is required")]

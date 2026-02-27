@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -77,7 +78,7 @@ public class IndexModelTests
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsInstanceOfType<PageResult>(result);
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
         _mockGlobalSettings.Received(1).CheckResultsRetentionDays = 180;
         _mockGlobalSettings.Received(1).AlertHistoryRetentionDays = 90;
         _mockGlobalSettings.Received(1).AuditLogRetentionDays = 730;
@@ -159,7 +160,7 @@ public class IndexModelTests
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsInstanceOfType<PageResult>(result);
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
         _mockGlobalSettings.Received(1).CheckResultsRetentionDays = 30;
         _mockGlobalSettings.Received(1).DashboardRefreshIntervalSeconds = 1;
     }
@@ -180,7 +181,7 @@ public class IndexModelTests
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsInstanceOfType<PageResult>(result);
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
         _mockGlobalSettings.Received(1).CheckResultsRetentionDays = 3650;
         _mockGlobalSettings.Received(1).DashboardRefreshIntervalSeconds = 300;
     }
@@ -202,7 +203,7 @@ public class IndexModelTests
 
         var result = await _pageModel.OnPostAsync();
 
-        Assert.IsInstanceOfType<PageResult>(result);
+        Assert.IsInstanceOfType<RedirectToPageResult>(result);
         _mockGlobalSettings.Received(1).AnonymousDefaultWorkspaceId = null;
     }
 }
