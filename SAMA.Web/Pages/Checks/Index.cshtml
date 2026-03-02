@@ -1,6 +1,7 @@
 @page
 @using SAMA.Shared.Constants
 @using SAMA.Web.Extensions
+@using SAMA.Web.Models
 @model SAMA.Web.Pages.Checks.IndexModel
 @{
     ViewData["Title"] = "Checks";
@@ -22,7 +23,116 @@
 <div id="checks-table-container"
      hx-get="?workspaceId=@Model.WorkspaceId"
      hx-trigger="every @(Model.RefreshIntervalSeconds)s"
-	 hx-select="#checks-table-container"
-     hx-swap="innerHTML">
-    <partial name="_ChecksTablePartial" model="Model.Checks" />
+     hx-swap="none">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-nowrap">Name</th>
+                    <th class="text-nowrap">Type</th>
+                    <th class="text-nowrap">
+                        Schedule <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="How often this check runs"></i>
+                    </th>
+                    <th style="width: 100%;" class="text-nowrap">Status</th>
+                    <th class="text-nowrap">Last Checked</th>
+                    <th class="text-nowrap">
+                        Alerts <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of alert rules configured for this check"></i>
+                    </th>
+                    <th class="text-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="checks-tbody" hx-swap-oob="true">
+                @if (!Model.Checks.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="icon-info icon-2xl text-info mb-2"></i>
+                            <p class="fw-semibold mb-1">No checks configured yet</p>
+                            <p class="text-muted mb-2">Create your first monitoring check to start tracking uptime and availability.</p>
+                            @if (canEdit)
+                            {
+                                <a asp-page="Create" asp-route-workspaceId="@Model.WorkspaceId" class="btn btn-primary">
+                                    <i class="icon-plus icon-sm"></i>
+                                    Create Check
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var check in Model.Checks)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-page="Details" asp-route-id="@check.Id">
+                                    <strong>@check.Name</strong>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">@SAMA.Shared.Constants.CheckTypes.GetShortDisplayName(check.CheckType)</span>
+                            </td>
+                            <td>
+                                <span>@ScheduleExtensions.ToDisplayString(check.Schedule)</span>
+                            </td>
+                            <td>
+                                @if (!check.Enabled)
+                                {
+                                    <span class="badge bg-secondary">Disabled</span>
+                                }
+                                else if (check.LastStatus == CheckStatuses.Up)
+                                {
+                                    <span class="badge bg-success">Up</span>
+                                }
+                                else if (check.LastStatus == CheckStatuses.Warn)
+                                {
+                                    <span class="badge bg-warning text-dark">Warning</span>
+                                }
+                                else if (check.LastStatus == CheckStatuses.Down)
+                                {
+                                    <span class="badge bg-danger">Down</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pending</span>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                @if (check.LastCheckedAt.HasValue)
+                                {
+                                    <small class="text-muted">
+                                        <time data-timestamp="@check.LastCheckedAt.Value.ToString("O")" data-format="short">
+                                            @check.LastCheckedAt.Value.ToString("MMM dd, h:mm tt")
+                                        </time>
+                                    </small>
+                                }
+                                else
+                                {
+                                    <small class="text-muted fst-italic">Never</small>
+                                }
+                            </td>
+                            <td class="fw-semibold">
+                                <a asp-page="/Alerts/Index" asp-route-checkId="@check.Id" class="text-decoration-none" title="View/Manage Alerts">
+                                    <i class="icon-bell icon-sm me-1"></i> @check.AlertCount
+                                </a>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-3">
+                                    @if (canEdit)
+                                    {
+                                        <a asp-page="Edit" asp-route-id="@check.Id" class="btn btn-link table-action-link" title="Edit">
+                                            Edit
+                                        </a>
+                                        <a asp-page="Delete" asp-route-id="@check.Id" class="btn btn-link table-action-link text-danger" title="Delete">
+                                            Delete
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

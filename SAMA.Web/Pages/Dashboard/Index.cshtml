@@ -9,7 +9,13 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4 page-header-row">
-    <h2 class="mb-0 page-header">Dashboard <span class="live-indicator" id="live-indicator" title="Live — content refreshes automatically" hx-swap-oob="true"></span></h2>
+    <h2 class="mb-0 page-header">
+        Dashboard
+        @if (Model.Checks.Any())
+        {
+            <span class="live-indicator" id="live-indicator" title="Live — content refreshes automatically" hx-swap-oob="true"></span>
+        }
+    </h2>
     @if (canEdit)
     {
         <div class="d-flex gap-2">
@@ -57,7 +63,7 @@ else
                 var disabledCount = Model.Checks.Count(c => !c.Enabled);
             }
 
-            <div class="col-md-4 col-lg">
+            <div class="col-6 col-md-4 col-lg">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="d-flex align-items-center justify-content-center mb-2">
@@ -69,7 +75,7 @@ else
                 </div>
             </div>
 
-            <div class="col-md-4 col-lg">
+            <div class="col-6 col-md-4 col-lg">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="d-flex align-items-center justify-content-center mb-2">
@@ -81,7 +87,7 @@ else
                 </div>
             </div>
 
-            <div class="col-md-4 col-lg">
+            <div class="col-6 col-md-4 col-lg">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="d-flex align-items-center justify-content-center mb-2">
@@ -93,7 +99,7 @@ else
                 </div>
             </div>
 
-            <div class="col-md-4 col-lg">
+            <div class="col-6 col-md-4 col-lg">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="d-flex align-items-center justify-content-center mb-2">
@@ -105,7 +111,7 @@ else
                 </div>
             </div>
 
-            <div class="col-md-4 col-lg">
+            <div class="col-6 col-md-4 col-lg">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="d-flex align-items-center justify-content-center mb-2">
@@ -128,7 +134,7 @@ else
 
         <div class="row">
             <div class="col-lg-8">
-                <div class="card" id="check-status-card" hx-swap-oob="true">
+                <div class="card" id="check-status-card">
                     <div class="card-header">
                         <h5 class="mb-0">Check Status</h5>
                     </div>
@@ -145,7 +151,7 @@ else
                                         <th class="text-nowrap">Last Checked</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="check-status-tbody" hx-swap-oob="true">
                                     @foreach (var check in Model.Checks)
                                     {
                                         <tr>
