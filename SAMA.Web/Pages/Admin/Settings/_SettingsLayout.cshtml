@@ -5,7 +5,7 @@
 
 <h2 class="mb-3 page-header">System Options</h2>
 
-<ul class="nav nav-tabs mb-0">
+<ul class="nav nav-tabs mb-0" id="settings-tabs">
     <li class="nav-item">
         <a class="nav-link @(activeTab == "General" ? "active" : "")"
            asp-page="/Admin/Settings/Index">
@@ -36,5 +36,16 @@
     </li>
 </ul>
 <hr class="mt-0" />
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tabs = document.getElementById('settings-tabs');
+        var active = tabs && tabs.querySelector('.nav-link.active');
+        if (tabs && active) {
+            var offset = active.offsetLeft - (tabs.clientWidth / 2) + (active.offsetWidth / 2);
+            tabs.scrollLeft = Math.max(0, offset);
+        }
+    });
+</script>
 
 @RenderBody()
