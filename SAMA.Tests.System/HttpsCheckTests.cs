@@ -27,7 +27,7 @@ public class HttpsCheckTests : SystemTestBase
 
         // Navigate to Checks and create a new check
         await Page.Locator("a:has-text('Checks')").ClickAsync();
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Create Check", Exact = true }).ClickAsync();
+        await Page.Locator("a.btn:has-text('Create Check')").ClickAsync();
         await Page.WaitForURLAsync($"{BaseUrl}/Checks/Create**");
 
         // Fill in check name and description
