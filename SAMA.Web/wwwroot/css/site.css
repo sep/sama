@@ -1420,9 +1420,9 @@ pre code {
         gap: 0.5rem;
     }
 
-    /* Break long URLs and emails */
+    /* Break long URLs and emails in inline code without harming code blocks */
     code {
-        word-break: break-all;
+        overflow-wrap: anywhere;
     }
 
     /* Workspace header wraps on mobile */
