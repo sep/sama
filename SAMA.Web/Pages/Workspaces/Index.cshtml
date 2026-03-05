@@ -1,4 +1,5 @@
 @page
+@using SAMA.Shared.Constants
 @model SAMA.Web.Pages.Workspaces.IndexModel
 @{
     ViewData["Title"] = "Workspaces";
@@ -57,7 +58,7 @@
                                 Visibility <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-html="true" data-bs-content="<strong>Public:</strong> All users can view this workspace<br><strong>Private:</strong> Only users with granted access can view/edit this workspace"></i>
                             </th>
                             <th class="text-nowrap">
-                                Checks <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of monitoring checks configured in this workspace"></i>
+                                Health <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-html="true" data-bs-content="Status breakdown of checks in this workspace<br><span class='text-success'>●</span> Up &nbsp;<span class='text-warning'>●</span> Warning &nbsp;<span class='text-danger'>●</span> Down &nbsp;<span class='text-muted'>●</span> Inactive"></i>
                             </th>
                             <th class="text-nowrap">
                                 Channels <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of notification channels (email, webhooks, etc.) configured for alerting"></i>
@@ -103,7 +104,32 @@
                                         <span class="badge bg-secondary">Private</span>
                                     }
                                 </td>
-                                <td>@workspace.CheckCount</td>
+                                <td class="text-nowrap">
+                                    @if (workspace.CheckCount == 0)
+                                    {
+                                        <span class="text-muted">&mdash;</span>
+                                    }
+                                    else
+                                    {
+                                        @if (workspace.UpCount > 0)
+                                        {
+                                            <span class="badge bg-success" title="@workspace.UpCount Up">@workspace.UpCount</span>
+                                        }
+                                        @if (workspace.WarnCount > 0)
+                                        {
+                                            <span class="badge bg-warning text-dark" title="@workspace.WarnCount Warning">@workspace.WarnCount</span>
+                                        }
+                                        @if (workspace.DownCount > 0)
+                                        {
+                                            <span class="badge bg-danger" title="@workspace.DownCount Down">@workspace.DownCount</span>
+                                        }
+                                        var inactiveCount = workspace.CheckCount - workspace.UpCount - workspace.WarnCount - workspace.DownCount;
+                                        @if (inactiveCount > 0)
+                                        {
+                                            <span class="badge bg-secondary" title="@inactiveCount Inactive (disabled or pending)">@inactiveCount</span>
+                                        }
+                                    }
+                                </td>
                                 <td>@workspace.NotificationChannelCount</td>
                                 <td>@workspace.UserCount</td>
                                 <td>

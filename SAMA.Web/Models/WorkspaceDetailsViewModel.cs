@@ -18,6 +18,12 @@ public class WorkspaceDetailsViewModel
 
     public int CheckCount { get; set; }
 
+    public int UpCount { get; set; }
+
+    public int WarnCount { get; set; }
+
+    public int DownCount { get; set; }
+
     public int NotificationChannelCount { get; set; }
 
     public int UserCount { get; set; }
