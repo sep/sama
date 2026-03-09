@@ -20,8 +20,8 @@
         <span asp-validation-for="ScriptArguments" class="text-danger"></span>
         <div class="form-text">
             Command-line arguments to pass to the script.
-            <br>For inline scripts, include <code>@ChannelDefaults.ScriptFilePlaceholder</code> where the temp script file path should be inserted.
-            <br><strong>Examples:</strong> <code>@ChannelDefaults.ScriptFilePlaceholder</code> | <code>-u @ChannelDefaults.ScriptFilePlaceholder</code> | <code>-File @ChannelDefaults.ScriptFilePlaceholder</code>
+            <br>For inline scripts, include <code class="text-bg-secondary">@ChannelDefaults.ScriptFilePlaceholder</code> where the temp script file path should be inserted.
+            <br><strong>Examples:</strong> <code class="text-bg-secondary">@ChannelDefaults.ScriptFilePlaceholder</code> | <code class="text-bg-secondary">-u @ChannelDefaults.ScriptFilePlaceholder</code> | <code class="text-bg-secondary">-File @ChannelDefaults.ScriptFilePlaceholder</code>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
         <span asp-validation-for="ScriptContent" class="text-danger"></span>
         <div class="form-text">
             Enter script content directly instead of referencing an external file.
-            <br>When using inline content, set <strong>Script Path</strong> to the interpreter and include <code>@ChannelDefaults.ScriptFilePlaceholder</code> in arguments.
+            <br>When using inline content, set <strong>Script Path</strong> to the interpreter and include <code class="text-bg-secondary">@ChannelDefaults.ScriptFilePlaceholder</code> in arguments.
         </div>
     </div>
 
@@ -40,39 +40,39 @@
         
         <p class="mt-2 mb-1"><strong>Status Alert Notifications:</strong></p>
         <ul class="mb-2">
-            <li><code>SAMA_CHECK_NAME</code> - Name of the check</li>
-            <li><code>SAMA_CHECK_ID</code> - Check GUID</li>
-            <li><code>SAMA_STATUS</code> - Current status (Up, Warn, Down)</li>
-            <li><code>SAMA_IS_RECOVERY</code> - Whether this is a recovery notification (True/False)</li>
-            <li><code>SAMA_CONSECUTIVE_FAILURES</code> - Number of consecutive failures</li>
-            <li><code>SAMA_ERROR_MESSAGE</code> - Error message</li>
-            <li><code>SAMA_RESPONSE_TIME_MS</code> - Response time in milliseconds</li>
-            <li><code>SAMA_TIMESTAMP</code> - ISO 8601 timestamp</li>
-            <li><code>SAMA_WORKSPACE</code> - Workspace name</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_NAME</code> - Name of the check</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_ID</code> - Check GUID</li>
+            <li><code class="text-bg-secondary">SAMA_STATUS</code> - Current status (Up, Warn, Down)</li>
+            <li><code class="text-bg-secondary">SAMA_IS_RECOVERY</code> - Whether this is a recovery notification (True/False)</li>
+            <li><code class="text-bg-secondary">SAMA_CONSECUTIVE_FAILURES</code> - Number of consecutive failures</li>
+            <li><code class="text-bg-secondary">SAMA_ERROR_MESSAGE</code> - Error message</li>
+            <li><code class="text-bg-secondary">SAMA_RESPONSE_TIME_MS</code> - Response time in milliseconds</li>
+            <li><code class="text-bg-secondary">SAMA_TIMESTAMP</code> - ISO 8601 timestamp</li>
+            <li><code class="text-bg-secondary">SAMA_WORKSPACE</code> - Workspace name</li>
         </ul>
         
         <p class="mb-1"><strong>Status Change Event Notifications:</strong></p>
         <ul class="mb-2">
-            <li><code>SAMA_CHECK_NAME</code> - Name of the check</li>
-            <li><code>SAMA_CHECK_ID</code> - Check GUID</li>
-            <li><code>SAMA_PREVIOUS_STATUS</code> - Status before the change (Up, Warn, Down)</li>
-            <li><code>SAMA_NEW_STATUS</code> - Status after the change (Up, Warn, Down)</li>
-            <li><code>SAMA_ERROR_MESSAGE</code> - Error message</li>
-            <li><code>SAMA_RESPONSE_TIME_MS</code> - Response time in milliseconds</li>
-            <li><code>SAMA_TIMESTAMP</code> - ISO 8601 timestamp</li>
-            <li><code>SAMA_WORKSPACE</code> - Workspace name</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_NAME</code> - Name of the check</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_ID</code> - Check GUID</li>
+            <li><code class="text-bg-secondary">SAMA_PREVIOUS_STATUS</code> - Status before the change (Up, Warn, Down)</li>
+            <li><code class="text-bg-secondary">SAMA_NEW_STATUS</code> - Status after the change (Up, Warn, Down)</li>
+            <li><code class="text-bg-secondary">SAMA_ERROR_MESSAGE</code> - Error message</li>
+            <li><code class="text-bg-secondary">SAMA_RESPONSE_TIME_MS</code> - Response time in milliseconds</li>
+            <li><code class="text-bg-secondary">SAMA_TIMESTAMP</code> - ISO 8601 timestamp</li>
+            <li><code class="text-bg-secondary">SAMA_WORKSPACE</code> - Workspace name</li>
         </ul>
         
         <p class="mb-1"><strong>Lifecycle Event Notifications:</strong></p>
         <ul class="mb-0">
-            <li><code>SAMA_EVENT_TYPE</code> - Event type (CheckCreated, CheckUpdated, CheckDeleted)</li>
-            <li><code>SAMA_CHECK_NAME</code> - Name of the check</li>
-            <li><code>SAMA_CHECK_ID</code> - Check GUID</li>
-            <li><code>SAMA_CHECK_TYPE</code> - Type of check (Http, Tcp, Ping, etc.)</li>
-            <li><code>SAMA_WORKSPACE</code> - Workspace name</li>
-            <li><code>SAMA_PERFORMED_BY</code> - Email of the user who performed the action</li>
-            <li><code>SAMA_CHANGED_FIELDS</code> - Comma-separated list of changed field names</li>
-            <li><code>SAMA_TIMESTAMP</code> - ISO 8601 timestamp</li>
+            <li><code class="text-bg-secondary">SAMA_EVENT_TYPE</code> - Event type (CheckCreated, CheckUpdated, CheckDeleted)</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_NAME</code> - Name of the check</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_ID</code> - Check GUID</li>
+            <li><code class="text-bg-secondary">SAMA_CHECK_TYPE</code> - Type of check (Http, Tcp, Ping, etc.)</li>
+            <li><code class="text-bg-secondary">SAMA_WORKSPACE</code> - Workspace name</li>
+            <li><code class="text-bg-secondary">SAMA_PERFORMED_BY</code> - Email of the user who performed the action</li>
+            <li><code class="text-bg-secondary">SAMA_CHANGED_FIELDS</code> - Comma-separated list of changed field names</li>
+            <li><code class="text-bg-secondary">SAMA_TIMESTAMP</code> - ISO 8601 timestamp</li>
         </ul>
     </div>
 

@@ -47,14 +47,7 @@
                             <tbody>
                                 @foreach (var log in Model.LogEntries)
                                 {
-                                    var rowClass = log.Level switch
-                                    {
-                                        "Error" or "Fatal" => "table-danger",
-                                        "Warning" => "table-warning",
-                                        _ => ""
-                                    };
-
-                                    <tr class="@rowClass">
+                                    <tr>
                                         <td class="text-nowrap small">
                                             <time data-timestamp="@log.Timestamp.ToString("o")" data-format="MMM dd, HH:mm:ss.SSS">
                                                 @log.Timestamp.ToString("HH:mm:ss.fff")
@@ -96,7 +89,7 @@
                                                 <details class="mt-1">
                                                     <summary class="text-danger" style="cursor: pointer;">Exception details</summary>
                                                     <div style="overflow-x: auto;">
-                                                        <pre class="mt-2 mb-0 p-2 bg-light border rounded small text-danger"><code>@log.Exception</code></pre>
+                                                        <pre class="mt-2 mb-0 p-2 border rounded small log-exception"><code>@log.Exception</code></pre>
                                                     </div>
                                                 </details>
                                             }

@@ -15,7 +15,7 @@
         <dd class="col-sm-8 mb-0">
             @if (Model.GetValueOrDefault(ConfigurationKeys.DnsCheck.ExpectedValues) is IEnumerable<object> values && values.Any())
             {
-                <code class="text-break">@string.Join(", ", values)</code>
+                <code class="text-break text-bg-secondary">@string.Join(", ", values)</code>
             }
             else
             {

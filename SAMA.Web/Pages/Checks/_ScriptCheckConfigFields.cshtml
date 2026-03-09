@@ -19,8 +19,8 @@
         <span asp-validation-for="ScriptPath" class="text-danger"></span>
         <div class="form-text">
             Full path to the script or command to execute.
-            <br><strong>Linux/Mac:</strong> <code>/usr/local/bin/check.sh</code> | <strong>Windows:</strong> <code>C:\Scripts\check.bat</code>
-            <br>If using inline script content below, specify the interpreter (e.g., <code>bash</code>, <code>python3</code>, <code>powershell</code>).
+            <br><strong>Linux/Mac:</strong> <code class="text-bg-secondary">/usr/local/bin/check.sh</code> | <strong>Windows:</strong> <code class="text-bg-secondary">C:\Scripts\check.bat</code>
+            <br>If using inline script content below, specify the interpreter (e.g., <code class="text-bg-secondary">bash</code>, <code class="text-bg-secondary">python3</code>, <code class="text-bg-secondary">powershell</code>).
         </div>
     </div>
 
@@ -30,8 +30,8 @@
         <span asp-validation-for="ScriptArguments" class="text-danger"></span>
         <div class="form-text">
             Command-line arguments to pass to the script.
-            <br>For inline scripts, include <code>@CheckDefaults.ScriptFilePlaceholder</code> where the temp script file path should be inserted.
-            <br><strong>Examples:</strong> <code>@CheckDefaults.ScriptFilePlaceholder</code> | <code>-u @CheckDefaults.ScriptFilePlaceholder</code> | <code>-File @CheckDefaults.ScriptFilePlaceholder</code>
+            <br>For inline scripts, include <code class="text-bg-secondary">@CheckDefaults.ScriptFilePlaceholder</code> where the temp script file path should be inserted.
+            <br><strong>Examples:</strong> <code class="text-bg-secondary">@CheckDefaults.ScriptFilePlaceholder</code> | <code class="text-bg-secondary">-u @CheckDefaults.ScriptFilePlaceholder</code> | <code class="text-bg-secondary">-File @CheckDefaults.ScriptFilePlaceholder</code>
         </div>
     </div>
 
@@ -47,7 +47,7 @@
         <span asp-validation-for="ScriptContent" class="text-danger"></span>
         <div class="form-text">
             Enter script content directly instead of referencing an external file.
-            <br>When using inline content, set <strong>Script Path</strong> to the interpreter and include <code>@CheckDefaults.ScriptFilePlaceholder</code> in arguments.
+            <br>When using inline content, set <strong>Script Path</strong> to the interpreter and include <code class="text-bg-secondary">@CheckDefaults.ScriptFilePlaceholder</code> in arguments.
         </div>
     </div>
 </div>

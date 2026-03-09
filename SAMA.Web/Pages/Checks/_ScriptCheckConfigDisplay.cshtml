@@ -7,14 +7,14 @@
     <dl class="row mb-0">
         <dt class="col-sm-4">Script Path / Interpreter</dt>
         <dd class="col-sm-8">
-            <code>@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Path)</code>
+            <code class="text-bg-secondary">@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Path)</code>
         </dd>
 
         @if (!string.IsNullOrWhiteSpace(Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Arguments)?.ToString()))
         {
             <dt class="col-sm-4">Arguments</dt>
             <dd class="col-sm-8">
-                <code>@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Arguments)</code>
+                <code class="text-bg-secondary">@Model.GetValueOrDefault(ConfigurationKeys.ScriptCheck.Arguments)</code>
             </dd>
         }
 

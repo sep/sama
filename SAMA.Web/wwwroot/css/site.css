@@ -867,6 +867,12 @@ h6 {
         transparent 100%);
 }
 
+/* Log Exception Block */
+.log-exception {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 /* Table Action Links */
 .table-action-link {
     text-decoration: none;
@@ -959,15 +965,9 @@ h6 {
 code {
     font-size: 0.95em;
     padding: 0.2em 0.4em;
-    background-color: rgba(204, 85, 0, 0.08);
     color: var(--color-text-primary);
     border-radius: var(--radius-md);
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-}
-
-[data-theme="dark"] code {
-    background-color: rgba(204, 85, 0, 0.15);
-    color: #E8E8E8;
 }
 
 pre {
@@ -979,16 +979,6 @@ pre {
     font-size: 0.9rem;
     line-height: 1.5;
     color: var(--color-text-primary);
-}
-
-[data-theme="dark"] pre {
-    background-color: rgba(204, 85, 0, 0.1);
-    border-color: rgba(204, 85, 0, 0.25);
-    color: #E8E8E8;
-}
-
-[data-theme="dark"] pre code {
-    background-color: transparent;
 }
 
 pre code {
