@@ -54,71 +54,96 @@
 else
 {
     <div id="dashboard-content">
-        <div class="row g-3 mb-4" id="dashboard-cards" hx-swap-oob="true">
-            @{
-                var upCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Up);
-                var warnCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Warn);
-                var downCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Down);
-                var pendingCount = Model.Checks.Count(c => c.LastStatus == null && c.Enabled);
-                var disabledCount = Model.Checks.Count(c => !c.Enabled);
-            }
-
-            <div class="col-6 col-md-4 col-lg">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex align-items-center justify-content-center mb-2">
-                            <i class="icon-circle-check text-success icon-2xl me-2 mt-1"></i>
-                            <span class="display-6 fw-bold">@upCount</span>
-                        </div>
-                        <p class="text-muted mb-0">Up</p>
+        @{
+            var downChecks = Model.Checks.Where(c => c.Enabled && c.LastStatus == CheckStatuses.Down).ToList();
+            var warnChecks = Model.Checks.Where(c => c.Enabled && c.LastStatus == CheckStatuses.Warn).ToList();
+            var upCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Up);
+            var warnCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Warn);
+            var downCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Down);
+            var pendingCount = Model.Checks.Count(c => c.LastStatus == null && c.Enabled);
+            var disabledCount = Model.Checks.Count(c => !c.Enabled);
+            var allPending = upCount == 0 && !downChecks.Any() && !warnChecks.Any() && pendingCount > 0;
+            var statusClass = downChecks.Any() ? "status-danger" : warnChecks.Any() ? "status-warning" : allPending ? "status-pending" : "";
+        }
+        <div class="card status-overview mb-4 @statusClass" id="status-overview-card" hx-swap-oob="true">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="status-overview-left">
+                        @if (downChecks.Any())
+                        {
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="icon-circle-x text-danger icon-lg me-2 flex-shrink-0 fw-black"></i>
+                                <span class="fs-5 fw-semibold">@downChecks.Count @(downChecks.Count == 1 ? "check" : "checks") down@(warnChecks.Any() ? $" · {warnChecks.Count} warning" : "")</span>
+                            </div>
+                            <div class="status-overview-details">
+                                <span class="text-muted me-1">Down:</span>
+                                @for (var i = 0; i < downChecks.Count; i++)
+                                {
+                                    <a asp-page="/Checks/Details" asp-route-id="@downChecks[i].Id" class="status-overview-link">@downChecks[i].Name</a>@(i < downChecks.Count - 1 ? ", " : "")
+                                }
+                            </div>
+                            @if (warnChecks.Any())
+                            {
+                                <div class="status-overview-details">
+                                    <span class="text-muted me-1">Warn:</span>
+                                    @for (var i = 0; i < warnChecks.Count; i++)
+                                    {
+                                        <a asp-page="/Checks/Details" asp-route-id="@warnChecks[i].Id" class="status-overview-link">@warnChecks[i].Name</a>@(i < warnChecks.Count - 1 ? ", " : "")
+                                    }
+                                </div>
+                            }
+                        }
+                        else if (warnChecks.Any())
+                        {
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="icon-triangle-alert text-warning icon-lg me-2 flex-shrink-0 fw-black"></i>
+                                <span class="fs-5 fw-semibold">@warnChecks.Count @(warnChecks.Count == 1 ? "check" : "checks") warning</span>
+                            </div>
+                            <div class="status-overview-details">
+                                <span class="text-muted me-1">Warn:</span>
+                                @for (var i = 0; i < warnChecks.Count; i++)
+                                {
+                                    <a asp-page="/Checks/Details" asp-route-id="@warnChecks[i].Id" class="status-overview-link">@warnChecks[i].Name</a>@(i < warnChecks.Count - 1 ? ", " : "")
+                                }
+                            </div>
+                        }
+                        else if (upCount == 0 && pendingCount > 0)
+                        {
+                            <div class="d-flex align-items-center">
+                                <i class="icon-clock text-secondary icon-lg me-2 flex-shrink-0 fw-black"></i>
+                                <span class="fs-5 fw-semibold">Waiting for checks to run...</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center">
+                                <i class="icon-circle-check text-success icon-lg me-2 flex-shrink-0 fw-black"></i>
+                                <span class="fs-5 fw-semibold">All systems operational</span>
+                            </div>
+                        }
                     </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex align-items-center justify-content-center mb-2">
-                            <i class="icon-triangle-alert text-warning icon-2xl me-2 mt-1"></i>
-                            <span class="display-6 fw-bold">@warnCount</span>
-                        </div>
-                        <p class="text-muted mb-0">Warning</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex align-items-center justify-content-center mb-2">
-                            <i class="icon-circle-x text-danger icon-2xl me-2 mt-1"></i>
-                            <span class="display-6 fw-bold">@downCount</span>
-                        </div>
-                        <p class="text-muted mb-0">Down</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex align-items-center justify-content-center mb-2">
-                            <i class="icon-clock text-secondary icon-2xl me-2 mt-1"></i>
-                            <span class="display-6 fw-bold">@pendingCount</span>
-                        </div>
-                        <p class="text-muted mb-0">Pending</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex align-items-center justify-content-center mb-2">
-                            <i class="icon-pause text-muted icon-2xl me-2 mt-1"></i>
-                            <span class="display-6 fw-bold">@disabledCount</span>
-                        </div>
-                        <p class="text-muted mb-0">Disabled</p>
+                    <div class="status-overview-counts text-end">
+                        <span class="status-count-success fw-semibold">@upCount</span> <span class="text-muted">Up</span>
+                        <span class="text-muted mx-1">·</span>
+                        <span class="status-count-warning fw-semibold">@warnCount</span> <span class="text-muted">Warn</span>
+                        <span class="text-muted mx-1">·</span>
+                        <span class="status-count-danger fw-semibold">@downCount</span> <span class="text-muted">Down</span>
+                        @if (pendingCount > 0 || disabledCount > 0)
+                        {
+                            <br />
+                            @if (pendingCount > 0)
+                            {
+                                <span class="fw-semibold">@pendingCount</span> <span class="text-muted">Pending</span>
+                                @if (disabledCount > 0)
+                                {
+                                    <span class="text-muted mx-1">·</span>
+                                }
+                            }
+                            @if (disabledCount > 0)
+                            {
+                                <span class="fw-semibold">@disabledCount</span> <span class="text-muted">Disabled</span>
+                            }
+                        }
                     </div>
                 </div>
             </div>
@@ -158,23 +183,23 @@ else
                                             <td class="text-center">
                                                 @if (!check.Enabled)
                                                 {
-                                                    <i class="icon-pause text-muted icon-md" title="Disabled"></i>
+                                                    <i class="icon-pause text-muted icon-md fw-black" title="Disabled"></i>
                                                 }
                                                 else if (check.LastStatus == CheckStatuses.Up)
                                                 {
-                                                    <i class="icon-circle-check text-success icon-md" title="Up"></i>
+                                                    <i class="icon-circle-check text-success icon-md fw-black" title="Up"></i>
                                                 }
                                                 else if (check.LastStatus == CheckStatuses.Warn)
                                                 {
-                                                    <i class="icon-triangle-alert text-warning icon-md" title="Warning"></i>
+                                                    <i class="icon-triangle-alert text-warning icon-md fw-black" title="Warning"></i>
                                                 }
                                                 else if (check.LastStatus == CheckStatuses.Down)
                                                 {
-                                                    <i class="icon-circle-x text-danger icon-md" title="Down"></i>
+                                                    <i class="icon-circle-x text-danger icon-md fw-black" title="Down"></i>
                                                 }
                                                 else
                                                 {
-                                                    <i class="icon-clock text-secondary icon-md" title="Pending"></i>
+                                                    <i class="icon-clock text-secondary icon-md fw-black" title="Pending"></i>
                                                 }
                                             </td>
                                             <td>

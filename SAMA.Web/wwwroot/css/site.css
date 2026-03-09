@@ -44,6 +44,10 @@ h6 {
   text-align: start;
 }
 
+.fw-black {
+  font-weight: 900 !important;
+}
+
 /* ============================================
    HTMX Loading Indicators
    ============================================ */
@@ -1259,6 +1263,58 @@ pre code {
     text-decoration: underline;
 }
 
+/* Status Overview Card */
+.card.status-overview {
+    min-height: 7rem;
+    border-left: 4px solid var(--color-success);
+}
+
+.card.status-overview.status-warning {
+    border-left-color: var(--color-warning);
+}
+
+.card.status-overview.status-danger {
+    border-left-color: var(--color-danger);
+}
+
+.card.status-overview.status-pending {
+    border-left-color: var(--color-text-muted);
+}
+
+.status-overview-details {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.status-overview-details a {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--color-text-muted);
+}
+
+.status-overview-details a:hover {
+    text-decoration-color: var(--color-text-primary);
+}
+
+.status-overview-counts {
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.status-count-success {
+    color: var(--color-success);
+}
+
+.status-count-warning {
+    color: var(--color-warning-hover);
+    font-weight: 700 !important;
+}
+
+.status-count-danger {
+    color: var(--color-danger);
+}
+
+/* Dashboard message area */
 .dashboard-message table {
     width: 100%;
     margin-bottom: 0.75rem;
