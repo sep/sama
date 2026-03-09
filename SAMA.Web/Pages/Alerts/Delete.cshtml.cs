@@ -62,11 +62,11 @@ public class DeleteModel(WorkspaceQueryService _workspaceQueryService, AlertQuer
 
         if (!success)
         {
-            TempData["ErrorMessage"] = "Failed to delete alert.";
+            TempData["ErrorMessage"] = "Failed to delete alert rule.";
             return RedirectToPage("Index", new { checkId = alert.CheckId });
         }
 
-        TempData["SuccessMessage"] = $"Alert '{alert.Name}' deleted successfully.";
+        TempData["SuccessMessage"] = $"Alert rule '{alert.Name}' deleted successfully.";
 
         return RedirectToPage("Index", new { checkId = alert.CheckId });
     }

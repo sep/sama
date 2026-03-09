@@ -29,7 +29,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, ChannelQuer
 
         public Guid CheckId { get; set; }
 
-        [Required(ErrorMessage = "Alert name is required")]
+        [Required(ErrorMessage = "Alert rule name is required")]
         [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
         public string Name { get; set; } = string.Empty;
 
@@ -112,7 +112,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, ChannelQuer
 
         if (!Input.TriggerOnWarn && !Input.TriggerOnDown)
         {
-            ModelState.AddModelError(string.Empty, "Alert must trigger on at least Warn or Down status.");
+            ModelState.AddModelError(string.Empty, "Alert rule must trigger on at least Warn or Down status.");
 
             var check = await _checkQueryService.GetCheckBasicInfoAsync(Input.CheckId);
             if (check == null)
@@ -146,7 +146,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, ChannelQuer
 
         if (!updateResult.Success)
         {
-            ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? "Failed to update alert.");
+            ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? "Failed to update alert rule.");
 
             var check = await _checkQueryService.GetCheckBasicInfoAsync(Input.CheckId);
             if (check == null)
@@ -173,7 +173,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, ChannelQuer
                 ? $"{updateResult.ChannelCount} channel(s)"
                 : $"all {updateResult.AllChannelsCount} workspace channel(s)";
 
-            TempData["SuccessMessage"] = $"Alert '{Input.Name}' updated successfully with {channelMessage}. Check is being executed immediately to send initial notification.";
+            TempData["SuccessMessage"] = $"Alert rule '{Input.Name}' updated successfully with {channelMessage}. Check is being executed immediately to send initial notification.";
         }
         else
         {
@@ -181,7 +181,7 @@ public class EditModel(WorkspaceQueryService _workspaceQueryService, ChannelQuer
                 ? $"{updateResult.ChannelCount} channel(s)"
                 : "all workspace channels";
 
-            TempData["SuccessMessage"] = $"Alert '{Input.Name}' updated successfully with {channelMessage}.";
+            TempData["SuccessMessage"] = $"Alert rule '{Input.Name}' updated successfully with {channelMessage}.";
         }
 
         return RedirectToPage("Index", new { checkId = Input.CheckId });

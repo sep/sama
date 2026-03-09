@@ -2,21 +2,21 @@
 @using SAMA.Web.Extensions
 @model SAMA.Web.Pages.Alerts.IndexModel
 @{
-    ViewData["Title"] = $"Alerts - {Model.CheckName}";
+    ViewData["Title"] = $"Alert Rules - {Model.CheckName}";
     Layout = "_WorkspaceLayout";
     var canEdit = await Html.CanEditWorkspaceAsync(Model.WorkspaceId);
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
     <div>
-        <h2 class="mb-1 page-header">Alerts</h2>
+        <h2 class="mb-1 page-header">Alert Rules</h2>
         <p class="text-muted mb-0">For check: <a asp-page="/Checks/Details" asp-route-id="@Model.CheckId">@Model.CheckName</a></p>
     </div>
     @if (canEdit)
     {
         <a asp-page="Create" asp-route-checkId="@Model.CheckId" class="btn btn-primary">
             <i class="icon-plus icon-sm"></i>
-            Create Alert
+            Create Alert Rule
         </a>
     }
 </div>
@@ -24,13 +24,13 @@
 @if (!Model.Alerts.Any())
 {
     <div class="alert alert-info">
-        <h5 class="alert-heading">No Alerts Configured</h5>
-        <p>Create your first alert to start receiving notifications when this check fails or enters a warning state.</p>
+        <h5 class="alert-heading">No Alert Rules Configured</h5>
+        <p>Create your first alert rule to start receiving notifications when this check fails or enters a warning state.</p>
         @if (canEdit)
         {
             <a asp-page="Create" asp-route-checkId="@Model.CheckId" class="btn btn-primary">
                 <i class="icon-plus icon-sm"></i>
-                Create Alert
+                Create Alert Rule
             </a>
         }
     </div>
@@ -43,13 +43,13 @@ else
                 <tr>
                     <th class="text-nowrap">Name</th>
                     <th class="text-nowrap">
-                        Triggers <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Which check states (Warning/Down) will trigger this alert"></i>
+                        Triggers <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Which check states (Warning/Down) will trigger this alert rule"></i>
                     </th>
                     <th class="text-nowrap">
                         Threshold <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of consecutive failures required before sending a notification"></i>
                     </th>
                     <th class="text-nowrap">
-                        Channels <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Notification channels to use. 'All' means all workspace channels will receive the alert"></i>
+                        Channels <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Notification channels to use. 'All' means all workspace channels will receive the alert rule notification"></i>
                     </th>
                     <th class="text-nowrap">
                         On Recovery <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Whether to send a notification when the check recovers to Up status"></i>

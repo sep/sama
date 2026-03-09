@@ -27,7 +27,7 @@ public class CreateModel(WorkspaceQueryService _workspaceQueryService, ChannelQu
     {
         public Guid CheckId { get; set; }
 
-        [Required(ErrorMessage = "Alert name is required")]
+        [Required(ErrorMessage = "Alert rule name is required")]
         [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
         public string Name { get; set; } = string.Empty;
 
@@ -98,7 +98,7 @@ public class CreateModel(WorkspaceQueryService _workspaceQueryService, ChannelQu
 
         if (!Input.TriggerOnWarn && !Input.TriggerOnDown)
         {
-            ModelState.AddModelError(string.Empty, "Alert must trigger on at least Warn or Down status.");
+            ModelState.AddModelError(string.Empty, "Alert rule must trigger on at least Warn or Down status.");
 
             var result = await LoadWorkspaceContextAsync(check.WorkspaceId, "Checks");
             if (result != null)
@@ -126,7 +126,7 @@ public class CreateModel(WorkspaceQueryService _workspaceQueryService, ChannelQu
 
         if (!createResult.Success)
         {
-            ModelState.AddModelError(string.Empty, createResult.ErrorMessage ?? "Failed to create alert.");
+            ModelState.AddModelError(string.Empty, createResult.ErrorMessage ?? "Failed to create alert rule.");
 
             var result = await LoadWorkspaceContextAsync(check.WorkspaceId, "Checks");
             if (result != null)
@@ -147,7 +147,7 @@ public class CreateModel(WorkspaceQueryService _workspaceQueryService, ChannelQu
                 ? $"{createResult.ChannelCount} channel(s)"
                 : $"all {createResult.AllChannelsCount} workspace channel(s)";
 
-            TempData["SuccessMessage"] = $"Alert '{Input.Name}' created successfully with {channelMessage}. Check is being executed immediately to send initial notification.";
+            TempData["SuccessMessage"] = $"Alert rule '{Input.Name}' created successfully with {channelMessage}. Check is being executed immediately to send initial notification.";
         }
         else
         {
@@ -155,7 +155,7 @@ public class CreateModel(WorkspaceQueryService _workspaceQueryService, ChannelQu
                 ? $"{createResult.ChannelCount} channel(s)"
                 : "all workspace channels";
 
-            TempData["SuccessMessage"] = $"Alert '{Input.Name}' created successfully with {channelMessage}.";
+            TempData["SuccessMessage"] = $"Alert rule '{Input.Name}' created successfully with {channelMessage}.";
         }
 
         return RedirectToPage("Index", new { checkId = Input.CheckId });

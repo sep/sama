@@ -11,7 +11,7 @@
     <div class="col-lg-8">
         <div class="alert alert-danger" role="alert">
             <h5 class="alert-heading">Are you sure you want to delete this notification channel?</h5>
-            <p>This action cannot be undone. This channel will be removed from all alerts that use it.</p>
+            <p>This action cannot be undone. This channel will be removed from all alert rules that use it.</p>
         </div>
 
         <div id="delete-form-container">
@@ -43,7 +43,7 @@
                         <dt class="col-sm-4">Created</dt>
                         <dd class="col-sm-8"><time data-timestamp="@Model.ChannelToDelete.CreatedAt.ToString("O")" data-format="long">@Model.ChannelToDelete.CreatedAt.ToString("MMMM dd, yyyy")</time></dd>
 
-                        <dt class="col-sm-4">Alerts Using Channel</dt>
+                        <dt class="col-sm-4">Alert Rules Using Channel</dt>
                         <dd class="col-sm-8">
                             <span class="badge bg-info">@Model.ChannelToDelete.AlertCount</span>
                         </dd>
@@ -55,9 +55,9 @@
             {
                 <div class="alert alert-warning">
                     <strong>Warning:</strong> This channel is currently used by <strong>@Model.ChannelToDelete.AlertCount</strong> 
-                    @(Model.ChannelToDelete.AlertCount == 1 ? "alert" : "alerts"). 
-                    Deleting this channel will remove it from alerts explicitly configured to use it. 
-                    Alerts with no remaining channels will send to all workspace channels instead.
+                    @(Model.ChannelToDelete.AlertCount == 1 ? "alert rule" : "alert rules"). 
+                    Deleting this channel will remove it from alert rules explicitly configured to use it. 
+                    Alert rules with no remaining channels will send to all workspace channels instead.
                 </div>
             }
 

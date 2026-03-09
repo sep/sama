@@ -36,7 +36,7 @@
                     <th style="width: 100%;" class="text-nowrap">Status</th>
                     <th class="text-nowrap">Last Checked</th>
                     <th class="text-nowrap">
-                        Alerts <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of alert rules configured for this check"></i>
+                        Alert Rules <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of alert rules configured for this check"></i>
                     </th>
                     <th class="text-nowrap">Actions</th>
                 </tr>
@@ -112,7 +112,7 @@
                                 }
                             </td>
                             <td class="fw-semibold">
-                                <a asp-page="/Alerts/Index" asp-route-checkId="@check.Id" class="text-decoration-none" title="View/Manage Alerts">
+                                <a asp-page="/Alerts/Index" asp-route-checkId="@check.Id" class="text-decoration-none" title="View/Manage Alert Rules">
                                     <i class="icon-bell icon-sm me-1"></i> @check.AlertCount
                                 </a>
                             </td>

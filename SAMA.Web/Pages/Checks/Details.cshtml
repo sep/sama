@@ -273,16 +273,16 @@
 
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Configured Alerts (@Model.Check.Alerts.Count)</h5>
+        <h5 class="mb-0">Configured Alert Rules (@Model.Check.Alerts.Count)</h5>
         <a asp-page="/Alerts/Index" asp-route-checkId="@Model.Check.Id" class="btn btn-primary btn-sm">
             <i class="icon-file-sliders icon-sm"></i>
             @if (canEdit)
             {
-                <text>Manage Alerts</text>
+                <text>Manage Alert Rules</text>
             }
             else
             {
-                <text>View Alerts</text>
+                <text>View Alert Rules</text>
             }
         </a>
 
@@ -290,7 +290,7 @@
     <div class="card-body">
         @if (!Model.Check.Alerts.Any())
         {
-            <p class="text-muted mb-0">No alerts configured for this check.</p>
+            <p class="text-muted mb-0">No alert rules configured for this check.</p>
         }
         else
         {
@@ -300,13 +300,13 @@
                         <tr>
                             <th class="text-nowrap">Name</th>
                             <th class="text-nowrap">
-                                Triggers <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Which check states (Warning/Down) will trigger this alert"></i>
+                                Triggers <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Which check states (Warning/Down) will trigger this alert rule"></i>
                             </th>
                             <th class="text-nowrap">
                                 Threshold <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of consecutive failures required before sending a notification"></i>
                             </th>
                             <th class="text-nowrap">
-                                Channels <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Notification channels to use. 'All' means all workspace channels will receive the alert"></i>
+                                Channels <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Notification channels to use. 'All' means all workspace channels will receive the alert rule notification"></i>
                             </th>
                             <th class="text-nowrap">
                                 On Recovery <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Whether to send a notification when the check recovers to Up status"></i>
