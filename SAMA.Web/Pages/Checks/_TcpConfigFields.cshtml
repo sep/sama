@@ -22,7 +22,7 @@
     </div>
 
     <div class="mb-3">
-        <label for="Input_TcpConnectionTimeWarnThresholdMs" class="form-label">Connection Time Warning Threshold (optional)</label>
+        <label for="Input_TcpConnectionTimeWarnThresholdMs" class="form-label">Connection Time Degraded Threshold (optional)</label>
         <input asp-for="TcpConnectionTimeWarnThresholdMs" id="Input_TcpConnectionTimeWarnThresholdMs" name="Input.TcpConnectionTimeWarnThresholdMs" class="form-control" type="number" min="1" placeholder="1000" />
         <span asp-validation-for="TcpConnectionTimeWarnThresholdMs" class="text-danger"></span>
         <div class="form-text">If connection time exceeds this value (in milliseconds), mark as <strong>Degraded</strong> instead of <strong>Up</strong>. Leave blank to disable.</div>

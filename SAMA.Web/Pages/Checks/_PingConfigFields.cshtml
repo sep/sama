@@ -29,7 +29,7 @@
     </div>
 
     <div class="mb-3">
-        <label for="Input_PingPacketLossThresholdPercent" class="form-label">Packet Loss Warning Threshold (%)</label>
+        <label for="Input_PingPacketLossThresholdPercent" class="form-label">Packet Loss Degraded Threshold (%)</label>
         <input asp-for="PingPacketLossThresholdPercent" id="Input_PingPacketLossThresholdPercent" name="Input.PingPacketLossThresholdPercent" class="form-control" type="number" min="0" max="100" />
         <span asp-validation-for="PingPacketLossThresholdPercent" class="text-danger"></span>
         <div class="form-text">Packet loss percentage that triggers a <strong>Degraded</strong> status (0-100). Default is @CheckDefaults.PingPacketLossThresholdPercent%.</div>
