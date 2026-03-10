@@ -8,7 +8,7 @@
         <small><strong>Note:</strong> This check sends ICMP echo requests (ping) to the specified host.</small>
         <ul class="mb-0 mt-1 small">
             <li><strong>Up:</strong> Packet loss is below the threshold</li>
-            <li><strong>Warn:</strong> Packet loss is at or above the threshold, but at least one packet succeeded</li>
+            <li><strong>Degraded:</strong> Packet loss is at or above the threshold, but at least one packet succeeded</li>
             <li><strong>Down:</strong> All packets failed</li>
         </ul>
         <small><em>Note: ICMP may require elevated privileges on some systems.</em></small>
@@ -32,6 +32,6 @@
         <label for="Input_PingPacketLossThresholdPercent" class="form-label">Packet Loss Warning Threshold (%)</label>
         <input asp-for="PingPacketLossThresholdPercent" id="Input_PingPacketLossThresholdPercent" name="Input.PingPacketLossThresholdPercent" class="form-control" type="number" min="0" max="100" />
         <span asp-validation-for="PingPacketLossThresholdPercent" class="text-danger"></span>
-        <div class="form-text">Packet loss percentage that triggers a <strong>Warn</strong> status (0-100). Default is @CheckDefaults.PingPacketLossThresholdPercent%.</div>
+        <div class="form-text">Packet loss percentage that triggers a <strong>Degraded</strong> status (0-100). Default is @CheckDefaults.PingPacketLossThresholdPercent%.</div>
     </div>
 </div>

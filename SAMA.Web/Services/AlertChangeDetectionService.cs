@@ -15,7 +15,7 @@ public class AlertChangeDetectionService
     /// </summary>
     /// <param name="oldAlert">Original alert state with loaded channels</param>
     /// <param name="newName">New alert name</param>
-    /// <param name="newTriggerOnWarn">New trigger on warn setting</param>
+    /// <param name="newTriggerOnWarn">New trigger on degraded setting</param>
     /// <param name="newTriggerOnDown">New trigger on down setting</param>
     /// <param name="newFailureThreshold">New failure threshold</param>
     /// <param name="newSendRecoveryNotification">New send recovery notification setting</param>
@@ -46,7 +46,7 @@ public class AlertChangeDetectionService
 
         if (oldAlert.TriggerOnWarn != newTriggerOnWarn)
         {
-            changes[$"{alertContext}: Trigger on Warn"] = "changed";
+            changes[$"{alertContext}: Trigger on Degraded"] = "changed";
         }
 
         if (oldAlert.TriggerOnDown != newTriggerOnDown)

@@ -19,7 +19,7 @@ SAMA is a comprehensive service availability monitoring solution that helps you:
 ### Core Monitoring
 - **Multiple Check Types**: HTTP/HTTPS, TCP, ICMP Ping, DNS, TLS certificates, Custom Scripts
 - **Flexible Scheduling**: Per-check intervals from seconds to hours
-- **Traffic Light Status**: Up (healthy), Degraded (warning/degraded), Down (failed)
+- **Traffic Light Status**: Up (healthy), Degraded (impaired), Down (failed)
 - **Configurable Thresholds**: Require N consecutive failures before alerting
 
 ### Alerting

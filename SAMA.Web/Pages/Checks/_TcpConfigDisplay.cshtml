@@ -11,7 +11,7 @@
         <dt class="col-sm-4">Port</dt>
         <dd class="col-sm-8">@Model.GetValueOrDefault(ConfigurationKeys.TcpCheck.Port)</dd>
 
-        <dt class="col-sm-4">Connection Time Warn Threshold</dt>
+        <dt class="col-sm-4">Connection Time Degraded Threshold</dt>
         <dd class="col-sm-8 mb-0">
             @if (!string.IsNullOrWhiteSpace(Model.GetValueOrDefault(ConfigurationKeys.TcpCheck.ConnectionTimeWarnThresholdMs)?.ToString()))
             {
