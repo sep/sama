@@ -337,14 +337,14 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
 
         // For disabled checks, compute cutoff: the start of the increment containing their last result.
         // Data in that increment and beyond is excluded since we don't know exactly when the check was disabled.
+        // Disabled checks with no results use MinValue so they are excluded from all increments.
         var disabledCheckCutoffs = new Dictionary<Guid, DateTimeOffset>();
         foreach (var check in checks.Where(c => !c.Enabled))
         {
             var lastResult = allResults.Where(r => r.CheckId == check.Id).MaxBy(r => r.CheckedAt);
-            if (lastResult != null)
-            {
-                disabledCheckCutoffs[check.Id] = AlignToIncrementBoundary(lastResult.CheckedAt, incrementMinutes, roundDown: true);
-            }
+            disabledCheckCutoffs[check.Id] = lastResult != null
+                ? AlignToIncrementBoundary(lastResult.CheckedAt, incrementMinutes, roundDown: true)
+                : DateTimeOffset.MinValue;
         }
 
         var checkLookup = checks.ToDictionary(c => c.Id, c => c.Name);
