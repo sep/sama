@@ -309,10 +309,10 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
 
         var checks = await _samaDbContext.Checks
             .AsNoTracking()
-            .Where(c => c.WorkspaceId == workspaceId && c.Enabled)
+            .Where(c => c.WorkspaceId == workspaceId)
             .OrderBy(c => c.Name)
             .Take(maxChecks)
-            .Select(c => new { c.Id, c.Name })
+            .Select(c => new { c.Id, c.Name, c.Enabled })
             .ToListAsync(cancellationToken);
 
         if (checks.Count == 0)
@@ -335,6 +335,18 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             .Select(cr => new { cr.CheckId, cr.Status, cr.CheckedAt, cr.ErrorMessage })
             .ToListAsync(cancellationToken);
 
+        // For disabled checks, compute cutoff: the start of the increment containing their last result.
+        // Data in that increment and beyond is excluded since we don't know exactly when the check was disabled.
+        var disabledCheckCutoffs = new Dictionary<Guid, DateTimeOffset>();
+        foreach (var check in checks.Where(c => !c.Enabled))
+        {
+            var lastResult = allResults.Where(r => r.CheckId == check.Id).MaxBy(r => r.CheckedAt);
+            if (lastResult != null)
+            {
+                disabledCheckCutoffs[check.Id] = AlignToIncrementBoundary(lastResult.CheckedAt, incrementMinutes, roundDown: true);
+            }
+        }
+
         var checkLookup = checks.ToDictionary(c => c.Id, c => c.Name);
         var incrementDuration = TimeSpan.FromMinutes(incrementMinutes);
         var increments = new List<WorkspaceIncidentTimelineViewModel.TimeIncrement>();
@@ -347,16 +359,22 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
                 incrementEnd = endTime;
             }
 
+            // Determine which checks are active for this increment:
+            // enabled checks are always active; disabled checks are active only before their cutoff
+            var activeCheckIds = checkIds
+                .Where(id => !disabledCheckCutoffs.TryGetValue(id, out var cutoff) || currentTime < cutoff)
+                .ToList();
+
             var increment = new WorkspaceIncidentTimelineViewModel.TimeIncrement
             {
                 StartTime = currentTime,
                 EndTime = incrementEnd,
-                TotalChecks = checks.Count
+                TotalChecks = activeCheckIds.Count
             };
 
             var checkStatusMap = new Dictionary<Guid, (string Status, string? ErrorMessage)>();
 
-            foreach (var checkId in checkIds)
+            foreach (var checkId in activeCheckIds)
             {
                 // Get all results for this check within this increment's time range
                 var resultsInIncrement = allResults
@@ -448,10 +466,10 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
 
         var checks = await _samaDbContext.Checks
             .AsNoTracking()
-            .Where(c => c.WorkspaceId == workspaceId && c.Enabled)
+            .Where(c => c.WorkspaceId == workspaceId)
             .OrderBy(c => c.Name)
             .Take(maxChecks)
-            .Select(c => new { c.Id, c.Name })
+            .Select(c => new { c.Id, c.Name, c.Enabled })
             .ToListAsync(cancellationToken);
 
         var checkIds = checks.Select(c => c.Id).ToList();
@@ -468,6 +486,12 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         foreach (var check in checks)
         {
             var checkResults = allResults.Where(r => r.CheckId == check.Id).ToList();
+
+            if (!check.Enabled && checkResults.Count == 0)
+            {
+                continue;
+            }
+
             var dataPoints = checkResults
                 .Select(r => new WorkspaceResponseTimeTrendsViewModel.ResponseTimeDataPoint
                 {

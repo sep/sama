@@ -741,13 +741,42 @@ public class CheckQueryServiceTests : IntegrationTestBase
     }
 
     [TestMethod]
-    public async Task GetWorkspaceIncidentTimelineAsyncShouldOnlyIncludeEnabledChecks()
+    public async Task GetWorkspaceIncidentTimelineAsyncShouldIncludeDisabledCheckHistoricalData()
     {
         var enabledCheck = await CreateCheckAsync("Enabled Check", CheckTypes.Http, "60", true);
         var disabledCheck = await CreateCheckAsync("Disabled Check", CheckTypes.Http, "60", false);
 
+        // The disabled check has results in two different increments.
+        // With hours=1, incrementMinutes=5. The cutoff is computed from the latest result,
+        // so the earlier result's increment is preserved while the latest one is excluded.
+        var earlyTime = DateTimeOffset.UtcNow.AddMinutes(-40);
+        var laterTime = DateTimeOffset.UtcNow.AddMinutes(-10);
         var recentTime = DateTimeOffset.UtcNow.AddSeconds(-1);
         await CreateCheckResultAsync(enabledCheck.Id, CheckStatuses.Up, recentTime);
+        await CreateCheckResultAsync(disabledCheck.Id, CheckStatuses.Down, earlyTime);
+        await CreateCheckResultAsync(disabledCheck.Id, CheckStatuses.Down, laterTime);
+
+        var result = await _service.GetWorkspaceIncidentTimelineAsync(_workspace.Id, 1);
+
+        Assert.IsNotNull(result);
+        Assert.IsNotEmpty(result.Increments);
+
+        // The early increment should contain the disabled check's historical data
+        var earlyIncrement = result.Increments.First(i => i.StartTime <= earlyTime && earlyTime < i.EndTime);
+        Assert.AreEqual(1, earlyIncrement.DownCount);
+        Assert.IsTrue(earlyIncrement.ChecksInDown.Any(c => c.CheckName == "Disabled Check"));
+
+        // The increment containing the disabled check's latest result should exclude it
+        var laterIncrement = result.Increments.First(i => i.StartTime <= laterTime && laterTime < i.EndTime);
+        Assert.AreEqual(0, laterIncrement.DownCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspaceIncidentTimelineAsyncShouldExcludeDisabledCheckLastIncrement()
+    {
+        var disabledCheck = await CreateCheckAsync("Disabled Check", CheckTypes.Http, "60", false);
+
+        var recentTime = DateTimeOffset.UtcNow.AddSeconds(-1);
         await CreateCheckResultAsync(disabledCheck.Id, CheckStatuses.Down, recentTime);
 
         var result = await _service.GetWorkspaceIncidentTimelineAsync(_workspace.Id, 1);
@@ -755,9 +784,9 @@ public class CheckQueryServiceTests : IntegrationTestBase
         Assert.IsNotNull(result);
         Assert.IsNotEmpty(result.Increments);
 
+        // The increment containing the disabled check's last result should be excluded
         var lastIncrement = result.Increments.Last();
-        Assert.AreEqual(1, lastIncrement.TotalChecks);
-        Assert.AreEqual(1, lastIncrement.UpCount);
+        Assert.AreEqual(0, lastIncrement.TotalChecks);
         Assert.AreEqual(0, lastIncrement.DownCount);
     }
 
