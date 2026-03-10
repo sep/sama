@@ -451,7 +451,7 @@ public class AlertCommandServiceTests : IntegrationTestBase
                 ctx.PerformedBy == "testuser" &&
                 ctx.ConfigurationChanges != null &&
                 ctx.ConfigurationChanges.ContainsKey("Alert 'Original Alert' (renamed to 'Updated Alert'): Name") &&
-                ctx.ConfigurationChanges.ContainsKey("Alert 'Original Alert' (renamed to 'Updated Alert'): Trigger on Warn") &&
+                ctx.ConfigurationChanges.ContainsKey("Alert 'Original Alert' (renamed to 'Updated Alert'): Trigger on Degraded") &&
                 ctx.ConfigurationChanges.ContainsKey("Alert 'Original Alert' (renamed to 'Updated Alert'): Failure Threshold") &&
                 ctx.ConfigurationChanges.ContainsKey("Alert 'Original Alert' (renamed to 'Updated Alert'): Send Recovery Notification") &&
                 ctx.ConfigurationChanges.ContainsKey("Alert 'Original Alert' (renamed to 'Updated Alert'): Enabled") &&

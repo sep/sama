@@ -48,7 +48,7 @@ public class AlertChangeDetectionServiceTests
             oldAlert.Enabled,
             []);
 
-        Assert.IsTrue(changes.ContainsKey("Alert 'Test': Trigger on Warn"));
+        Assert.IsTrue(changes.ContainsKey("Alert 'Test': Trigger on Degraded"));
         Assert.IsTrue(changes.ContainsKey("Alert 'Test': Updated At"));
     }
 
@@ -293,7 +293,7 @@ public class AlertChangeDetectionServiceTests
             [Guid.NewGuid()]);
 
         Assert.IsTrue(changes.ContainsKey("Alert 'Old Alert' (renamed to 'New Alert'): Name"));
-        Assert.IsTrue(changes.ContainsKey("Alert 'Old Alert' (renamed to 'New Alert'): Trigger on Warn"));
+        Assert.IsTrue(changes.ContainsKey("Alert 'Old Alert' (renamed to 'New Alert'): Trigger on Degraded"));
         Assert.IsTrue(changes.ContainsKey("Alert 'Old Alert' (renamed to 'New Alert'): Trigger on Down"));
         Assert.IsTrue(changes.ContainsKey("Alert 'Old Alert' (renamed to 'New Alert'): Failure Threshold"));
         Assert.IsTrue(changes.ContainsKey("Alert 'Old Alert' (renamed to 'New Alert'): Send Recovery Notification"));
