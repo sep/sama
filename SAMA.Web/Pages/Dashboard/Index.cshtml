@@ -57,9 +57,9 @@ else
         @{
             var downChecks = Model.Checks.Where(c => c.Enabled && c.LastStatus == CheckStatuses.Down).ToList();
             var warnChecks = Model.Checks.Where(c => c.Enabled && c.LastStatus == CheckStatuses.Warn).ToList();
-            var upCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Up);
-            var warnCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Warn);
-            var downCount = Model.Checks.Count(c => c.LastStatus == CheckStatuses.Down);
+            var upCount = Model.Checks.Count(c => c.Enabled && c.LastStatus == CheckStatuses.Up);
+            var warnCount = Model.Checks.Count(c => c.Enabled && c.LastStatus == CheckStatuses.Warn);
+            var downCount = Model.Checks.Count(c => c.Enabled && c.LastStatus == CheckStatuses.Down);
             var pendingCount = Model.Checks.Count(c => c.LastStatus == null && c.Enabled);
             var disabledCount = Model.Checks.Count(c => !c.Enabled);
             var allPending = upCount == 0 && !downChecks.Any() && !warnChecks.Any() && pendingCount > 0;
