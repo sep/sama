@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,8 @@ namespace SAMA.Web.Pages.Account;
 public class LoginModel(
     SignInManager<ApplicationUser> signInManager,
     LdapAuthenticationService ldapService,
+    OidcAuthenticationService oidcService,
+    GlobalSettingsService globalSettings,
     ILogger<LoginModel> logger) : PageModel
 {
     [BindProperty]
@@ -22,6 +25,10 @@ public class LoginModel(
     public string? ReturnUrl { get; set; }
 
     public bool LdapEnabled => ldapService.IsLdapEnabled;
+
+    public bool OidcEnabled => oidcService.IsOidcEnabled;
+
+    public string OidcProviderName => globalSettings.OidcProviderName;
 
     public class InputModel
     {
@@ -81,12 +88,12 @@ public class LoginModel(
         }
 
         // Fall back to local password authentication
-        // Block local login for LDAP-sourced users
+        // Block local login for LDAP or OIDC-sourced users
         var localUser = await signInManager.UserManager.FindByEmailAsync(identifier);
         if (localUser != null)
         {
             var logins = await signInManager.UserManager.GetLoginsAsync(localUser);
-            if (logins.Any(l => l.LoginProvider == AuthConstants.LdapSource))
+            if (logins.Any(l => l.LoginProvider == AuthConstants.LdapSource || l.LoginProvider == AuthConstants.OidcSource))
             {
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
@@ -108,5 +115,46 @@ public class LoginModel(
 
         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
         return Page();
+    }
+
+    public IActionResult OnGetOidcLogin(string? returnUrl = null)
+    {
+        returnUrl ??= Url.Content("~/");
+
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = Url.Page("/Account/Login", "OidcCallback", new { returnUrl }),
+        };
+
+        return Challenge(properties, AuthConstants.OidcSource);
+    }
+
+    public async Task<IActionResult> OnGetOidcCallbackAsync(string? returnUrl = null)
+    {
+        returnUrl ??= Url.Content("~/");
+
+        var authResult = await HttpContext.AuthenticateAsync(AuthConstants.OidcSource);
+        if (!authResult.Succeeded || authResult.Principal == null)
+        {
+            logger.LogWarning("OIDC authentication failed: {Failure}", authResult.Failure?.Message);
+            ModelState.AddModelError(string.Empty, "External login failed. Please try again.");
+            ReturnUrl = returnUrl;
+            return Page();
+        }
+
+        try
+        {
+            var user = await oidcService.ProvisionOrUpdateUserAsync(authResult.Principal);
+            await signInManager.SignInAsync(user, isPersistent: false);
+            logger.LogInformation("User {Email} logged in via OIDC", user.Email);
+            return LocalRedirect(returnUrl);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during OIDC login");
+            ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again.");
+            ReturnUrl = returnUrl;
+            return Page();
+        }
     }
 }

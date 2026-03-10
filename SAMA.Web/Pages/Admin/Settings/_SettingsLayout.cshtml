@@ -28,6 +28,13 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link @(activeTab == "Oidc" ? "active" : "")"
+           asp-page="/Admin/Settings/Oidc">
+            <i class="icon-key-round icon-sm"></i>
+            OIDC
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link @(activeTab == "GroupMappings" ? "active" : "")"
            asp-page="/Admin/Settings/GroupMappings">
             <i class="icon-users icon-sm"></i>

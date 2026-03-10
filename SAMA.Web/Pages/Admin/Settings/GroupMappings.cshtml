@@ -132,7 +132,7 @@
                         <label asp-for="Input.ExternalGroupId" class="form-label"></label>
                         <input asp-for="Input.ExternalGroupId" class="form-control" placeholder="CN=Developers,OU=Groups,DC=example,DC=com" />
                         <div class="form-text">
-                            The LDAP group DN or CN. Must match what appears in the user's group memberships. Use the LDAP Test Login to discover group names.
+                            The group name, DN, or ID from the identity provider. For LDAP, use the group DN or CN. For OIDC, use the exact value from the group claim (e.g. group name or Object ID).
                         </div>
                     </div>
                     <div class="mb-3">
@@ -157,6 +157,7 @@
                         <label asp-for="Input.IdentityProvider" class="form-label"></label>
                         <select asp-for="Input.IdentityProvider" class="form-select">
                             <option value="LDAP">LDAP</option>
+                            <option value="OIDC">OIDC</option>
                         </select>
                         <div class="form-text">The identity provider that supplies group membership.</div>
                     </div>

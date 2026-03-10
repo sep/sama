@@ -58,6 +58,18 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     private const string DefaultLdapGroupSearchFilter = "(&(objectClass=group)(member={0}))";
     private const string KeyLdapCustomRootCa = "LdapCustomRootCa";
 
+    // OIDC
+    private const string KeyOidcEnabled = "OidcEnabled";
+    private const string KeyOidcAuthority = "OidcAuthority";
+    private const string KeyOidcClientId = "OidcClientId";
+    private const string KeyOidcClientSecret = "OidcClientSecret";
+    private const string KeyOidcScopes = "OidcScopes";
+    private const string DefaultOidcScopes = "openid profile email";
+    private const string KeyOidcGroupClaimType = "OidcGroupClaimType";
+    private const string DefaultOidcGroupClaimType = "groups";
+    private const string KeyOidcProviderName = "OidcProviderName";
+    private const string DefaultOidcProviderName = "OIDC";
+
     /* --- */
 
     private readonly ConcurrentDictionary<string, string> _cache = new();
@@ -192,6 +204,49 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     {
         get => GetStringAsync(KeyLdapCustomRootCa, string.Empty).GetAwaiter().GetResult();
         set => SetStringAsync(KeyLdapCustomRootCa, value).GetAwaiter().GetResult();
+    }
+
+    // OIDC
+    public virtual bool OidcEnabled
+    {
+        get => GetBoolAsync(KeyOidcEnabled, false).GetAwaiter().GetResult();
+        set => SetBoolAsync(KeyOidcEnabled, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcAuthority
+    {
+        get => GetStringAsync(KeyOidcAuthority, string.Empty).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyOidcAuthority, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcClientId
+    {
+        get => GetStringAsync(KeyOidcClientId, string.Empty).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyOidcClientId, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcClientSecret
+    {
+        get => GetEncryptedStringAsync(KeyOidcClientSecret).GetAwaiter().GetResult();
+        set => SetEncryptedStringAsync(KeyOidcClientSecret, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcScopes
+    {
+        get => GetStringAsync(KeyOidcScopes, DefaultOidcScopes).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyOidcScopes, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcGroupClaimType
+    {
+        get => GetStringAsync(KeyOidcGroupClaimType, DefaultOidcGroupClaimType).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyOidcGroupClaimType, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcProviderName
+    {
+        get => GetStringAsync(KeyOidcProviderName, DefaultOidcProviderName).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyOidcProviderName, value).GetAwaiter().GetResult();
     }
 
     /* --- */
