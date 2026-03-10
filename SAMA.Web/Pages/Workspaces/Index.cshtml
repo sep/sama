@@ -58,7 +58,7 @@
                                 Visibility <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-html="true" data-bs-content="<strong>Public:</strong> All users can view this workspace<br><strong>Private:</strong> Only users with granted access can view/edit this workspace"></i>
                             </th>
                             <th class="text-nowrap">
-                                Health <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-html="true" data-bs-content="Status breakdown of checks in this workspace<br><span class='text-success'>●</span> Up &nbsp;<span class='text-warning'>●</span> Warning &nbsp;<span class='text-danger'>●</span> Down &nbsp;<span class='text-muted'>●</span> Inactive"></i>
+                                Health <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-html="true" data-bs-content="Status breakdown of checks in this workspace<br><span class='text-success'>●</span> Up &nbsp;<span class='text-warning'>●</span> Degraded &nbsp;<span class='text-danger'>●</span> Down &nbsp;<span class='text-muted'>●</span> Inactive"></i>
                             </th>
                             <th class="text-nowrap">
                                 Channels <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of notification channels (email, webhooks, etc.) configured for alerting"></i>
@@ -117,7 +117,7 @@
                                         }
                                         @if (workspace.WarnCount > 0)
                                         {
-                                            <span class="badge bg-warning text-dark" title="@workspace.WarnCount Warning">@workspace.WarnCount</span>
+                                            <span class="badge bg-warning text-dark" title="@workspace.WarnCount Degraded">@workspace.WarnCount</span>
                                         }
                                         @if (workspace.DownCount > 0)
                                         {

@@ -19,13 +19,13 @@ SAMA is a comprehensive service availability monitoring solution that helps you:
 ### Core Monitoring
 - **Multiple Check Types**: HTTP/HTTPS, TCP, ICMP Ping, DNS, TLS certificates, Custom Scripts
 - **Flexible Scheduling**: Per-check intervals from seconds to hours
-- **Traffic Light Status**: Up (healthy), Warn (warning/degraded), Down (failed)
+- **Traffic Light Status**: Up (healthy), Degraded (warning/degraded), Down (failed)
 - **Configurable Thresholds**: Require N consecutive failures before alerting
 
 ### Alerting
 - **Reusable Channels**: Define notification channels once, use across multiple checks
 - **Multiple Channels**: Email, Slack, Microsoft Teams, Discord, custom scripts, Azure Event Grid
-- **Flexible Alerts**: Trigger on Warn/Down status with consecutive failure thresholds
+- **Flexible Alerts**: Trigger on Degraded/Down status with consecutive failure thresholds
 - **Recovery Notifications**: Optional notifications when services recover
 - **Lifecycle Events**: Subscribe to check creation, updates, deletion, and status changes
 - **External Integrations**: Send events to Azure Event Grid or custom scripts for workflow automation

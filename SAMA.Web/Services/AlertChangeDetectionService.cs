@@ -96,7 +96,7 @@ public class AlertChangeDetectionService
         var triggers = new List<string>();
         if (triggerOnWarn)
         {
-            triggers.Add("Warn");
+            triggers.Add("Degraded");
         }
         if (triggerOnDown)
         {

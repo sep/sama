@@ -185,7 +185,7 @@ SAMA provides two complementary notification systems:
 - Notification channels defined per workspace (reusable across checks)
 - **Many-to-many relationship**: One alert can notify multiple channels simultaneously
 - All channels receive the same alert with identical threshold and trigger conditions
-- Alerts trigger based on: status (Warn/Down), consecutive failure count
+- Alerts trigger based on: status (Degraded/Down), consecutive failure count
 - Recovery notifications sent when check returns to Up state
 - Simple boolean flags and integer thresholds (no complex JSON conditions)
 - **Default behavior**: If no channels selected, sends to **all enabled workspace channels**
@@ -197,7 +197,7 @@ SAMA provides two complementary notification systems:
 #### Event Subscriptions (EventSubscriptions Table)
 - Workspace-level event routing for operational automation
 - Subscribe to lifecycle events: CheckCreated, CheckUpdated, CheckDeleted
-- Subscribe to status change events: CheckStatusChanged (Up→Warn, Up→Down, Warn→Down, Down→Warn, Warn→Up, Down→Up)
+- Subscribe to status change events: CheckStatusChanged (Up→Degraded, Up→Down, Degraded→Down, Down→Degraded, Degraded→Up, Down→Up)
 - Route events to any notification channel (Email, Slack, Teams, Discord, Webhook, Script, EventGrid)
 - Enable external workflow integrations via Azure Event Grid or custom webhooks
 - Use cases: Change tracking, compliance auditing, CI/CD integration, CMDB synchronization, real-time status streaming, external incident management integration

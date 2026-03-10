@@ -9,7 +9,7 @@
 All colors are CSS variables in `theme.css`. Use Bootstrap 5 classes by default.
 
 **Primary**: `#CC5500` (burnt orange) - buttons, links, active states  
-**Status**: Green (up), Amber (warn), Red (down), Cyan (info)  
+**Status**: Green (up), Amber (degraded), Red (down), Cyan (info)
 **Dark theme**: `[data-theme="dark"]` on `<html>`, toggled via JS + localStorage
 
 ## Icons

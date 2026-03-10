@@ -73,7 +73,7 @@ else
                         {
                             <div class="d-flex align-items-center mb-1">
                                 <i class="icon-circle-x text-danger icon-lg me-2 flex-shrink-0 fw-black"></i>
-                                <span class="fs-5 fw-semibold">@downChecks.Count @(downChecks.Count == 1 ? "check" : "checks") down@(warnChecks.Any() ? $" · {warnChecks.Count} warning" : "")</span>
+                                <span class="fs-5 fw-semibold">@downChecks.Count @(downChecks.Count == 1 ? "check" : "checks") down@(warnChecks.Any() ? $" · {warnChecks.Count} degraded" : "")</span>
                             </div>
                             <div class="status-overview-details">
                                 <span class="text-muted me-1">Down:</span>
@@ -85,7 +85,7 @@ else
                             @if (warnChecks.Any())
                             {
                                 <div class="status-overview-details">
-                                    <span class="text-muted me-1">Warn:</span>
+                                    <span class="text-muted me-1">Degraded:</span>
                                     @for (var i = 0; i < warnChecks.Count; i++)
                                     {
                                         <a asp-page="/Checks/Details" asp-route-id="@warnChecks[i].Id" class="status-overview-link">@warnChecks[i].Name</a>@(i < warnChecks.Count - 1 ? ", " : "")
@@ -97,10 +97,10 @@ else
                         {
                             <div class="d-flex align-items-center mb-1">
                                 <i class="icon-triangle-alert text-warning icon-lg me-2 flex-shrink-0 fw-black"></i>
-                                <span class="fs-5 fw-semibold">@warnChecks.Count @(warnChecks.Count == 1 ? "check" : "checks") warning</span>
+                                <span class="fs-5 fw-semibold">@warnChecks.Count @(warnChecks.Count == 1 ? "check" : "checks") degraded</span>
                             </div>
                             <div class="status-overview-details">
-                                <span class="text-muted me-1">Warn:</span>
+                                <span class="text-muted me-1">Degraded:</span>
                                 @for (var i = 0; i < warnChecks.Count; i++)
                                 {
                                     <a asp-page="/Checks/Details" asp-route-id="@warnChecks[i].Id" class="status-overview-link">@warnChecks[i].Name</a>@(i < warnChecks.Count - 1 ? ", " : "")
@@ -125,7 +125,7 @@ else
                     <div class="status-overview-counts text-end">
                         <span class="status-count-success fw-semibold">@upCount</span> <span class="text-muted">Up</span>
                         <span class="text-muted mx-1">·</span>
-                        <span class="status-count-warning fw-semibold">@warnCount</span> <span class="text-muted">Warn</span>
+                        <span class="status-count-warning fw-semibold">@warnCount</span> <span class="text-muted">Degraded</span>
                         <span class="text-muted mx-1">·</span>
                         <span class="status-count-danger fw-semibold">@downCount</span> <span class="text-muted">Down</span>
                         @if (pendingCount > 0 || disabledCount > 0)
@@ -191,7 +191,7 @@ else
                                                 }
                                                 else if (check.LastStatus == CheckStatuses.Warn)
                                                 {
-                                                    <i class="icon-triangle-alert text-warning icon-md fw-black" title="Warning"></i>
+                                                    <i class="icon-triangle-alert text-warning icon-md fw-black" title="Degraded"></i>
                                                 }
                                                 else if (check.LastStatus == CheckStatuses.Down)
                                                 {
@@ -223,7 +223,7 @@ else
                                                 }
                                                 else if (check.LastStatus == CheckStatuses.Warn)
                                                 {
-                                                    <span class="badge bg-warning text-dark">Warning</span>
+                                                    <span class="badge bg-warning text-dark">Degraded</span>
                                                     @if (!string.IsNullOrEmpty(check.LastErrorMessage))
                                                     {
                                                         <br />
@@ -324,7 +324,7 @@ else
                                             {
                                                 <span class="badge bg-warning text-dark">
                                                     <i class="icon-triangle-alert icon-xs"></i>
-                                                    Warning
+                                                    Degraded
                                                 </span>
                                             }
                                             else if (alert.Status == CheckStatuses.Down)

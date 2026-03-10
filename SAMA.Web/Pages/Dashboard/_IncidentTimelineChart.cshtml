@@ -143,7 +143,7 @@
                                                 lineWidth: 0
                                             },
                                             {
-                                                text: 'Warning',
+                                                text: 'Degraded',
                                                 fillStyle: 'rgb(255, 193, 7)',
                                                 strokeStyle: 'rgb(255, 193, 7)',
                                                 fontColor: '#666666',
@@ -182,7 +182,7 @@
                                         const lines = [];
                                         
                                         if (total > 0) {
-                                            lines.push(`${increment.upCount} Up, ${increment.warnCount} Warn, ${increment.downCount} Down`);
+                                            lines.push(`${increment.upCount} Up, ${increment.warnCount} Degraded, ${increment.downCount} Down`);
                                         } else {
                                             lines.push('No data');
                                         }

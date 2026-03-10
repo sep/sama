@@ -25,7 +25,7 @@
 {
     <div class="alert alert-info">
         <h5 class="alert-heading">No Alert Rules Configured</h5>
-        <p>Create your first alert rule to start receiving notifications when this check fails or enters a warning state.</p>
+        <p>Create your first alert rule to start receiving notifications when this check fails or enters a degraded state.</p>
         @if (canEdit)
         {
             <a asp-page="Create" asp-route-checkId="@Model.CheckId" class="btn btn-primary">
@@ -43,7 +43,7 @@ else
                 <tr>
                     <th class="text-nowrap">Name</th>
                     <th class="text-nowrap">
-                        Triggers <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Which check states (Warning/Down) will trigger this alert rule"></i>
+                        Triggers <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Which check states (Degraded/Down) will trigger this alert rule"></i>
                     </th>
                     <th class="text-nowrap">
                         Threshold <i class="icon-circle-question-mark icon-xs text-muted" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-content="Number of consecutive failures required before sending a notification"></i>
@@ -73,7 +73,7 @@ else
 						<td class="text-nowrap">
                             @if (alert.TriggerOnWarn)
                             {
-                                <span class="badge bg-warning text-dark">Warn</span>
+                                <span class="badge bg-warning text-dark">Degraded</span>
                             }
                             @if (alert.TriggerOnDown)
                             {

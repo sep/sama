@@ -8,7 +8,7 @@
         <small><strong>Status behavior:</strong></small>
         <ul class="mb-0 small">
             <li><strong>Up:</strong> Certificate is valid and expires after the warning threshold</li>
-            <li><strong>Warn:</strong> Certificate is valid but expires within the warning threshold</li>
+            <li><strong>Degraded:</strong> Certificate is valid but expires within the warning threshold</li>
             <li><strong>Down:</strong> Certificate is expired, invalid, untrusted, or hostname mismatch</li>
         </ul>
     </div>
@@ -34,7 +34,7 @@
         <label for="Input_TlsDaysBeforeExpiryWarning" class="form-label">Days Before Expiry Warning</label>
         <input asp-for="TlsDaysBeforeExpiryWarning" id="Input_TlsDaysBeforeExpiryWarning" name="Input.TlsDaysBeforeExpiryWarning" class="form-control" type="number" min="1" max="365" />
         <span asp-validation-for="TlsDaysBeforeExpiryWarning" class="text-danger"></span>
-        <div class="form-text">Trigger <strong>Warn</strong> status when certificate expires within this many days. Default is @CheckDefaults.TlsDaysBeforeExpiryWarning days.</div>
+        <div class="form-text">Trigger <strong>Degraded</strong> status when certificate expires within this many days. Default is @CheckDefaults.TlsDaysBeforeExpiryWarning days.</div>
     </div>
 
     <div class="mb-3">

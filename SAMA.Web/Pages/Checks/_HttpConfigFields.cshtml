@@ -54,7 +54,7 @@
         <label for="Input_HttpResponseTimeWarnThresholdMs" class="form-label">Response Time Warning Threshold (optional)</label>
         <input asp-for="HttpResponseTimeWarnThresholdMs" id="Input_HttpResponseTimeWarnThresholdMs" name="Input.HttpResponseTimeWarnThresholdMs" class="form-control" type="number" min="1" placeholder="2000" />
         <span asp-validation-for="HttpResponseTimeWarnThresholdMs" class="text-danger"></span>
-        <div class="form-text">If response time exceeds this value (in milliseconds), mark as <strong>Warn</strong> instead of <strong>Up</strong>. Leave blank to disable.</div>
+        <div class="form-text">If response time exceeds this value (in milliseconds), mark as <strong>Degraded</strong> instead of <strong>Up</strong>. Leave blank to disable.</div>
     </div>
 
     <div class="mb-3 form-check">

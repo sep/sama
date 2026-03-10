@@ -322,7 +322,7 @@ public class AlertChangeDetectionServiceTests
         var info = _service.BuildCreationInfo("Test Alert", true, false, 1, true, true, []);
 
         Assert.IsTrue(info.ContainsKey("Triggers"));
-        Assert.AreEqual("Warn", info["Triggers"]);
+        Assert.AreEqual("Degraded", info["Triggers"]);
     }
 
     [TestMethod]
@@ -340,7 +340,7 @@ public class AlertChangeDetectionServiceTests
         var info = _service.BuildCreationInfo("Test Alert", true, true, 1, true, true, []);
 
         Assert.IsTrue(info.ContainsKey("Triggers"));
-        Assert.AreEqual("Warn, Down", info["Triggers"]);
+        Assert.AreEqual("Degraded, Down", info["Triggers"]);
     }
 
     [TestMethod]
