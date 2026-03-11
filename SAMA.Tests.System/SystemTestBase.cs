@@ -68,6 +68,7 @@ public abstract class SystemTestBase
         await Page.FillAsync("input[name='Input.EmailOrUsername']", email);
         await Page.FillAsync("input[name='Input.Password']", password);
         await Page.ClickAsync("button[type='submit']");
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForURLAsync($"{BaseUrl}/**");
     }
 
@@ -81,6 +82,7 @@ public abstract class SystemTestBase
         await Page.FillAsync("input[name='Input.ConfirmPassword']", password);
         await Page.ClickAsync("button[type='submit']");
 
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForURLAsync(BaseUrl);
     }
 
@@ -88,6 +90,7 @@ public abstract class SystemTestBase
     {
         await Page.Locator("#userDropdown").ClickAsync();
         await Page.Locator("button:has-text('Logout')").ClickAsync();
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForURLAsync(BaseUrl);
     }
 

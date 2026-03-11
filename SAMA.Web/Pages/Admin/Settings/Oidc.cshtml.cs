@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using SAMA.Web.Constants;
 using SAMA.Web.Services;
 
@@ -10,6 +12,7 @@ namespace SAMA.Web.Pages.Admin.Settings;
 [Authorize(Roles = AuthConstants.AdminRole)]
 public class OidcModel(
     GlobalSettingsService _globalSettings,
+    IOptionsMonitorCache<OpenIdConnectOptions> _oidcOptionsCache,
     ILogger<OidcModel> _logger) : PageModel
 {
     [BindProperty]
@@ -98,6 +101,7 @@ public class OidcModel(
             _logger.LogInformation("OIDC settings updated by {User}", User.Identity?.Name ?? "Unknown");
 
             _globalSettings.ClearCache();
+            _oidcOptionsCache.TryRemove(AuthConstants.OidcSource);
             TempData["OidcSuccess"] = "OIDC settings saved successfully.";
         }
         catch (Exception ex)

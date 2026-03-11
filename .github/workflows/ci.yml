@@ -87,6 +87,18 @@ jobs:
         ports:
           - 6467:80
           - 6468:25
+      oidc:
+        image: ghcr.io/geigerzaehler/oidc-provider-mock:latest
+        restart: unless-stopped
+        command: >
+          --user-claims '{"sub": "alice", "email": "alice@example.com", "name": "Alice"}'
+        ports:
+          - 9400:9400
+      ldap:
+        image: thoteam/slapd-server-mock:latest
+        restart: unless-stopped
+        ports:
+          - 127.0.0.1:389:389
 
     env:
       POSTGRES_HOST: localhost

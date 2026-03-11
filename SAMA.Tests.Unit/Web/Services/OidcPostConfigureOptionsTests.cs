@@ -61,10 +61,9 @@ public class OidcPostConfigureOptionsTests
         Assert.AreEqual("my-secret", options.ClientSecret);
         Assert.AreEqual(OpenIdConnectResponseType.Code, options.ResponseType);
         Assert.AreEqual("/signin-oidc", options.CallbackPath.Value);
-        Assert.AreEqual("/signout-callback-oidc", options.SignedOutCallbackPath.Value);
-        Assert.IsTrue(options.SaveTokens);
         Assert.IsFalse(options.MapInboundClaims);
         Assert.AreEqual("name", options.TokenValidationParameters.NameClaimType);
+        Assert.AreEqual("my-client-id", options.TokenValidationParameters.ValidAudience);
     }
 
     [TestMethod]

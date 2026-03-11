@@ -95,7 +95,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Configure OIDC authentication (dynamically configured via OidcPostConfigureOptions)
 builder.Services.AddAuthentication()
-    .AddOpenIdConnect(AuthConstants.OidcSource, _ => { });
+    .AddOpenIdConnect(AuthConstants.OidcSource, options =>
+    {
+        // Set a placeholder configuration so the handler passes startup validation.
+        // OidcPostConfigureOptions overrides this at runtime with real or dummy settings.
+        options.Configuration = new Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectConfiguration();
+    });
 builder.Services.AddSingleton<IPostConfigureOptions<OpenIdConnectOptions>, OidcPostConfigureOptions>();
 
 // Configure ASP.NET Data Protection
