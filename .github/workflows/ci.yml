@@ -89,6 +89,11 @@ jobs:
           - 6468:25
       oidc:
         image: ghcr.io/geigerzaehler/oidc-provider-mock:latest
+        options: >-
+          --health-cmd "curl -f http://localhost:9400/.well-known/openid-configuration || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 9400:9400
       ldap:
@@ -97,6 +102,7 @@ jobs:
           - 389:389
 
     env:
+      TMPDIR: /tmp
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
       POSTGRES_DB: samadb
@@ -123,6 +129,13 @@ jobs:
         run: |
           cd SAMA.Tests.System
           dotnet test --logger "console;verbosity=detailed"
+      - name: Upload Playwright screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: /tmp/sama-playwright-screenshots/
+          retention-days: 7
 
   docker_build:
     name: Docker Build
