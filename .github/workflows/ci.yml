@@ -90,7 +90,7 @@ jobs:
       oidc:
         image: ghcr.io/geigerzaehler/oidc-provider-mock:latest
         options: >-
-          --health-cmd "curl -f http://localhost:9400/.well-known/openid-configuration || exit 1"
+          --health-cmd "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9400/.well-known/openid-configuration')\""
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
