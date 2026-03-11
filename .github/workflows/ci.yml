@@ -89,16 +89,12 @@ jobs:
           - 6468:25
       oidc:
         image: ghcr.io/geigerzaehler/oidc-provider-mock:latest
-        restart: unless-stopped
-        command: >
-          --user-claims '{"sub": "alice", "email": "alice@example.com", "name": "Alice"}'
         ports:
           - 9400:9400
       ldap:
         image: thoteam/slapd-server-mock:latest
-        restart: unless-stopped
         ports:
-          - 127.0.0.1:389:389
+          - 389:389
 
     env:
       POSTGRES_HOST: localhost
@@ -109,6 +105,9 @@ jobs:
       SAMA_ENCRYPTION_KEY: test-encryption-key-for-ci-only
 
     steps:
+      - name: Prepare OIDC user (this is done via CMD in local dev)
+        run: |
+          curl -XPUT localhost:9400/users/alice --json '{"email": "alice@example.com", "name": "Alice"}'
       - uses: actions/checkout@v4
       - name: Set up dotnet
         uses: actions/setup-dotnet@v4
