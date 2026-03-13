@@ -31,7 +31,7 @@ public static class ScheduleExtensions
         try
         {
             var cron = new CronExpression(schedule);
-            cron.GetNextValidTimeAfter(DateTimeOffset.UtcNow);
+            _ = cron.GetNextValidTimeAfter(DateTimeOffset.UtcNow);
             return null;
         }
         catch

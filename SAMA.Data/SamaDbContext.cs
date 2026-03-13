@@ -43,7 +43,7 @@ public class SamaDbContext(
         base.OnModelCreating(modelBuilder);
 
         // Apply all entity configurations (indexes, relationships, constraints, etc.)
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SamaDbContext).Assembly);
+        _ = modelBuilder.ApplyConfigurationsFromAssembly(typeof(SamaDbContext).Assembly);
 
         // Configure UUIDv7 for all GUID primary keys
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -70,7 +70,7 @@ public class SamaDbContext(
 
         // Apply encryption converters (runtime-only, not used during migrations)
         // These convert C# objects to encrypted JSON strings in the database
-        modelBuilder.Entity<NotificationChannel>()
+        _ = modelBuilder.Entity<NotificationChannel>()
             .Property(nc => nc.ConfigurationJson)
             .HasConversion(
                 v => _encryptionService.Encrypt(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null), _keyProvider.Key),
@@ -78,7 +78,7 @@ public class SamaDbContext(
                 dictionaryComparer
             );
 
-        modelBuilder.Entity<Check>()
+        _ = modelBuilder.Entity<Check>()
             .Property(c => c.ConfigurationJson)
             .HasConversion(
                 v => _encryptionService.Encrypt(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null), _keyProvider.Key),

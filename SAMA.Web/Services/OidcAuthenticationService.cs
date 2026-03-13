@@ -54,7 +54,14 @@ public class OidcAuthenticationService(
                 throw new InvalidOperationException($"Failed to provision OIDC user: {errors}");
             }
 
-            await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.OidcSource, subject, AuthConstants.OidcSource));
+            var loginResult = await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.OidcSource, subject, AuthConstants.OidcSource));
+            if (!loginResult.Succeeded)
+            {
+                var loginErrors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to add OIDC login for new user {Email}: {Errors}", email, loginErrors);
+                throw new InvalidOperationException($"Failed to link OIDC login: {loginErrors}");
+            }
+
             _logger.LogInformation("JIT provisioned new user for OIDC login: {Email}", email);
         }
         else
@@ -62,7 +69,13 @@ public class OidcAuthenticationService(
             var logins = await userManager.GetLoginsAsync(user);
             if (!logins.Any(l => l.LoginProvider == AuthConstants.OidcSource))
             {
-                await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.OidcSource, subject, AuthConstants.OidcSource));
+                var loginResult = await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.OidcSource, subject, AuthConstants.OidcSource));
+                if (!loginResult.Succeeded)
+                {
+                    var loginErrors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
+                    _logger.LogError("Failed to add OIDC login for existing user {Email}: {Errors}", email, loginErrors);
+                    throw new InvalidOperationException($"Failed to link OIDC login: {loginErrors}");
+                }
             }
         }
 

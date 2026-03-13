@@ -341,7 +341,14 @@ public class LdapAuthenticationService(
                 throw new InvalidOperationException($"Failed to provision LDAP user: {errors}");
             }
 
-            await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+            var loginResult = await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+            if (!loginResult.Succeeded)
+            {
+                var loginErrors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to add LDAP login for new user {Email}: {Errors}", ldapResult.Email, loginErrors);
+                throw new InvalidOperationException($"Failed to link LDAP login: {loginErrors}");
+            }
+
             _logger.LogInformation("JIT provisioned new user for LDAP login: {Email}", ldapResult.Email);
         }
         else
@@ -350,7 +357,13 @@ public class LdapAuthenticationService(
             var logins = await userManager.GetLoginsAsync(user);
             if (!logins.Any(l => l.LoginProvider == AuthConstants.LdapSource))
             {
-                await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+                var loginResult = await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+                if (!loginResult.Succeeded)
+                {
+                    var loginErrors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
+                    _logger.LogError("Failed to add LDAP login for existing user {Email}: {Errors}", ldapResult.Email, loginErrors);
+                    throw new InvalidOperationException($"Failed to link LDAP login: {loginErrors}");
+                }
             }
         }
 

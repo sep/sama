@@ -16,9 +16,11 @@ public class OidcPostConfigureOptions(GlobalSettingsService _globalSettings) : I
             return;
         }
 
-        if (!_globalSettings.OidcEnabled)
+        if (!_globalSettings.OidcEnabled
+            || string.IsNullOrWhiteSpace(_globalSettings.OidcAuthority)
+            || string.IsNullOrWhiteSpace(_globalSettings.OidcClientId))
         {
-            // When disabled, set authority to a placeholder so the handler doesn't crash,
+            // When disabled or misconfigured, set authority to a placeholder so the handler doesn't crash,
             // but it will never be challenged
             options.Authority = "https://localhost";
             options.ClientId = "disabled";

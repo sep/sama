@@ -18,7 +18,7 @@ public class ProcessWrapper : IDisposable
         ObjectDisposedException.ThrowIf(_disposedValue, this);
 
         _process = new Process { StartInfo = startInfo };
-        _process.Start();
+        _ = _process.Start();
     }
 
     /// <summary>

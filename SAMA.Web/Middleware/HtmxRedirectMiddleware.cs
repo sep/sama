@@ -32,7 +32,7 @@ public class HtmxRedirectMiddleware(RequestDelegate next)
                 {
                     // Convert to HTMX-compatible response
                     context.Response.StatusCode = 200;
-                    context.Response.Headers.Remove("Location");
+                    _ = context.Response.Headers.Remove("Location");
                     context.Response.Headers["HX-Redirect"] = location;
                 }
             }
