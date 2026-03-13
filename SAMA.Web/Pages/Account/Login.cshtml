@@ -53,7 +53,7 @@
                 {
                     <hr />
                     <div class="d-grid">
-                        <a href="/Account/Login?handler=OidcLogin&returnUrl=@Model.ReturnUrl" class="btn btn-outline-secondary">
+                        <a asp-page="/Account/Login" asp-page-handler="OidcLogin" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-secondary">
                             <i class="icon-log-in icon-sm me-1"></i>
                             Sign in with @Model.OidcProviderName
                         </a>
