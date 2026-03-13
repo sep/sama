@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -43,6 +44,7 @@ public class OidcPostConfigureOptions(GlobalSettingsService _globalSettings) : I
             new OpenIdConnectConfigurationRetriever(),
             retriever);
 
+        options.SignInScheme = IdentityConstants.ExternalScheme;
         options.Authority = authority;
         options.ClientId = _globalSettings.OidcClientId;
         options.ClientSecret = _globalSettings.OidcClientSecret;

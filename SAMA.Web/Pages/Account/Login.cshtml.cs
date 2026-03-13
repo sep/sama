@@ -133,10 +133,21 @@ public class LoginModel(
     {
         returnUrl ??= Url.Content("~/");
 
-        var authResult = await HttpContext.AuthenticateAsync(AuthConstants.OidcSource);
+        var authResult = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
         if (!authResult.Succeeded || authResult.Principal == null)
         {
             logger.LogWarning("OIDC authentication failed: {Failure}", authResult.Failure?.Message);
+            ModelState.AddModelError(string.Empty, "External login failed. Please try again.");
+            ReturnUrl = returnUrl;
+            return Page();
+        }
+
+        // Verify the external login came from our OIDC scheme
+        var scheme = authResult.Properties?.Items[".AuthScheme"];
+        if (scheme != AuthConstants.OidcSource)
+        {
+            logger.LogWarning("External login scheme mismatch: expected {Expected}, got {Actual}", AuthConstants.OidcSource, scheme);
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             ModelState.AddModelError(string.Empty, "External login failed. Please try again.");
             ReturnUrl = returnUrl;
             return Page();
@@ -146,12 +157,14 @@ public class LoginModel(
         {
             var user = await oidcService.ProvisionOrUpdateUserAsync(authResult.Principal);
             await signInManager.SignInAsync(user, isPersistent: false);
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             logger.LogInformation("User {Email} logged in via OIDC", user.Email);
             return LocalRedirect(returnUrl);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error during OIDC login");
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again.");
             ReturnUrl = returnUrl;
             return Page();
