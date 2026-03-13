@@ -18,12 +18,12 @@ public class OidcAuthenticationService(
 
     public async Task<ApplicationUser> ProvisionOrUpdateUserAsync(ClaimsPrincipal principal)
     {
-        var email = principal.FindFirstValue(ClaimTypes.Email)
-            ?? principal.FindFirstValue("email");
+        var emailClaimType = _globalSettings.OidcEmailClaimType;
+        var email = principal.FindFirstValue(emailClaimType);
 
         if (string.IsNullOrWhiteSpace(email))
         {
-            throw new InvalidOperationException("OIDC token does not contain an email claim. Ensure the 'email' scope is requested and the provider is configured to include email.");
+            throw new InvalidOperationException($"OIDC token does not contain a '{emailClaimType}' claim. Check the Email Claim Type setting or ensure the provider is configured to include this claim.");
         }
 
         var subject = principal.FindFirstValue(ClaimTypes.NameIdentifier)

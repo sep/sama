@@ -38,6 +38,9 @@ public class OidcModel(
         [Display(Name = "Scopes")]
         public string Scopes { get; set; } = "openid profile email";
 
+        [Display(Name = "Email Claim Type")]
+        public string EmailClaimType { get; set; } = "email";
+
         [Display(Name = "Group Claim Type")]
         public string GroupClaimType { get; set; } = "groups";
 
@@ -82,6 +85,9 @@ public class OidcModel(
             _globalSettings.OidcScopes = string.IsNullOrWhiteSpace(OidcInput.Scopes)
                 ? "openid profile email"
                 : OidcInput.Scopes;
+            _globalSettings.OidcEmailClaimType = string.IsNullOrWhiteSpace(OidcInput.EmailClaimType)
+                ? "email"
+                : OidcInput.EmailClaimType;
             _globalSettings.OidcGroupClaimType = string.IsNullOrWhiteSpace(OidcInput.GroupClaimType)
                 ? "groups"
                 : OidcInput.GroupClaimType;
@@ -119,6 +125,7 @@ public class OidcModel(
         OidcInput.Authority = _globalSettings.OidcAuthority;
         OidcInput.ClientId = _globalSettings.OidcClientId;
         OidcInput.Scopes = _globalSettings.OidcScopes;
+        OidcInput.EmailClaimType = _globalSettings.OidcEmailClaimType;
         OidcInput.GroupClaimType = _globalSettings.OidcGroupClaimType;
         OidcInput.ProviderName = _globalSettings.OidcProviderName;
         HasExistingClientSecret = !string.IsNullOrEmpty(_globalSettings.OidcClientSecret);

@@ -65,6 +65,8 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     private const string KeyOidcClientSecret = "OidcClientSecret";
     private const string KeyOidcScopes = "OidcScopes";
     private const string DefaultOidcScopes = "openid profile email";
+    private const string KeyOidcEmailClaimType = "OidcEmailClaimType";
+    private const string DefaultOidcEmailClaimType = "email";
     private const string KeyOidcGroupClaimType = "OidcGroupClaimType";
     private const string DefaultOidcGroupClaimType = "groups";
     private const string KeyOidcProviderName = "OidcProviderName";
@@ -235,6 +237,12 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     {
         get => GetStringAsync(KeyOidcScopes, DefaultOidcScopes).GetAwaiter().GetResult();
         set => SetStringAsync(KeyOidcScopes, value).GetAwaiter().GetResult();
+    }
+
+    public virtual string OidcEmailClaimType
+    {
+        get => GetStringAsync(KeyOidcEmailClaimType, DefaultOidcEmailClaimType).GetAwaiter().GetResult();
+        set => SetStringAsync(KeyOidcEmailClaimType, value).GetAwaiter().GetResult();
     }
 
     public virtual string OidcGroupClaimType

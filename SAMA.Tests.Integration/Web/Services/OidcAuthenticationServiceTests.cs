@@ -125,6 +125,24 @@ public class OidcAuthenticationServiceTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task ProvisionOrUpdateUserShouldUseConfiguredEmailClaimType()
+    {
+        _globalSettings.OidcEmailClaimType = "preferred_username";
+
+        var claims = new List<Claim>
+        {
+            new("sub", "sub-custom-email"),
+            new("preferred_username", "upn-user@example.com"),
+        };
+        var identity = new ClaimsIdentity(claims, AuthConstants.OidcSource);
+        var principal = new ClaimsPrincipal(identity);
+
+        var user = await _service.ProvisionOrUpdateUserAsync(principal);
+
+        Assert.AreEqual("upn-user@example.com", user.Email);
+    }
+
+    [TestMethod]
     public async Task ProvisionOrUpdateUserShouldSkipGroupsWhenClaimTypeEmpty()
     {
         _globalSettings.OidcGroupClaimType = "";
