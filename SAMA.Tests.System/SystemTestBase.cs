@@ -64,11 +64,13 @@ public abstract class SystemTestBase
             var screenshotDir = Path.Combine(Path.GetTempPath(), "sama-playwright-screenshots");
             Directory.CreateDirectory(screenshotDir);
             var fileName = $"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}.png";
+            var screenshotPath = Path.Combine(screenshotDir, fileName);
             await Page.ScreenshotAsync(new PageScreenshotOptions
             {
-                Path = Path.Combine(screenshotDir, fileName),
+                Path = screenshotPath,
                 FullPage = true,
             });
+            Console.WriteLine($"Screenshot saved: {screenshotPath}");
         }
 
         await Page.CloseAsync();
