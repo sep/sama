@@ -4,6 +4,8 @@
     <Product>SAMA</Product>
     <Description>Service Availability Monitoring and Alerting</Description>
     <Copyright>Copyright © 2026 SEP</Copyright>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerVerbosity>minimal</MinVerVerbosity>
     <MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>

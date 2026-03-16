@@ -1,11 +1,13 @@
 using System.Reflection;
 using DnsClient;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Quartz;
 using SAMA.Data;
 using SAMA.Data.Entities;
@@ -90,6 +92,16 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
+
+// Configure OIDC authentication (dynamically configured via OidcPostConfigureOptions)
+builder.Services.AddAuthentication()
+    .AddOpenIdConnect(AuthConstants.OidcSource, options =>
+    {
+        // Set a placeholder configuration so the handler passes startup validation.
+        // OidcPostConfigureOptions overrides this at runtime with real or dummy settings.
+        options.Configuration = new Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectConfiguration();
+    });
+builder.Services.AddSingleton<IPostConfigureOptions<OpenIdConnectOptions>, OidcPostConfigureOptions>();
 
 // Configure ASP.NET Data Protection
 // When running in Docker, use a volume-mounted directory for keys
@@ -218,6 +230,8 @@ builder.Services.AddScoped<UserPreferencesService>();
 builder.Services.AddScoped<ConfigurationExportService>();
 builder.Services.AddScoped<ConfigurationImportService>();
 builder.Services.AddScoped<LdapAuthenticationService>();
+builder.Services.AddScoped<GroupMappingSyncService>();
+builder.Services.AddScoped<OidcAuthenticationService>();
 
 // Register CQRS-lite query services
 builder.Services.AddScoped<GroupMappingQueryService>();

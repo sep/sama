@@ -20,8 +20,9 @@ public class CleanupTests
     {
         var schemasDeleted = await CleanupSchemasAsync();
         var emailsDeleted = await CleanupSmtp4DevEmailsAsync();
+        var screenshotsDeleted = CleanupScreenshots();
 
-        Console.WriteLine($"Cleanup complete: {schemasDeleted} schemas deleted, {emailsDeleted} emails deleted.");
+        Console.WriteLine($"Cleanup complete: {schemasDeleted} schemas deleted, {emailsDeleted} emails deleted, {screenshotsDeleted} screenshots deleted.");
     }
 
     private static async Task<int> CleanupSchemasAsync()
@@ -97,5 +98,20 @@ public class CleanupTests
         var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "sama-dev-pw";
 
         return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+    }
+
+    private static int CleanupScreenshots()
+    {
+        var screenshotDir = Path.Combine(Path.GetTempPath(), "sama-playwright-screenshots");
+        if (!Directory.Exists(screenshotDir))
+        {
+            return 0;
+        }
+
+        var files = Directory.GetFiles(screenshotDir);
+        var count = files.Length;
+        Directory.Delete(screenshotDir, recursive: true);
+        Console.WriteLine($"Deleted {count} screenshots from {screenshotDir}");
+        return count;
     }
 }

@@ -39,12 +39,12 @@ SAMA is a comprehensive service availability monitoring solution that helps you:
 
 ### Authentication & SSO
 - **LDAP/Active Directory**: Full LDAP authentication with direct bind and search+bind modes, StartTLS, custom Root CA support
-- **Group-Based Provisioning**: Just-in-time user provisioning and workspace role assignment via LDAP group mappings
+- **OIDC SSO**: OpenID Connect authentication with any OIDC-compliant provider (Azure AD/Entra, Okta, Auth0, Keycloak, etc.)
+- **Group-Based Provisioning**: Just-in-time user provisioning and workspace role assignment via LDAP/OIDC group mappings
 
 ### Future Enhancements (Phase 2+)
 - **Geo-Distributed Agents**: Run checks from multiple regions  
 - **Advanced Check Types**: Playwright-based browser automation, Database connectivity checks
-- **OIDC SSO**: OpenID Connect authentication (Azure AD/Entra, Okta, Auth0, etc.)
 - **Audit Logging**: Track all configuration changes
 
 ### Security & Compliance

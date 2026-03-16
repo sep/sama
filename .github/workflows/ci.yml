@@ -18,9 +18,9 @@ jobs:
     name: Unit Tests on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.x'
       - name: Run unit tests
@@ -54,9 +54,9 @@ jobs:
       SAMA_ENCRYPTION_KEY: test-encryption-key-for-ci-only
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.x'
       - name: Run integration tests
@@ -87,8 +87,22 @@ jobs:
         ports:
           - 6467:80
           - 6468:25
+      oidc:
+        image: ghcr.io/geigerzaehler/oidc-provider-mock:latest
+        options: >-
+          --health-cmd "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9400/.well-known/openid-configuration')\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 9400:9400
+      ldap:
+        image: thoteam/slapd-server-mock:latest
+        ports:
+          - 389:389
 
     env:
+      TMPDIR: /tmp
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
       POSTGRES_DB: samadb
@@ -97,9 +111,15 @@ jobs:
       SAMA_ENCRYPTION_KEY: test-encryption-key-for-ci-only
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Prepare OIDC users (this is done via Docker CMD in local dev)
+        run: |
+          curl 'http://localhost:9400/oauth2/authorize?response_type=code&client_id=my-client-id&scope=openid+email&redirect_uri=http://localhost:9400' --data-raw 'sub=alice'
+          curl -XPUT 'http://localhost:9400/users/alice' --json '{"email": "alice@example.com", "name": "Alice"}'
+          curl 'http://localhost:9400/oauth2/authorize?response_type=code&client_id=my-client-id&scope=openid+email&redirect_uri=http://localhost:9400' --data-raw 'sub=bob'
+          curl -XPUT 'http://localhost:9400/users/bob' --json '{"email": "bob@example.com", "name": "Bob", "groups": ["test-editors"]}'
+      - uses: actions/checkout@v6
       - name: Set up dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.x'
       - name: Build
@@ -112,11 +132,18 @@ jobs:
         run: |
           cd SAMA.Tests.System
           dotnet test --logger "console;verbosity=detailed"
+      - name: Upload Playwright screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-screenshots
+          path: /tmp/sama-playwright-screenshots/
+          retention-days: 7
 
   docker_build:
     name: Docker Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build Docker image
         run: docker build -t sama:ci-test .

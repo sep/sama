@@ -19,6 +19,8 @@ public abstract class SystemTestBase
 
     protected static bool IsDebugging => Debugger.IsAttached;
 
+    public TestContext TestContext { get; set; } = null!;
+
     protected IPage Page { get; private set; } = null!;
 
     protected string BaseUrl => _context?.BaseUrl ?? throw new InvalidOperationException("Test not initialized.");
@@ -57,6 +59,20 @@ public abstract class SystemTestBase
     [TestCleanup]
     public virtual async Task TestCleanupAsync()
     {
+        if (TestContext.CurrentTestOutcome != UnitTestOutcome.Passed)
+        {
+            var screenshotDir = Path.Combine(Path.GetTempPath(), "sama-playwright-screenshots");
+            Directory.CreateDirectory(screenshotDir);
+            var fileName = $"{TestContext.FullyQualifiedTestClassName}.{TestContext.TestName}.png";
+            var screenshotPath = Path.Combine(screenshotDir, fileName);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = screenshotPath,
+                FullPage = true,
+            });
+            Console.WriteLine($"Screenshot saved: {screenshotPath}");
+        }
+
         await Page.CloseAsync();
         await _browser.DisposeAsync();
         _playwright.Dispose();
@@ -68,6 +84,7 @@ public abstract class SystemTestBase
         await Page.FillAsync("input[name='Input.EmailOrUsername']", email);
         await Page.FillAsync("input[name='Input.Password']", password);
         await Page.ClickAsync("button[type='submit']");
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForURLAsync($"{BaseUrl}/**");
     }
 
@@ -81,6 +98,7 @@ public abstract class SystemTestBase
         await Page.FillAsync("input[name='Input.ConfirmPassword']", password);
         await Page.ClickAsync("button[type='submit']");
 
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForURLAsync(BaseUrl);
     }
 
@@ -88,6 +106,7 @@ public abstract class SystemTestBase
     {
         await Page.Locator("#userDropdown").ClickAsync();
         await Page.Locator("button:has-text('Logout')").ClickAsync();
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Page.WaitForURLAsync(BaseUrl);
     }
 

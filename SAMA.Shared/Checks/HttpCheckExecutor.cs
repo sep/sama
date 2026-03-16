@@ -166,11 +166,11 @@ public class HttpCheckExecutor(ConfigurableHttpClientFactory _httpClientFactory)
 
             if (string.Equals(headerName, "Content-Type", StringComparison.OrdinalIgnoreCase) && request.Content != null)
             {
-                request.Content.Headers.TryAddWithoutValidation(headerName, headerValue);
+                _ = request.Content.Headers.TryAddWithoutValidation(headerName, headerValue);
             }
             else
             {
-                request.Headers.TryAddWithoutValidation(headerName, headerValue);
+                _ = request.Headers.TryAddWithoutValidation(headerName, headerValue);
             }
         }
     }

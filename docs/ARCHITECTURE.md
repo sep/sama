@@ -239,8 +239,14 @@ SAMA provides two complementary notification systems:
 - Account linking: existing local users matched by email are linked to LDAP; local password login is then disabled
 - Group membership queries for role/workspace auto-provisioning
 
+**OIDC/OpenID Connect**:
+- Authorization Code flow with any OIDC-compliant provider (Azure AD/Entra, Okta, Auth0, Keycloak, etc.)
+- Admin UI for provider configuration (authority, client ID/secret, scopes, claim types)
+- JIT user provisioning on successful OIDC login
+- Configurable group claim extraction for workspace role auto-provisioning
+- Account linking: existing local users matched by email are linked to OIDC; local password login is then disabled
+
 **Future**:
-- OIDC integration (Azure AD/Entra, Okta, Auth0, etc.)
 - SAML2 SSO support may be added based on demand
 
 ### Authorization
@@ -366,10 +372,10 @@ SAMA provides two complementary notification systems:
 - Automatic migrations on startup
 - LDAP/Active Directory authentication
 - Group-based workspace provisioning (LDAP)
+- OIDC authentication with group-based workspace provisioning
 
 ### Phase 2
 - Agent support with advanced checks (Playwright, Database)
-- OIDC authentication
 - Enhanced alerting rules
 
 ### Phase 3

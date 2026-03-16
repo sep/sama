@@ -1,0 +1,170 @@
+@page
+@model SAMA.Web.Pages.Admin.Settings.OidcModel
+@{
+    Layout = "_SettingsLayout";
+    ViewData["Title"] = "System Options - OIDC";
+    ViewData["ActiveSettingsTab"] = "Oidc";
+}
+
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-key-round icon-lg me-2"></i>
+                    OpenID Connect (OIDC)
+                </h5>
+                <p class="text-muted mb-4">
+                    Configure single sign-on with an OpenID Connect provider such as Azure AD / Entra ID, Okta, Auth0, or Keycloak.
+                    When enabled, a "Sign in with" button appears on the login page.
+                </p>
+
+                @if (TempData["OidcSuccess"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="icon-circle-check icon-sm me-2"></i>
+                            @TempData["OidcSuccess"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["OidcError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div>
+                            <i class="icon-circle-alert icon-sm me-2"></i>
+                            @TempData["OidcError"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="alert alert-info small mb-4 mt-4">
+                    <i class="icon-info icon-sm me-1"></i>
+                    <strong>How OIDC interacts with local accounts:</strong> When a user logs in via OIDC, their account is matched by email.
+                    If a local user with the same email exists, it is linked to OIDC and local password login is disabled for that account.
+                    New users are automatically provisioned on first OIDC login.
+                    Use <strong>Group Mappings</strong> to automatically assign workspace access and admin roles based on OIDC group claims.
+                </div>
+
+                <form method="post" hx-boost="true">
+                    <div class="mb-3 form-check form-switch">
+                        <input asp-for="OidcInput.Enabled" class="form-check-input" type="checkbox" role="switch" />
+                        <label asp-for="OidcInput.Enabled" class="form-check-label">Enable OIDC Authentication</label>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Provider</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.Authority" class="form-label"></label>
+                            <input asp-for="OidcInput.Authority" class="form-control" placeholder="https://login.microsoftonline.com/{tenant}/v2.0" />
+                            <div class="form-text">
+                                The issuer URL of your OIDC provider. Must expose a <code class="text-bg-secondary">/.well-known/openid-configuration</code> endpoint.
+                                <br />Azure AD: <code class="text-bg-secondary">https://login.microsoftonline.com/{tenant-id}/v2.0</code>
+                                <br />Okta: <code class="text-bg-secondary">https://{domain}.okta.com/oauth2/default</code>
+                                <br />Keycloak: <code class="text-bg-secondary">https://{host}/realms/{realm}</code>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.ProviderName" class="form-label"></label>
+                            <input asp-for="OidcInput.ProviderName" class="form-control" placeholder="OIDC" />
+                            <div class="form-text">Display name shown on the login button (e.g. "Azure AD", "Okta", "Company SSO")</div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Client Credentials</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.ClientId" class="form-label"></label>
+                            <input asp-for="OidcInput.ClientId" class="form-control" placeholder="your-client-id" />
+                            <div class="form-text">The application/client ID from your OIDC provider</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.ClientSecret" class="form-label"></label>
+                            <input asp-for="OidcInput.ClientSecret" class="form-control" type="password"
+                                   placeholder="@(Model.HasExistingClientSecret ? "••••••••" : "")" />
+                            <div class="form-text">
+                                @if (Model.HasExistingClientSecret)
+                                {
+                                    <text>Client secret is set. Leave unmodified to keep existing secret, or enter a new one to change it.</text>
+                                }
+                                else
+                                {
+                                    <text>The client secret from your OIDC provider (stored encrypted)</text>
+                                }
+                            </div>
+                            @if (Model.HasExistingClientSecret)
+                            {
+                                <div class="form-check mt-2">
+                                    <input type="checkbox" id="ClearClientSecret" name="ClearClientSecret"
+                                           value="true" class="form-check-input" />
+                                    <label for="ClearClientSecret" class="form-check-label">Clear existing secret</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Claims &amp; Scopes</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.Scopes" class="form-label"></label>
+                            <input asp-for="OidcInput.Scopes" class="form-control" placeholder="profile email" />
+                            <div class="form-text">
+                                Additional OAuth scopes to request. The <code class="text-bg-secondary">openid</code> scope is always included automatically.
+                                Default: <code class="text-bg-secondary">profile email</code>.
+                                Add extra scopes if your provider requires them for group claims.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.EmailClaimType" class="form-label"></label>
+                            <input asp-for="OidcInput.EmailClaimType" class="form-control" placeholder="email" />
+                            <div class="form-text">
+                                The claim name in the ID token that contains the user's email address. Default: <code class="text-bg-secondary">email</code>.
+                                For Azure AD / Entra ID, you may need <code class="text-bg-secondary">preferred_username</code>.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OidcInput.GroupClaimType" class="form-label"></label>
+                            <input asp-for="OidcInput.GroupClaimType" class="form-control" placeholder="groups" />
+                            <div class="form-text">
+                                The claim name in the ID token that contains group memberships. Common value: <code class="text-bg-secondary">groups</code>.
+                                Most providers require additional configuration to include group claims in tokens. Check your provider's documentation for details.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="icon-check icon-sm me-1"></i>
+                            Save OIDC Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="icon-info icon-lg me-2"></i>
+                    Setup Guide
+                </h5>
+                <ol class="small">
+                    <li class="mb-2">Register an application in your OIDC provider.</li>
+                    <li class="mb-2">
+                        Set the <strong>Redirect URI</strong> to:
+                        <code class="text-bg-secondary d-block mt-1">@($"{ViewContext.HttpContext.Request.Scheme}://{ViewContext.HttpContext.Request.Host}/signin-oidc")</code>
+                    </li>
+                    <li class="mb-2">Copy the Client ID and Client Secret here.</li>
+                    <li class="mb-2">Enter the Authority URL (issuer) for your provider.</li>
+                    <li class="mb-2">Enable OIDC and save.</li>
+                    <li class="mb-2">Optionally, configure <strong>Group Mappings</strong> to auto-assign workspace access.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

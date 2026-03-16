@@ -21,7 +21,7 @@ public class LdapModelTests
     public void Setup()
     {
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
-        _mockLdapService = Substitute.For<LdapAuthenticationService>(null!, null!, null!);
+        _mockLdapService = Substitute.For<LdapAuthenticationService>(null!, null!, null!, null!);
         _mockLogger = Substitute.For<ILogger<LdapModel>>();
 
         _pageModel = new LdapModel(_mockGlobalSettings, _mockLdapService, _mockLogger);

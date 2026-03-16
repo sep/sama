@@ -29,7 +29,8 @@ public class LdapAuthenticationServiceTests : IntegrationTestBase
         await EnsureAdminRoleExistsAsync();
 
         var globalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
-        _service = new LdapAuthenticationService(globalSettings, ServiceProvider, Substitute.For<ILogger<LdapAuthenticationService>>());
+        var groupMappingSync = new GroupMappingSyncService(Substitute.For<ILogger<GroupMappingSyncService>>());
+        _service = new LdapAuthenticationService(globalSettings, groupMappingSync, ServiceProvider, Substitute.For<ILogger<LdapAuthenticationService>>());
     }
 
     [TestMethod]
@@ -520,37 +521,6 @@ public class LdapAuthenticationServiceTests : IntegrationTestBase
                 null, null, SslPolicyErrors.RemoteCertificateChainErrors, "not-used"));
 
         StringAssert.Contains(ex.Message, "certificate or chain is null");
-    }
-
-    [TestMethod]
-    public void ExtractCnFromDnShouldParseCnFromFullDn()
-    {
-        var result = LdapAuthenticationService.ExtractCnFromDn("CN=Developers,OU=Groups,DC=example,DC=com");
-
-        Assert.AreEqual("Developers", result);
-    }
-
-    [TestMethod]
-    public void ExtractCnFromDnShouldReturnNullForNonCnDn()
-    {
-        var result = LdapAuthenticationService.ExtractCnFromDn("OU=Groups,DC=example,DC=com");
-
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void ExtractCnFromDnShouldReturnNullForNullOrWhitespace()
-    {
-        Assert.IsNull(LdapAuthenticationService.ExtractCnFromDn(""));
-        Assert.IsNull(LdapAuthenticationService.ExtractCnFromDn("  "));
-    }
-
-    [TestMethod]
-    public void ExtractCnFromDnShouldHandleCnOnly()
-    {
-        var result = LdapAuthenticationService.ExtractCnFromDn("CN=Admins");
-
-        Assert.AreEqual("Admins", result);
     }
 
     [TestMethod]

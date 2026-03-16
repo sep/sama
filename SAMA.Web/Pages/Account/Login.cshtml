@@ -48,6 +48,17 @@
                         </div>
                     </form>
                 </div>
+
+                @if (Model.OidcEnabled)
+                {
+                    <hr />
+                    <div class="d-grid">
+                        <a asp-page="/Account/Login" asp-page-handler="OidcLogin" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-secondary">
+                            <i class="icon-log-in icon-sm me-1"></i>
+                            Sign in with @Model.OidcProviderName
+                        </a>
+                    </div>
+                }
             </div>
         </div>
     </div>

@@ -549,7 +549,7 @@ public class EmailChannelHandlerTests
             {
                 var message = callInfo.ArgAt<MimeMessage>(0);
                 capturedSubject = message.Subject;
-                capturedBody = ((TextPart)message.Body).Text;
+                capturedBody = ((TextPart)message.Body!).Text;
                 return Task.FromResult(string.Empty);
             });
         _mockSmtpClient.DisconnectAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())

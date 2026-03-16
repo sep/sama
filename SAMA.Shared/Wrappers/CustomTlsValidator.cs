@@ -16,7 +16,7 @@ public class CustomTlsValidator
             using var certToValidate = new X509Certificate2(certificate);
             using var customCaCert = X509Certificate2.CreateFromPem(customCaCertificatePem);
             chain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
-            chain.ChainPolicy.CustomTrustStore.Add(customCaCert);
+            _ = chain.ChainPolicy.CustomTrustStore.Add(customCaCert);
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
 
             return chain.Build(certToValidate);

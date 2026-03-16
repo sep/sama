@@ -88,6 +88,9 @@ dotnet_naming_style.underscore_camel_case.capitalization = camel_case
 # Code quality rules
 dotnet_code_quality_unused_parameters = non_public:warning
 
+# IDE0058: Expression value is never used — require explicit discard
+csharp_style_unused_value_expression_statement_preference = discard_variable:warning
+
 # CA2000: Dispose objects before losing scope
 dotnet_diagnostic.CA2000.severity = warning
 
@@ -189,3 +192,20 @@ indent_size = 2
 [*.md]
 trim_trailing_whitespace = false
 insert_final_newline = false
+
+# EF Core migrations and configurations use fluent builder patterns
+# where return values are intentionally unused
+[SAMA.Data/Migrations/**.cs]
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+[SAMA.Data/Configuration/**.cs]
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+[SAMA.Tests.Unit/**.cs]
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+[SAMA.Tests.Integration/**.cs]
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+[SAMA.Tests.System/**.cs]
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent

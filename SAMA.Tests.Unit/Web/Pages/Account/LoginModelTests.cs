@@ -15,6 +15,8 @@ public class LoginModelTests
 {
     private SignInManager<ApplicationUser> _mockSignInManager = null!;
     private LdapAuthenticationService _mockLdapService = null!;
+    private OidcAuthenticationService _mockOidcService = null!;
+    private GlobalSettingsService _mockGlobalSettings = null!;
     private ILogger<LoginModel> _mockLogger = null!;
     private LoginModel _pageModel = null!;
 
@@ -33,10 +35,12 @@ public class LoginModelTests
             null,
             null);
 
-        _mockLdapService = Substitute.For<LdapAuthenticationService>(null!, null!, null!);
+        _mockLdapService = Substitute.For<LdapAuthenticationService>(null!, null!, null!, null!);
+        _mockOidcService = Substitute.For<OidcAuthenticationService>(null!, null!, null!, null!);
+        _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
         _mockLogger = Substitute.For<ILogger<LoginModel>>();
 
-        _pageModel = new LoginModel(_mockSignInManager, _mockLdapService, _mockLogger);
+        _pageModel = new LoginModel(_mockSignInManager, _mockLdapService, _mockOidcService, _mockGlobalSettings, _mockLogger);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
     }
 

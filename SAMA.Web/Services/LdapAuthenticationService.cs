@@ -2,7 +2,6 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Novell.Directory.Ldap;
 using SAMA.Data;
 using SAMA.Data.Entities;
@@ -12,6 +11,7 @@ namespace SAMA.Web.Services;
 
 public class LdapAuthenticationService(
     GlobalSettingsService _globalSettings,
+    GroupMappingSyncService _groupMappingService,
     IServiceProvider _serviceProvider,
     ILogger<LdapAuthenticationService> _logger)
 {
@@ -341,7 +341,14 @@ public class LdapAuthenticationService(
                 throw new InvalidOperationException($"Failed to provision LDAP user: {errors}");
             }
 
-            await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+            var loginResult = await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+            if (!loginResult.Succeeded)
+            {
+                var loginErrors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to add LDAP login for new user {Email}: {Errors}", ldapResult.Email, loginErrors);
+                throw new InvalidOperationException($"Failed to link LDAP login: {loginErrors}");
+            }
+
             _logger.LogInformation("JIT provisioned new user for LDAP login: {Email}", ldapResult.Email);
         }
         else
@@ -350,12 +357,18 @@ public class LdapAuthenticationService(
             var logins = await userManager.GetLoginsAsync(user);
             if (!logins.Any(l => l.LoginProvider == AuthConstants.LdapSource))
             {
-                await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+                var loginResult = await userManager.AddLoginAsync(user, new UserLoginInfo(AuthConstants.LdapSource, ldapResult.UserDn!, AuthConstants.LdapSource));
+                if (!loginResult.Succeeded)
+                {
+                    var loginErrors = string.Join(", ", loginResult.Errors.Select(e => e.Description));
+                    _logger.LogError("Failed to add LDAP login for existing user {Email}: {Errors}", ldapResult.Email, loginErrors);
+                    throw new InvalidOperationException($"Failed to link LDAP login: {loginErrors}");
+                }
             }
         }
 
         // Apply group mappings
-        await ApplyGroupMappingsAsync(dbContext, userManager, user, ldapResult.Groups);
+        await _groupMappingService.ApplyGroupMappingsAsync(dbContext, userManager, user, ldapResult.Groups, AuthConstants.LdapSource);
 
         return user;
     }
@@ -446,23 +459,6 @@ public class LdapAuthenticationService(
         }
     }
 
-    internal static string? ExtractCnFromDn(string dn)
-    {
-        if (string.IsNullOrWhiteSpace(dn))
-        {
-            return null;
-        }
-
-        // Parse "CN=GroupName,OU=Groups,DC=example,DC=com" -> "GroupName"
-        if (!dn.StartsWith("CN=", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var commaIndex = dn.IndexOf(',');
-        return commaIndex > 3 ? dn[3..commaIndex] : dn[3..];
-    }
-
     private static string FormatException(Exception ex)
     {
         if (ex is LdapException ldapEx)
@@ -512,89 +508,6 @@ public class LdapAuthenticationService(
             .Replace("(", "\\28")
             .Replace(")", "\\29")
             .Replace("\0", "\\00");
-    }
-
-    private async Task ApplyGroupMappingsAsync(
-        SamaDbContext dbContext,
-        UserManager<ApplicationUser> userManager,
-        ApplicationUser user,
-        List<string> ldapGroups)
-    {
-        var mappings = await dbContext.WorkspaceGroupMappings
-            .AsNoTracking()
-            .Where(m => m.IdentityProvider == AuthConstants.LdapSource)
-            .ToListAsync();
-
-        // Expand raw DNs to include extracted CNs for flexible matching
-        var expandedGroups = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var group in ldapGroups)
-        {
-            expandedGroups.Add(group);
-            var cn = ExtractCnFromDn(group);
-            if (cn != null)
-            {
-                expandedGroups.Add(cn);
-            }
-        }
-
-        var matchedMappings = mappings
-            .Where(m => expandedGroups.Contains(m.ExternalGroupId))
-            .ToList();
-
-        // Sync admin role: grant or revoke based on current LDAP groups
-        var shouldBeAdmin = matchedMappings.Any(m => m.WorkspaceId == null && m.Role == AuthConstants.AdminRole);
-        var isAdmin = await userManager.IsInRoleAsync(user, AuthConstants.AdminRole);
-
-        if (shouldBeAdmin && !isAdmin)
-        {
-            await userManager.AddToRoleAsync(user, AuthConstants.AdminRole);
-            _logger.LogInformation("Granted Admin role to user {Email} via LDAP group mapping", user.Email);
-        }
-        else if (!shouldBeAdmin && isAdmin)
-        {
-            await userManager.RemoveFromRoleAsync(user, AuthConstants.AdminRole);
-            _logger.LogInformation("Revoked Admin role from user {Email} — no longer in an LDAP admin group", user.Email);
-        }
-
-        // Diff-based workspace assignment sync
-        var existingAssignments = await dbContext.UserWorkspaces
-            .Where(uw => uw.UserId == user.Id && uw.Source == AuthConstants.LdapSource)
-            .ToListAsync();
-
-        var desiredAssignments = matchedMappings
-            .Where(m => m.WorkspaceId != null && m.Role != AuthConstants.AdminRole)
-            .Select(m => (WorkspaceId: m.WorkspaceId!.Value, m.Role))
-            .ToHashSet();
-
-        var existingSet = existingAssignments
-            .Select(a => (a.WorkspaceId, a.Role))
-            .ToHashSet();
-
-        // Remove assignments that are no longer matched
-        var toRemove = existingAssignments
-            .Where(a => !desiredAssignments.Contains((a.WorkspaceId, a.Role)))
-            .ToList();
-        dbContext.UserWorkspaces.RemoveRange(toRemove);
-
-        // Add new assignments that don't exist yet
-        var now = DateTimeOffset.UtcNow;
-        foreach (var (workspaceId, role) in desiredAssignments.Where(d => !existingSet.Contains(d)))
-        {
-            dbContext.UserWorkspaces.Add(new UserWorkspace
-            {
-                UserId = user.Id,
-                WorkspaceId = workspaceId,
-                Role = role,
-                Source = AuthConstants.LdapSource,
-                CreatedAt = now,
-                UpdatedAt = now,
-            });
-        }
-
-        if (toRemove.Count > 0 || desiredAssignments.Except(existingSet).Any())
-        {
-            await dbContext.SaveChangesAsync();
-        }
     }
 
     private async Task<List<string>> GetGroupMembershipsAsync(
