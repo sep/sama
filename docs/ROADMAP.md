@@ -110,10 +110,10 @@ Note, these are all subject to change.
   - [x] LDAP server configuration UI
   - [x] Group membership queries
   - [ ] Testing with Active Directory and OpenLDAP
-- [ ] OIDC Integration
-  - [ ] OIDC authentication handler
-  - [ ] OIDC provider configuration UI
-  - [ ] User claim mapping
+- [x] OIDC Integration
+  - [x] OIDC authentication handler
+  - [x] OIDC provider configuration UI
+  - [x] User claim mapping
   - [ ] Testing with common providers (Azure AD/Entra, Okta, Auth0)
 - [x] Enhanced Authorization (LDAP)
   - [x] WorkspaceGroupMappings table and UI
@@ -135,7 +135,7 @@ Note, these are all subject to change.
   - [ ] Agent application tests
   - [ ] Multi-region scenario tests
   - [x] LDAP/AD authentication tests
-  - [ ] OIDC flow tests
+  - [x] OIDC flow tests
   - [ ] Multi-provider tests
 - [ ] Documentation
   - [ ] Agent deployment guide
@@ -143,6 +143,7 @@ Note, these are all subject to change.
   - [ ] API key setup guide
   - [ ] LDAP/AD setup guide
   - [ ] OIDC setup guide
+  - [ ] OIDC group mapping guide
   - [ ] Common IdP configurations
 
 ---

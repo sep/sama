@@ -13,7 +13,8 @@ System tests are **skipped by default** to avoid running expensive E2E tests dur
 ## Prerequisites
 
 1. PostgreSQL running (same as development)
-2. Build the solution first: `dotnet build`
+2. Support services running (from `SAMA.Web/`): `docker compose up -d` (provides SMTP, OIDC mock provider, LDAP mock)
+3. Build the solution first: `dotnet build`
 3. Install Playwright browsers (one-time):
    ```powershell
    # Windows
