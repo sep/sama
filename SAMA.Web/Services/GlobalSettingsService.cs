@@ -64,7 +64,7 @@ public class GlobalSettingsService(IServiceProvider _serviceProvider, ILogger<Gl
     private const string KeyOidcClientId = "OidcClientId";
     private const string KeyOidcClientSecret = "OidcClientSecret";
     private const string KeyOidcScopes = "OidcScopes";
-    private const string DefaultOidcScopes = "openid profile email";
+    private const string DefaultOidcScopes = "profile email";
     private const string KeyOidcEmailClaimType = "OidcEmailClaimType";
     private const string DefaultOidcEmailClaimType = "email";
     private const string KeyOidcGroupClaimType = "OidcGroupClaimType";

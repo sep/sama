@@ -110,10 +110,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label asp-for="OidcInput.Scopes" class="form-label"></label>
-                            <input asp-for="OidcInput.Scopes" class="form-control" placeholder="openid profile email" />
+                            <input asp-for="OidcInput.Scopes" class="form-control" placeholder="profile email" />
                             <div class="form-text">
-                                Space-separated OAuth scopes. Default: <code class="text-bg-secondary">openid profile email</code>.
-                                Add additional scopes if your provider requires them for group claims.
+                                Additional OAuth scopes to request. The <code class="text-bg-secondary">openid</code> scope is always included automatically.
+                                Default: <code class="text-bg-secondary">profile email</code>.
+                                Add extra scopes if your provider requires them for group claims.
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">

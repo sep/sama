@@ -55,6 +55,7 @@ public class OidcPostConfigureOptions(GlobalSettingsService _globalSettings) : I
         options.MapInboundClaims = false;
 
         options.Scope.Clear();
+        options.Scope.Add("openid");
         foreach (var scope in _globalSettings.OidcScopes.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
             options.Scope.Add(scope);

@@ -58,7 +58,7 @@ public class OidcPostConfigureOptionsTests
         _mockGlobalSettings.OidcAuthority.Returns("https://login.example.com/tenant");
         _mockGlobalSettings.OidcClientId.Returns("my-client-id");
         _mockGlobalSettings.OidcClientSecret.Returns("my-secret");
-        _mockGlobalSettings.OidcScopes.Returns("openid profile email");
+        _mockGlobalSettings.OidcScopes.Returns("profile email");
 
         _postConfigure.PostConfigure(AuthConstants.OidcSource, _options);
 
@@ -70,6 +70,7 @@ public class OidcPostConfigureOptionsTests
         Assert.IsFalse(_options.MapInboundClaims);
         Assert.AreEqual("name", _options.TokenValidationParameters.NameClaimType);
         Assert.AreEqual("my-client-id", _options.TokenValidationParameters.ValidAudience);
+        CollectionAssert.Contains(_options.Scope.ToArray(), "openid");
     }
 
     [TestMethod]
@@ -79,7 +80,7 @@ public class OidcPostConfigureOptionsTests
         _mockGlobalSettings.OidcAuthority.Returns("https://login.example.com");
         _mockGlobalSettings.OidcClientId.Returns("client");
         _mockGlobalSettings.OidcClientSecret.Returns("");
-        _mockGlobalSettings.OidcScopes.Returns("openid profile email groups");
+        _mockGlobalSettings.OidcScopes.Returns("profile email groups");
         _options.Scope.Add("pre-existing");
 
         _postConfigure.PostConfigure(AuthConstants.OidcSource, _options);
@@ -97,7 +98,7 @@ public class OidcPostConfigureOptionsTests
         _mockGlobalSettings.OidcAuthority.Returns("https://login.example.com");
         _mockGlobalSettings.OidcClientId.Returns("client");
         _mockGlobalSettings.OidcClientSecret.Returns("");
-        _mockGlobalSettings.OidcScopes.Returns("openid  profile   email");
+        _mockGlobalSettings.OidcScopes.Returns("profile   email");
 
         _postConfigure.PostConfigure(AuthConstants.OidcSource, _options);
 
@@ -105,5 +106,19 @@ public class OidcPostConfigureOptionsTests
         CollectionAssert.AreEquivalent(
             new[] { "openid", "profile", "email" },
             _options.Scope.ToArray());
+    }
+
+    [TestMethod]
+    public void PostConfigureShouldAlwaysIncludeOpenidScope()
+    {
+        _mockGlobalSettings.OidcEnabled.Returns(true);
+        _mockGlobalSettings.OidcAuthority.Returns("https://login.example.com");
+        _mockGlobalSettings.OidcClientId.Returns("client");
+        _mockGlobalSettings.OidcClientSecret.Returns("");
+        _mockGlobalSettings.OidcScopes.Returns("profile email");
+
+        _postConfigure.PostConfigure(AuthConstants.OidcSource, _options);
+
+        CollectionAssert.Contains(_options.Scope.ToArray(), "openid");
     }
 }
