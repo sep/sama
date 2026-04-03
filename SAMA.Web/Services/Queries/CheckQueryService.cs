@@ -17,9 +17,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var startupTime = _appStateService.StartupTime;
 
         var checks = await _samaDbContext.Checks
-            .AsSplitQuery()
-            .Include(c => c.CheckResults)
-            .Include(c => c.Alerts)
+            .AsNoTracking()
             .Where(c => c.WorkspaceId == workspaceId)
             .Select(c => new CheckListItemViewModel
             {
@@ -30,25 +28,39 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
                 Schedule = c.Schedule,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
-                LastStatus = c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => cr.Status)
-                    .FirstOrDefault(),
-                LastCheckedAt = c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => (DateTimeOffset?)cr.CheckedAt)
-                    .FirstOrDefault(),
-                LastResponseTimeMs = c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => cr.ResponseTimeMs)
-                    .FirstOrDefault(),
-                LastErrorMessage = c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => cr.ErrorMessage)
-                    .FirstOrDefault(),
                 AlertCount = c.Alerts.Count
             })
             .ToListAsync(cancellationToken);
+
+        if (checks.Count > 0)
+        {
+            var checkIds = checks.Select(c => c.Id).ToList();
+            var latestResults = await _samaDbContext.CheckResults
+                .AsNoTracking()
+                .Where(cr => checkIds.Contains(cr.CheckId))
+                .GroupBy(cr => cr.CheckId)
+                .Select(g => new
+                {
+                    CheckId = g.Key,
+                    Status = g.OrderByDescending(cr => cr.CheckedAt).Select(cr => cr.Status).First(),
+                    CheckedAt = g.Max(cr => cr.CheckedAt),
+                    ResponseTimeMs = g.OrderByDescending(cr => cr.CheckedAt).Select(cr => cr.ResponseTimeMs).First(),
+                    ErrorMessage = g.OrderByDescending(cr => cr.CheckedAt).Select(cr => cr.ErrorMessage).First(),
+                })
+                .ToListAsync(cancellationToken);
+
+            var resultsByCheckId = latestResults.ToDictionary(r => r.CheckId);
+            foreach (var check in checks)
+            {
+                if (resultsByCheckId.TryGetValue(check.Id, out var result))
+                {
+                    check.LastStatus = result.Status;
+                    check.LastCheckedAt = result.CheckedAt;
+                    check.LastResponseTimeMs = result.ResponseTimeMs;
+                    check.LastErrorMessage = result.ErrorMessage;
+                }
+            }
+        }
 
         foreach (var check in checks)
         {

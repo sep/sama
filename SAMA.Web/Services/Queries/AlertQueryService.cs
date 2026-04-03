@@ -38,13 +38,15 @@ public class AlertQueryService(SamaDbContext _dbContext)
             .Include(a => a.Check)
                 .ThenInclude(c => c.Workspace)
             .Include(a => a.NotificationChannels)
-            .Include(a => a.AlertHistories)
             .FirstOrDefaultAsync(a => a.Id == alertId, cancellationToken);
 
         if (alert == null)
         {
             return null;
         }
+
+        var alertHistoryCount = await _dbContext.AlertHistories
+            .CountAsync(ah => ah.AlertId == alertId, cancellationToken);
 
         return new AlertDetailsViewModel
         {
@@ -70,7 +72,7 @@ public class AlertQueryService(SamaDbContext _dbContext)
                     Enabled = nc.Enabled
                 })
                 .ToList(),
-            AlertHistoryCount = alert.AlertHistories.Count
+            AlertHistoryCount = alertHistoryCount
         };
     }
 

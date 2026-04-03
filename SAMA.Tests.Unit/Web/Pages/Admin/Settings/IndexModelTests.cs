@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Pages.Admin.Settings;
 using SAMA.Web.Services;
@@ -22,7 +21,7 @@ public class IndexModelTests
     public void Setup()
     {
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockLogger = Substitute.For<ILogger<IndexModel>>();
 
         _mockWorkspaceQuery.GetWorkspacesAsync(Arg.Any<List<Guid>?>(), Arg.Any<CancellationToken>())

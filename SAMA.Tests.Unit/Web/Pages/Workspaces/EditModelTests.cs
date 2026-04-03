@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Pages.Workspaces;
@@ -22,7 +21,7 @@ public class EditModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!);
         _markdownService = new MarkdownService();
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Models;
@@ -23,7 +22,7 @@ public class CreateModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockConfigService = Substitute.For<NotificationChannelConfigurationService>();
         _mockChannelCommand = Substitute.For<ChannelCommandService>(null!, null!);
 

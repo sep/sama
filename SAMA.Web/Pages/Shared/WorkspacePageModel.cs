@@ -19,9 +19,9 @@ public abstract class WorkspacePageModel : PageModel
 
     private readonly WorkspaceQueryService _workspaceQueryService;
 
-    public WorkspacePageModel(SamaDbContext dbContext)
+    public WorkspacePageModel(SamaDbContext dbContext, ApplicationStateService appStateService)
     {
-        _workspaceQueryService = new WorkspaceQueryService(dbContext);
+        _workspaceQueryService = new WorkspaceQueryService(dbContext, appStateService);
     }
 
     public WorkspacePageModel(WorkspaceQueryService workspaceQueryService)

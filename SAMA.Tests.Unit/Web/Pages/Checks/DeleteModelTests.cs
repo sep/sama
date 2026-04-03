@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Models;
@@ -24,7 +23,7 @@ public class DeleteModelTests
     {
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!);
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
 
         _pageModel = new DeleteModel(_mockWorkspaceQuery, _mockCheckQuery, _mockCheckCommand);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);

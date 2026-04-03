@@ -21,7 +21,7 @@ public class DetailsModelTests
     public void Setup()
     {
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
 
         _pageModel = new DetailsModel(_mockWorkspaceQuery, _mockAlertQuery);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);

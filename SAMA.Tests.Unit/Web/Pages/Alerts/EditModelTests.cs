@@ -28,7 +28,7 @@ public class EditModelTests
         _mockChannelQuery = Substitute.For<ChannelQueryService>(null!, null!);
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
         _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!);
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
 
         _pageModel = new EditModel(_mockWorkspaceQuery, _mockChannelQuery, _mockCheckQuery, _mockAlertQuery, _mockAlertCommand);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Shared.Constants;
 using SAMA.Tests.Unit.TestUtilities;
@@ -24,7 +23,7 @@ public class CreateModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockCheckConfigService = Substitute.For<CheckConfigurationService>();
         _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!);
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);

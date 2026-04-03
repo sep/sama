@@ -1,4 +1,7 @@
+using NSubstitute;
 using SAMA.Data.Entities;
+using SAMA.Shared.Constants;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Queries;
 
 namespace SAMA.Tests.Integration.Web.Services.Queries;
@@ -7,13 +10,19 @@ namespace SAMA.Tests.Integration.Web.Services.Queries;
 public class WorkspaceQueryServiceTests : IntegrationTestBase
 {
     private WorkspaceQueryService _service = null!;
+    private ApplicationStateService _mockAppState = null!;
+    private DateTimeOffset _testStartTime;
 
     [TestInitialize]
     public override async Task InitializeTestAsync()
     {
         await base.InitializeTestAsync();
 
-        _service = new WorkspaceQueryService(DbContext);
+        _testStartTime = DateTimeOffset.UtcNow;
+        _mockAppState = Substitute.For<ApplicationStateService>();
+        _mockAppState.StartupTime.Returns(_testStartTime.AddMinutes(-10));
+
+        _service = new WorkspaceQueryService(DbContext, _mockAppState);
     }
 
     [TestMethod]
@@ -183,6 +192,135 @@ public class WorkspaceQueryServiceTests : IntegrationTestBase
         Assert.IsFalse(result.Any(w => w.Id == workspace2.Id));
     }
 
+    [TestMethod]
+    public async Task GetWorkspacesAsyncShouldCountStatusesCorrectly()
+    {
+        var workspace = await CreateWorkspaceAsync("Test Workspace", null, false);
+        var upCheck = await CreateCheckAsync(workspace.Id, "Up Check");
+        var warnCheck = await CreateCheckAsync(workspace.Id, "Warn Check");
+        var downCheck = await CreateCheckAsync(workspace.Id, "Down Check");
+
+        await CreateCheckResultAsync(upCheck.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+        await CreateCheckResultAsync(warnCheck.Id, CheckStatuses.Warn, _testStartTime.AddMinutes(-5));
+        await CreateCheckResultAsync(downCheck.Id, CheckStatuses.Down, _testStartTime.AddMinutes(-5));
+
+        var result = await _service.GetWorkspacesAsync();
+
+        var item = result.Single();
+        Assert.AreEqual(3, item.CheckCount);
+        Assert.AreEqual(1, item.UpCount);
+        Assert.AreEqual(1, item.WarnCount);
+        Assert.AreEqual(1, item.DownCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspacesAsyncShouldNotCountDisabledChecksInStatusCounts()
+    {
+        var workspace = await CreateWorkspaceAsync("Test Workspace", null, false);
+        var enabledCheck = await CreateCheckAsync(workspace.Id, "Enabled Check");
+        var disabledCheck = await CreateCheckAsync(workspace.Id, "Disabled Check", enabled: false);
+
+        await CreateCheckResultAsync(enabledCheck.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+        await CreateCheckResultAsync(disabledCheck.Id, CheckStatuses.Down, _testStartTime.AddMinutes(-5));
+
+        var result = await _service.GetWorkspacesAsync();
+
+        var item = result.Single();
+        Assert.AreEqual(2, item.CheckCount);
+        Assert.AreEqual(1, item.UpCount);
+        Assert.AreEqual(0, item.DownCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspacesAsyncShouldTreatResultsBeforeStartupAsPending()
+    {
+        var workspace = await CreateWorkspaceAsync("Test Workspace", null, false);
+        var check = await CreateCheckAsync(workspace.Id, "Old Check");
+
+        await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-20));
+
+        var result = await _service.GetWorkspacesAsync();
+
+        var item = result.Single();
+        Assert.AreEqual(1, item.CheckCount);
+        Assert.AreEqual(0, item.UpCount);
+        Assert.AreEqual(0, item.WarnCount);
+        Assert.AreEqual(0, item.DownCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspacesAsyncShouldTreatUpdatedCheckAsPending()
+    {
+        var workspace = await CreateWorkspaceAsync("Test Workspace", null, false);
+        var check = await CreateCheckAsync(workspace.Id, "Updated Check");
+
+        await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+
+        check.UpdatedAt = _testStartTime.AddMinutes(-3);
+        DbContext.Checks.Update(check);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        var result = await _service.GetWorkspacesAsync();
+
+        var item = result.Single();
+        Assert.AreEqual(0, item.UpCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspaceDetailsAsyncShouldCountStatusesCorrectly()
+    {
+        var workspace = await CreateWorkspaceAsync("Test Workspace", null, false);
+        var upCheck1 = await CreateCheckAsync(workspace.Id, "Up 1");
+        var upCheck2 = await CreateCheckAsync(workspace.Id, "Up 2");
+        var downCheck = await CreateCheckAsync(workspace.Id, "Down");
+
+        await CreateCheckResultAsync(upCheck1.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+        await CreateCheckResultAsync(upCheck2.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+        await CreateCheckResultAsync(downCheck.Id, CheckStatuses.Down, _testStartTime.AddMinutes(-5));
+
+        var result = await _service.GetWorkspaceDetailsAsync(workspace.Id);
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2, result.UpCount);
+        Assert.AreEqual(0, result.WarnCount);
+        Assert.AreEqual(1, result.DownCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspaceDetailsAsyncShouldUseLatestResultOnly()
+    {
+        var workspace = await CreateWorkspaceAsync("Test Workspace", null, false);
+        var check = await CreateCheckAsync(workspace.Id, "Check");
+
+        await CreateCheckResultAsync(check.Id, CheckStatuses.Down, _testStartTime.AddMinutes(-8));
+        await CreateCheckResultAsync(check.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+
+        var result = await _service.GetWorkspaceDetailsAsync(workspace.Id);
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1, result.UpCount);
+        Assert.AreEqual(0, result.DownCount);
+    }
+
+    [TestMethod]
+    public async Task GetWorkspacesAsyncShouldNotCountChecksFromOtherWorkspaces()
+    {
+        var workspace1 = await CreateWorkspaceAsync("Workspace 1", null, false);
+        var workspace2 = await CreateWorkspaceAsync("Workspace 2", null, false);
+        var check1 = await CreateCheckAsync(workspace1.Id, "Check 1");
+        var check2 = await CreateCheckAsync(workspace2.Id, "Check 2");
+
+        await CreateCheckResultAsync(check1.Id, CheckStatuses.Up, _testStartTime.AddMinutes(-5));
+        await CreateCheckResultAsync(check2.Id, CheckStatuses.Down, _testStartTime.AddMinutes(-5));
+
+        var result = await _service.GetWorkspacesAsync([workspace1.Id]);
+
+        var item = result.Single();
+        Assert.AreEqual(1, item.UpCount);
+        Assert.AreEqual(0, item.DownCount);
+    }
+
     // ...existing helper methods...
     private async Task<Workspace> CreateWorkspaceAsync(string name, string? description, bool isPublic)
     {
@@ -202,7 +340,7 @@ public class WorkspaceQueryServiceTests : IntegrationTestBase
         return workspace;
     }
 
-    private async Task<Check> CreateCheckAsync(Guid workspaceId, string name)
+    private async Task<Check> CreateCheckAsync(Guid workspaceId, string name, bool enabled = true)
     {
         var check = new Check
         {
@@ -212,9 +350,9 @@ public class WorkspaceQueryServiceTests : IntegrationTestBase
             ConfigurationJson = [],
             Schedule = "60",
             TimeoutSeconds = 30,
-            Enabled = true,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
+            Enabled = enabled,
+            CreatedAt = _testStartTime.AddHours(-1),
+            UpdatedAt = _testStartTime.AddHours(-1)
         };
 
         DbContext.Checks.Add(check);
@@ -242,5 +380,24 @@ public class WorkspaceQueryServiceTests : IntegrationTestBase
         DbContext.ChangeTracker.Clear();
 
         return channel;
+    }
+
+    private async Task<CheckResult> CreateCheckResultAsync(
+        Guid checkId,
+        string status,
+        DateTimeOffset checkedAt)
+    {
+        var result = new CheckResult
+        {
+            CheckId = checkId,
+            Status = status,
+            CheckedAt = checkedAt
+        };
+
+        DbContext.CheckResults.Add(result);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        return result;
     }
 }

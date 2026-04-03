@@ -23,7 +23,7 @@ public class IndexModelTests
     {
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
 
         _pageModel = new IndexModel(_mockWorkspaceQuery, _mockCheckQuery, _mockAlertQuery);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);

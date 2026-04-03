@@ -1,5 +1,4 @@
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Models;
 using SAMA.Web.Services;
@@ -17,7 +16,7 @@ public class IndexModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockAuthService = Substitute.For<WorkspaceAuthorizationService>(null!, null!);
 
         _pageModel = new IndexModel(_mockWorkspaceQuery, _mockAuthService);

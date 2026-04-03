@@ -6,7 +6,7 @@ using SAMA.Web.Models;
 
 namespace SAMA.Web.Services.Queries;
 
-public class WorkspaceQueryService(SamaDbContext _dbContext)
+public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateService _appStateService)
 {
     public virtual async Task<Workspace?> GetWorkspaceByIdAsync(Guid workspaceId)
     {
@@ -26,7 +26,7 @@ public class WorkspaceQueryService(SamaDbContext _dbContext)
             query = query.Where(w => workspaceIds.Contains(w.Id));
         }
 
-        return await query
+        var workspaces = await query
             .OrderBy(w => w.Name)
             .Select(w => new WorkspaceDetailsViewModel
             {
@@ -38,23 +38,20 @@ public class WorkspaceQueryService(SamaDbContext _dbContext)
                 CreatedAt = w.CreatedAt,
                 UpdatedAt = w.UpdatedAt,
                 CheckCount = w.Checks.Count,
-                UpCount = w.Checks.Count(c => c.Enabled && c.CheckResults
-                    .OrderByDescending(r => r.CheckedAt).Select(r => r.Status).FirstOrDefault() == CheckStatuses.Up),
-                WarnCount = w.Checks.Count(c => c.Enabled && c.CheckResults
-                    .OrderByDescending(r => r.CheckedAt).Select(r => r.Status).FirstOrDefault() == CheckStatuses.Warn),
-                DownCount = w.Checks.Count(c => c.Enabled && c.CheckResults
-                    .OrderByDescending(r => r.CheckedAt).Select(r => r.Status).FirstOrDefault() == CheckStatuses.Down),
                 NotificationChannelCount = w.NotificationChannels.Count,
                 UserCount = w.UserWorkspaces.Count
             })
             .ToListAsync(cancellationToken);
+
+        await PopulateStatusCounts(workspaces, cancellationToken);
+        return workspaces;
     }
 
     public virtual async Task<WorkspaceDetailsViewModel?> GetWorkspaceDetailsAsync(
         Guid workspaceId,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Workspaces
+        var workspace = await _dbContext.Workspaces
             .Where(w => w.Id == workspaceId)
             .Select(w => new WorkspaceDetailsViewModel
             {
@@ -66,15 +63,73 @@ public class WorkspaceQueryService(SamaDbContext _dbContext)
                 CreatedAt = w.CreatedAt,
                 UpdatedAt = w.UpdatedAt,
                 CheckCount = w.Checks.Count,
-                UpCount = w.Checks.Count(c => c.Enabled && c.CheckResults
-                    .OrderByDescending(r => r.CheckedAt).Select(r => r.Status).FirstOrDefault() == CheckStatuses.Up),
-                WarnCount = w.Checks.Count(c => c.Enabled && c.CheckResults
-                    .OrderByDescending(r => r.CheckedAt).Select(r => r.Status).FirstOrDefault() == CheckStatuses.Warn),
-                DownCount = w.Checks.Count(c => c.Enabled && c.CheckResults
-                    .OrderByDescending(r => r.CheckedAt).Select(r => r.Status).FirstOrDefault() == CheckStatuses.Down),
                 NotificationChannelCount = w.NotificationChannels.Count,
                 UserCount = w.UserWorkspaces.Count
             })
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (workspace != null)
+        {
+            await PopulateStatusCounts([workspace], cancellationToken);
+        }
+        return workspace;
+    }
+
+    private async Task PopulateStatusCounts(
+        List<WorkspaceDetailsViewModel> workspaces,
+        CancellationToken cancellationToken)
+    {
+        if (workspaces.Count == 0)
+        {
+            return;
+        }
+
+        var startupTime = _appStateService.StartupTime;
+        var wsIds = workspaces.Select(w => w.Id).ToList();
+
+        var checkStatuses = await _dbContext.Checks
+            .AsNoTracking()
+            .Where(c => wsIds.Contains(c.WorkspaceId) && c.Enabled)
+            .Select(c => new
+            {
+                c.WorkspaceId,
+                c.UpdatedAt,
+                LastStatus = c.CheckResults
+                    .OrderByDescending(cr => cr.CheckedAt)
+                    .Select(cr => cr.Status)
+                    .FirstOrDefault(),
+                LastCheckedAt = c.CheckResults
+                    .OrderByDescending(cr => cr.CheckedAt)
+                    .Select(cr => (DateTimeOffset?)cr.CheckedAt)
+                    .FirstOrDefault()
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var ws in workspaces)
+        {
+            foreach (var check in checkStatuses.Where(c => c.WorkspaceId == ws.Id))
+            {
+                var status = check.LastStatus;
+                if (!check.LastCheckedAt.HasValue ||
+                    check.LastCheckedAt.Value < startupTime ||
+                    check.UpdatedAt > check.LastCheckedAt.Value)
+                {
+                    status = null;
+                }
+
+                switch (status)
+                {
+                    case CheckStatuses.Up:
+                        ws.UpCount++;
+                        break;
+                    case CheckStatuses.Warn:
+                        ws.WarnCount++;
+                        break;
+                    case CheckStatuses.Down:
+                        ws.DownCount++;
+                        break;
+                }
+            }
+        }
     }
 }

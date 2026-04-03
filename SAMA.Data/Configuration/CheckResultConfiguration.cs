@@ -31,8 +31,9 @@ public class CheckResultConfiguration : IEntityTypeConfiguration<CheckResult>
 
         // Indexes
         builder.HasIndex(cr => new { cr.CheckId, cr.CheckedAt })
-            .HasDatabaseName("IX_CheckResults_CheckId_CheckedAt")
-            .IsDescending(false, true); // CheckId ASC, CheckedAt DESC
+            .HasDatabaseName("IX_CheckResults_CheckId_CheckedAt_Covering")
+            .IsDescending(false, true)
+            .IncludeProperties(cr => new { cr.Status, cr.ResponseTimeMs, cr.ErrorMessage });
 
         builder.HasIndex(cr => cr.CheckedAt)
             .HasDatabaseName("IX_CheckResults_CheckedAt");

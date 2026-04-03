@@ -24,7 +24,7 @@ public class ManageModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>((SamaDbContext)null!);
+        _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockEventSubscriptionQuery = Substitute.For<EventSubscriptionQueryService>((SamaDbContext)null!);
         _mockEventSubscriptionCommand = Substitute.For<EventSubscriptionCommandService>(null!, null!);
 
