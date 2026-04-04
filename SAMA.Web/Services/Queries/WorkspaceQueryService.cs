@@ -27,6 +27,7 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
         }
 
         var workspaces = await query
+            .AsNoTracking()
             .OrderBy(w => w.Name)
             .Select(w => new WorkspaceDetailsViewModel
             {
@@ -52,6 +53,7 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
         CancellationToken cancellationToken = default)
     {
         var workspace = await _dbContext.Workspaces
+            .AsNoTracking()
             .Where(w => w.Id == workspaceId)
             .Select(w => new WorkspaceDetailsViewModel
             {
@@ -94,13 +96,9 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
             {
                 c.WorkspaceId,
                 c.UpdatedAt,
-                LastStatus = c.CheckResults
+                LatestResult = c.CheckResults
                     .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => cr.Status)
-                    .FirstOrDefault(),
-                LastCheckedAt = c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => (DateTimeOffset?)cr.CheckedAt)
+                    .Select(cr => new { cr.Status, CheckedAt = (DateTimeOffset?)cr.CheckedAt })
                     .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
@@ -109,10 +107,11 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
         {
             foreach (var check in checkStatuses.Where(c => c.WorkspaceId == ws.Id))
             {
-                var status = check.LastStatus;
-                if (!check.LastCheckedAt.HasValue ||
-                    check.LastCheckedAt.Value < startupTime ||
-                    check.UpdatedAt > check.LastCheckedAt.Value)
+                var status = check.LatestResult?.Status;
+                var lastCheckedAt = check.LatestResult?.CheckedAt;
+                if (!lastCheckedAt.HasValue ||
+                    lastCheckedAt.Value < startupTime ||
+                    check.UpdatedAt > lastCheckedAt.Value)
                 {
                     status = null;
                 }

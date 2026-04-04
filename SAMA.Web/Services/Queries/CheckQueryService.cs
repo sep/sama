@@ -35,18 +35,22 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         if (checks.Count > 0)
         {
             var checkIds = checks.Select(c => c.Id).ToList();
-            var latestResults = await _samaDbContext.CheckResults
+            var latestResults = await _samaDbContext.Checks
                 .AsNoTracking()
-                .Where(cr => checkIds.Contains(cr.CheckId))
-                .GroupBy(cr => cr.CheckId)
-                .Select(g => new
-                {
-                    CheckId = g.Key,
-                    Status = g.OrderByDescending(cr => cr.CheckedAt).Select(cr => cr.Status).First(),
-                    CheckedAt = g.Max(cr => cr.CheckedAt),
-                    ResponseTimeMs = g.OrderByDescending(cr => cr.CheckedAt).Select(cr => cr.ResponseTimeMs).First(),
-                    ErrorMessage = g.OrderByDescending(cr => cr.CheckedAt).Select(cr => cr.ErrorMessage).First(),
-                })
+                .Where(c => checkIds.Contains(c.Id))
+                .Select(c => c.CheckResults
+                    .OrderByDescending(cr => cr.CheckedAt)
+                    .Select(cr => new
+                    {
+                        cr.CheckId,
+                        cr.Status,
+                        cr.CheckedAt,
+                        cr.ResponseTimeMs,
+                        cr.ErrorMessage,
+                    })
+                    .FirstOrDefault())
+                .Where(r => r != null)
+                .Select(r => r!)
                 .ToListAsync(cancellationToken);
 
             var resultsByCheckId = latestResults.ToDictionary(r => r.CheckId);
