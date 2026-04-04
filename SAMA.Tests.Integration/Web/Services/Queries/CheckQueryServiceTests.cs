@@ -796,7 +796,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         var enabledCheck = await CreateCheckAsync("Enabled Check", CheckTypes.Http, "60", true);
         await CreateCheckAsync("Disabled No Results", CheckTypes.Http, "60", false);
 
-        var recentTime = DateTimeOffset.UtcNow.AddSeconds(-1);
+        var recentTime = DateTimeOffset.UtcNow.AddMinutes(-3);
         await CreateCheckResultAsync(enabledCheck.Id, CheckStatuses.Up, recentTime);
 
         var result = await _service.GetWorkspaceIncidentTimelineAsync(_workspace.Id, 1);
@@ -805,9 +805,9 @@ public class CheckQueryServiceTests : IntegrationTestBase
         Assert.IsNotEmpty(result.Increments);
 
         // Disabled check with no results should not inflate TotalChecks
-        var lastIncrement = result.Increments.Last();
-        Assert.AreEqual(1, lastIncrement.TotalChecks);
-        Assert.AreEqual(1, lastIncrement.UpCount);
+        var increment = result.Increments.First(i => i.StartTime <= recentTime && recentTime < i.EndTime);
+        Assert.AreEqual(1, increment.TotalChecks);
+        Assert.AreEqual(1, increment.UpCount);
     }
 
     [TestMethod]
@@ -816,7 +816,7 @@ public class CheckQueryServiceTests : IntegrationTestBase
         var checkWithResults = await CreateCheckAsync("Check With Results", CheckTypes.Http, "60", true);
         var checkWithoutResults = await CreateCheckAsync("Check Without Results", CheckTypes.Http, "60", true);
 
-        var recentTime = DateTimeOffset.UtcNow.AddSeconds(-1);
+        var recentTime = DateTimeOffset.UtcNow.AddMinutes(-3);
         await CreateCheckResultAsync(checkWithResults.Id, CheckStatuses.Up, recentTime);
 
         var result = await _service.GetWorkspaceIncidentTimelineAsync(_workspace.Id, 1);
@@ -824,9 +824,9 @@ public class CheckQueryServiceTests : IntegrationTestBase
         Assert.IsNotNull(result);
         Assert.IsNotEmpty(result.Increments);
 
-        var lastIncrement = result.Increments.Last();
-        Assert.AreEqual(2, lastIncrement.TotalChecks);
-        Assert.AreEqual(1, lastIncrement.UpCount);
+        var increment = result.Increments.First(i => i.StartTime <= recentTime && recentTime < i.EndTime);
+        Assert.AreEqual(2, increment.TotalChecks);
+        Assert.AreEqual(1, increment.UpCount);
     }
 
     private async Task<Workspace> CreateWorkspaceAsync(string name)
