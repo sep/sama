@@ -17,7 +17,7 @@ namespace SAMA.Tests.Integration;
 
 public abstract class IntegrationTestBase
 {
-    private static readonly ConcurrentDictionary<Type, ClassState> _classStates = new();
+    private static readonly ConcurrentDictionary<Type, Lazy<ClassState>> _classStates = new();
     internal static readonly ConcurrentBag<ClassState> AllClassStates = new();
 
     private ClassState _classState = null!;
@@ -31,11 +31,9 @@ public abstract class IntegrationTestBase
     public virtual async Task InitializeTestAsync()
     {
         var type = GetType();
-        var isFirstTest = false;
 
-        _classState = _classStates.GetOrAdd(type, _ =>
+        var lazy = _classStates.GetOrAdd(type, _ => new Lazy<ClassState>(() =>
         {
-            isFirstTest = true;
             var schemaName = $"test_{type.Name.ToLowerInvariant()}_{Guid.CreateVersion7():N}";
             var connectionString = GetConnectionString(schemaName);
 
@@ -52,7 +50,10 @@ public abstract class IntegrationTestBase
             };
             AllClassStates.Add(state);
             return state;
-        });
+        }));
+
+        var isFirstTest = !lazy.IsValueCreated;
+        _classState = lazy.Value;
 
         await InitializeServicesAsync();
 
