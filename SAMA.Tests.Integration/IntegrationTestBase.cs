@@ -71,15 +71,20 @@ public abstract class IntegrationTestBase
     [TestCleanup]
     public virtual async Task CleanupTestAsync()
     {
-        if (DbContext != null)
+        try
         {
-            await DbContext.Database.CloseConnectionAsync();
-            await DbContext.DisposeAsync();
+            if (DbContext != null)
+            {
+                await DbContext.Database.CloseConnectionAsync();
+                await DbContext.DisposeAsync();
+            }
         }
-
-        if (_serviceProvider != null)
+        finally
         {
-            await _serviceProvider.DisposeAsync();
+            if (_serviceProvider != null)
+            {
+                await _serviceProvider.DisposeAsync();
+            }
         }
     }
 
@@ -102,7 +107,7 @@ public abstract class IntegrationTestBase
         pageModel.MetadataProvider = modelMetadataProvider;
     }
 
-    private static string GetConnectionString(string schemaName)
+    internal static string GetAdminConnectionString()
     {
         var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
         var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
@@ -110,7 +115,12 @@ public abstract class IntegrationTestBase
         var username = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "sama";
         var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "sama-dev-pw";
 
-        return $"Host={host};Port={port};Database={database};Username={username};Password={password};Search Path={schemaName};Options=-c synchronous_commit=off";
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+    }
+
+    private static string GetConnectionString(string schemaName)
+    {
+        return $"{GetAdminConnectionString()};Search Path={schemaName};Options=-c synchronous_commit=off";
     }
 
     private async Task CreateSchemaAsync()
