@@ -240,6 +240,45 @@ public class DashboardCacheServiceTests
     }
 
     [TestMethod]
+    public void SetWorkspaceDataShouldNotPreventEvictionOfStaleEntry()
+    {
+        var workspaceId = Guid.NewGuid();
+        _cacheService.SetWorkspaceData(workspaceId, CreateWorkspaceData());
+        BackdateLastAccessedAt("_workspaceCache", workspaceId);
+
+        _cacheService.SetWorkspaceData(workspaceId, CreateWorkspaceData());
+        _cacheService.EvictStaleEntries();
+
+        Assert.AreEqual(0, _cacheService.GetCacheableWorkspaceIds().Count);
+    }
+
+    [TestMethod]
+    public void SetTimelineShouldNotPreventEvictionOfStaleEntry()
+    {
+        var workspaceId = Guid.NewGuid();
+        _cacheService.SetTimeline(workspaceId, 24, CreateTimeline());
+        BackdateLastAccessedAt("_timelineCache", (workspaceId, 24));
+
+        _cacheService.SetTimeline(workspaceId, 24, CreateTimeline());
+        _cacheService.EvictStaleEntries();
+
+        Assert.AreEqual(0, _cacheService.GetCacheableTimelineKeys().Count);
+    }
+
+    [TestMethod]
+    public void SetTrendsShouldNotPreventEvictionOfStaleEntry()
+    {
+        var workspaceId = Guid.NewGuid();
+        _cacheService.SetTrends(workspaceId, 24, CreateTrends());
+        BackdateLastAccessedAt("_trendsCache", (workspaceId, 24));
+
+        _cacheService.SetTrends(workspaceId, 24, CreateTrends());
+        _cacheService.EvictStaleEntries();
+
+        Assert.AreEqual(0, _cacheService.GetCacheableTrendsKeys().Count);
+    }
+
+    [TestMethod]
     public void GetCacheableWorkspaceIdsShouldReturnOnlyRecentlyAccessedEntries()
     {
         var workspaceId1 = Guid.NewGuid();
@@ -252,5 +291,14 @@ public class DashboardCacheServiceTests
         Assert.AreEqual(2, activeIds.Count);
         CollectionAssert.Contains(activeIds, workspaceId1);
         CollectionAssert.Contains(activeIds, workspaceId2);
+    }
+
+    private void BackdateLastAccessedAt<TKey>(string fieldName, TKey key)
+    {
+        var field = typeof(DashboardCacheService).GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        var dict = (System.Collections.IDictionary)field.GetValue(_cacheService)!;
+        var entry = dict[key!];
+        var prop = entry!.GetType().GetProperty("LastAccessedAt")!;
+        prop.SetValue(entry, DateTimeOffset.UtcNow.AddMinutes(-15));
     }
 }

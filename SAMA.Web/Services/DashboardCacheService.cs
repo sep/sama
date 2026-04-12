@@ -107,20 +107,49 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
 
     public async Task RefreshWorkspaceDataAsync(Guid workspaceId)
     {
-        var data = await PopulateWorkspaceDataAsync(workspaceId);
-        SetWorkspaceData(workspaceId, data);
+        var semaphore = _workspaceLocks.GetOrAdd(workspaceId, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
+        {
+            var data = await PopulateWorkspaceDataAsync(workspaceId);
+            SetWorkspaceData(workspaceId, data);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     public async Task RefreshTimelineAsync(Guid workspaceId, int hours)
     {
-        var data = await PopulateTimelineAsync(workspaceId, hours);
-        SetTimeline(workspaceId, hours, data);
+        var key = (workspaceId, hours);
+        var semaphore = _timelineLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
+        {
+            var data = await PopulateTimelineAsync(workspaceId, hours);
+            SetTimeline(workspaceId, hours, data);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     public async Task RefreshTrendsAsync(Guid workspaceId, int hours)
     {
-        var data = await PopulateTrendsAsync(workspaceId, hours);
-        SetTrends(workspaceId, hours, data);
+        var key = (workspaceId, hours);
+        var semaphore = _trendsLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
+        {
+            var data = await PopulateTrendsAsync(workspaceId, hours);
+            SetTrends(workspaceId, hours, data);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     internal void SetWorkspaceData(Guid workspaceId, WorkspaceDashboardData data)
@@ -132,11 +161,10 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             {
                 existing.Data = data;
                 existing.LastRefreshedAt = DateTimeOffset.UtcNow;
-                existing.LastAccessedAt = DateTimeOffset.UtcNow;
                 return existing;
             });
 
-        EnforceSizeLimit(_workspaceCache, MaxWorkspaceEntries);
+        EnforceSizeLimit(_workspaceCache, _workspaceLocks, MaxWorkspaceEntries);
     }
 
     internal void SetTimeline(Guid workspaceId, int hours, WorkspaceIncidentTimelineViewModel data)
@@ -149,11 +177,10 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             {
                 existing.Data = data;
                 existing.LastRefreshedAt = DateTimeOffset.UtcNow;
-                existing.LastAccessedAt = DateTimeOffset.UtcNow;
                 return existing;
             });
 
-        EnforceSizeLimit(_timelineCache, MaxTimelineEntries);
+        EnforceSizeLimit(_timelineCache, _timelineLocks, MaxTimelineEntries);
     }
 
     internal void SetTrends(Guid workspaceId, int hours, WorkspaceResponseTimeTrendsViewModel data)
@@ -166,27 +193,38 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             {
                 existing.Data = data;
                 existing.LastRefreshedAt = DateTimeOffset.UtcNow;
-                existing.LastAccessedAt = DateTimeOffset.UtcNow;
                 return existing;
             });
 
-        EnforceSizeLimit(_trendsCache, MaxTrendsEntries);
+        EnforceSizeLimit(_trendsCache, _trendsLocks, MaxTrendsEntries);
     }
 
     public void InvalidateWorkspace(Guid workspaceId)
     {
         _workspaceCache.TryRemove(workspaceId, out _);
+        if (_workspaceLocks.TryRemove(workspaceId, out var semaphore))
+        {
+            semaphore.Dispose();
+        }
     }
 
     public void InvalidateAllForWorkspace(Guid workspaceId)
     {
         _workspaceCache.TryRemove(workspaceId, out _);
+        if (_workspaceLocks.TryRemove(workspaceId, out var workspaceSemaphore))
+        {
+            workspaceSemaphore.Dispose();
+        }
 
         foreach (var key in _timelineCache.Keys)
         {
             if (key.WorkspaceId == workspaceId)
             {
                 _timelineCache.TryRemove(key, out _);
+                if (_timelineLocks.TryRemove(key, out var semaphore))
+                {
+                    semaphore.Dispose();
+                }
             }
         }
 
@@ -195,6 +233,10 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             if (key.WorkspaceId == workspaceId)
             {
                 _trendsCache.TryRemove(key, out _);
+                if (_trendsLocks.TryRemove(key, out var semaphore))
+                {
+                    semaphore.Dispose();
+                }
             }
         }
     }
@@ -223,7 +265,10 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             if (kvp.Value.LastAccessedAt < cutoff)
             {
                 _workspaceCache.TryRemove(kvp.Key, out _);
-                _workspaceLocks.TryRemove(kvp.Key, out _);
+                if (_workspaceLocks.TryRemove(kvp.Key, out var semaphore))
+                {
+                    semaphore.Dispose();
+                }
             }
         }
 
@@ -232,7 +277,10 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             if (kvp.Value.LastAccessedAt < cutoff)
             {
                 _timelineCache.TryRemove(kvp.Key, out _);
-                _timelineLocks.TryRemove(kvp.Key, out _);
+                if (_timelineLocks.TryRemove(kvp.Key, out var semaphore))
+                {
+                    semaphore.Dispose();
+                }
             }
         }
 
@@ -241,12 +289,15 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
             if (kvp.Value.LastAccessedAt < cutoff)
             {
                 _trendsCache.TryRemove(kvp.Key, out _);
-                _trendsLocks.TryRemove(kvp.Key, out _);
+                if (_trendsLocks.TryRemove(kvp.Key, out var semaphore))
+                {
+                    semaphore.Dispose();
+                }
             }
         }
     }
 
-    private static void EnforceSizeLimit<TKey, TValue>(ConcurrentDictionary<TKey, CacheEntry<TValue>> cache, int maxEntries)
+    private static void EnforceSizeLimit<TKey, TValue>(ConcurrentDictionary<TKey, CacheEntry<TValue>> cache, ConcurrentDictionary<TKey, SemaphoreSlim> locks, int maxEntries)
         where TKey : notnull
         where TValue : class
     {
@@ -264,6 +315,10 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         foreach (var key in toRemove)
         {
             cache.TryRemove(key, out _);
+            if (locks.TryRemove(key, out var semaphore))
+            {
+                semaphore.Dispose();
+            }
         }
     }
 
