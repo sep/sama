@@ -279,7 +279,7 @@ public class DashboardCacheServiceTests
     }
 
     [TestMethod]
-    public void GetCachedWorkspaceIdsShouldReturnOnlyRecentlyAccessedEntries()
+    public void GetCachedWorkspaceIdsShouldReturnAllCachedEntries()
     {
         var workspaceId1 = Guid.NewGuid();
         var workspaceId2 = Guid.NewGuid();

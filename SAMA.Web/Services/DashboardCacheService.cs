@@ -6,6 +6,8 @@ namespace SAMA.Web.Services;
 
 public class DashboardCacheService(IServiceProvider _serviceProvider)
 {
+    private const int MinHours = 1;
+    private const int MaxHours = 168;
     private const int MaxWorkspaceEntries = 50;
     private const int MaxTimelineEntries = 50;
     private const int MaxTrendsEntries = 50;
@@ -19,7 +21,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
     private readonly ConcurrentDictionary<(Guid, int), SemaphoreSlim> _timelineLocks = new();
     private readonly ConcurrentDictionary<(Guid, int), SemaphoreSlim> _trendsLocks = new();
 
-    public async Task<WorkspaceDashboardData> GetWorkspaceDataAsync(Guid workspaceId)
+    public async Task<WorkspaceDashboardData> GetWorkspaceDataAsync(Guid workspaceId, CancellationToken cancellationToken = default)
     {
         if (_workspaceCache.TryGetValue(workspaceId, out var entry))
         {
@@ -28,7 +30,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         }
 
         var semaphore = _workspaceLocks.GetOrAdd(workspaceId, _ => new SemaphoreSlim(1, 1));
-        await semaphore.WaitAsync();
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
             if (_workspaceCache.TryGetValue(workspaceId, out entry))
@@ -37,7 +39,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
                 return entry.Data;
             }
 
-            var data = await PopulateWorkspaceDataAsync(workspaceId);
+            var data = await PopulateWorkspaceDataAsync(workspaceId, cancellationToken);
             SetWorkspaceData(workspaceId, data);
             return data;
         }
@@ -47,8 +49,9 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         }
     }
 
-    public async Task<WorkspaceIncidentTimelineViewModel> GetTimelineAsync(Guid workspaceId, int hours)
+    public async Task<WorkspaceIncidentTimelineViewModel> GetTimelineAsync(Guid workspaceId, int hours, CancellationToken cancellationToken = default)
     {
+        hours = Math.Clamp(hours, MinHours, MaxHours);
         var key = (workspaceId, hours);
         if (_timelineCache.TryGetValue(key, out var entry))
         {
@@ -57,7 +60,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         }
 
         var semaphore = _timelineLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await semaphore.WaitAsync();
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
             if (_timelineCache.TryGetValue(key, out entry))
@@ -66,7 +69,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
                 return entry.Data;
             }
 
-            var data = await PopulateTimelineAsync(workspaceId, hours);
+            var data = await PopulateTimelineAsync(workspaceId, hours, cancellationToken);
             SetTimeline(workspaceId, hours, data);
             return data;
         }
@@ -76,8 +79,9 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         }
     }
 
-    public async Task<WorkspaceResponseTimeTrendsViewModel> GetTrendsAsync(Guid workspaceId, int hours)
+    public async Task<WorkspaceResponseTimeTrendsViewModel> GetTrendsAsync(Guid workspaceId, int hours, CancellationToken cancellationToken = default)
     {
+        hours = Math.Clamp(hours, MinHours, MaxHours);
         var key = (workspaceId, hours);
         if (_trendsCache.TryGetValue(key, out var entry))
         {
@@ -86,7 +90,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         }
 
         var semaphore = _trendsLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-        await semaphore.WaitAsync();
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
             if (_trendsCache.TryGetValue(key, out entry))
@@ -95,7 +99,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
                 return entry.Data;
             }
 
-            var data = await PopulateTrendsAsync(workspaceId, hours);
+            var data = await PopulateTrendsAsync(workspaceId, hours, cancellationToken);
             SetTrends(workspaceId, hours, data);
             return data;
         }
@@ -111,7 +115,7 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         await semaphore.WaitAsync(cancellationToken);
         try
         {
-            var data = await PopulateWorkspaceDataAsync(workspaceId);
+            var data = await PopulateWorkspaceDataAsync(workspaceId, cancellationToken);
             SetWorkspaceData(workspaceId, data);
         }
         finally
@@ -122,12 +126,13 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
 
     public async Task RefreshTimelineAsync(Guid workspaceId, int hours, CancellationToken cancellationToken = default)
     {
+        hours = Math.Clamp(hours, MinHours, MaxHours);
         var key = (workspaceId, hours);
         var semaphore = _timelineLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
         await semaphore.WaitAsync(cancellationToken);
         try
         {
-            var data = await PopulateTimelineAsync(workspaceId, hours);
+            var data = await PopulateTimelineAsync(workspaceId, hours, cancellationToken);
             SetTimeline(workspaceId, hours, data);
         }
         finally
@@ -138,12 +143,13 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
 
     public async Task RefreshTrendsAsync(Guid workspaceId, int hours, CancellationToken cancellationToken = default)
     {
+        hours = Math.Clamp(hours, MinHours, MaxHours);
         var key = (workspaceId, hours);
         var semaphore = _trendsLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
         await semaphore.WaitAsync(cancellationToken);
         try
         {
-            var data = await PopulateTrendsAsync(workspaceId, hours);
+            var data = await PopulateTrendsAsync(workspaceId, hours, cancellationToken);
             SetTrends(workspaceId, hours, data);
         }
         finally
@@ -291,16 +297,16 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         }
     }
 
-    private async Task<WorkspaceDashboardData> PopulateWorkspaceDataAsync(Guid workspaceId)
+    private async Task<WorkspaceDashboardData> PopulateWorkspaceDataAsync(Guid workspaceId, CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var checkQueryService = scope.ServiceProvider.GetRequiredService<CheckQueryService>();
         var alertQueryService = scope.ServiceProvider.GetRequiredService<AlertQueryService>();
         var globalSettings = scope.ServiceProvider.GetRequiredService<GlobalSettingsService>();
 
-        var checks = await checkQueryService.GetChecksForWorkspaceAsync(workspaceId);
+        var checks = await checkQueryService.GetChecksForWorkspaceAsync(workspaceId, cancellationToken);
         var recentAlerts = await alertQueryService.GetRecentAlertsForWorkspaceAsync(
-            workspaceId, globalSettings.MaxRecentAlerts);
+            workspaceId, globalSettings.MaxRecentAlerts, cancellationToken);
 
         return new WorkspaceDashboardData(
             Checks: checks,
@@ -308,18 +314,18 @@ public class DashboardCacheService(IServiceProvider _serviceProvider)
         );
     }
 
-    private async Task<WorkspaceIncidentTimelineViewModel> PopulateTimelineAsync(Guid workspaceId, int hours)
+    private async Task<WorkspaceIncidentTimelineViewModel> PopulateTimelineAsync(Guid workspaceId, int hours, CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var checkQueryService = scope.ServiceProvider.GetRequiredService<CheckQueryService>();
-        return await checkQueryService.GetWorkspaceIncidentTimelineAsync(workspaceId, hours);
+        return await checkQueryService.GetWorkspaceIncidentTimelineAsync(workspaceId, hours, cancellationToken: cancellationToken);
     }
 
-    private async Task<WorkspaceResponseTimeTrendsViewModel> PopulateTrendsAsync(Guid workspaceId, int hours)
+    private async Task<WorkspaceResponseTimeTrendsViewModel> PopulateTrendsAsync(Guid workspaceId, int hours, CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var checkQueryService = scope.ServiceProvider.GetRequiredService<CheckQueryService>();
-        return await checkQueryService.GetWorkspaceResponseTimeTrendsAsync(workspaceId, hours);
+        return await checkQueryService.GetWorkspaceResponseTimeTrendsAsync(workspaceId, hours, cancellationToken: cancellationToken);
     }
 
     public record WorkspaceDashboardData(
