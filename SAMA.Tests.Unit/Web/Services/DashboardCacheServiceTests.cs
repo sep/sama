@@ -137,9 +137,9 @@ public class DashboardCacheServiceTests
 
         _cacheService.InvalidateWorkspace(workspaceId);
 
-        Assert.AreEqual(0, _cacheService.GetCacheableWorkspaceIds().Count);
-        Assert.IsTrue(_cacheService.GetCacheableTimelineKeys().Count > 0);
-        Assert.IsTrue(_cacheService.GetCacheableTrendsKeys().Count > 0);
+        Assert.AreEqual(0, _cacheService.GetCachedWorkspaceIds().Count);
+        Assert.IsTrue(_cacheService.GetCachedTimelineKeys().Count > 0);
+        Assert.IsTrue(_cacheService.GetCachedTrendsKeys().Count > 0);
     }
 
     [TestMethod]
@@ -155,10 +155,10 @@ public class DashboardCacheServiceTests
 
         _cacheService.InvalidateAllForWorkspace(workspaceId);
 
-        Assert.AreEqual(1, _cacheService.GetCacheableWorkspaceIds().Count);
-        Assert.AreEqual(otherWorkspaceId, _cacheService.GetCacheableWorkspaceIds()[0]);
-        Assert.AreEqual(1, _cacheService.GetCacheableTimelineKeys().Count);
-        Assert.AreEqual(0, _cacheService.GetCacheableTrendsKeys().Count);
+        Assert.AreEqual(1, _cacheService.GetCachedWorkspaceIds().Count);
+        Assert.AreEqual(otherWorkspaceId, _cacheService.GetCachedWorkspaceIds()[0]);
+        Assert.AreEqual(1, _cacheService.GetCachedTimelineKeys().Count);
+        Assert.AreEqual(0, _cacheService.GetCachedTrendsKeys().Count);
     }
 
     [TestMethod]
@@ -171,7 +171,7 @@ public class DashboardCacheServiceTests
         var result = await _cacheService.GetWorkspaceDataAsync(workspaceId);
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, _cacheService.GetCacheableWorkspaceIds().Count);
+        Assert.AreEqual(1, _cacheService.GetCachedWorkspaceIds().Count);
     }
 
     [TestMethod]
@@ -181,7 +181,7 @@ public class DashboardCacheServiceTests
         _cacheService.SetTimeline(workspaceId, 6, CreateTimeline());
         _cacheService.SetTimeline(workspaceId, 24, CreateTimeline());
 
-        Assert.AreEqual(2, _cacheService.GetCacheableTimelineKeys().Count);
+        Assert.AreEqual(2, _cacheService.GetCachedTimelineKeys().Count);
     }
 
     [TestMethod]
@@ -191,7 +191,7 @@ public class DashboardCacheServiceTests
         _cacheService.SetTrends(workspaceId, 6, CreateTrends());
         _cacheService.SetTrends(workspaceId, 24, CreateTrends());
 
-        Assert.AreEqual(2, _cacheService.GetCacheableTrendsKeys().Count);
+        Assert.AreEqual(2, _cacheService.GetCachedTrendsKeys().Count);
     }
 
     [TestMethod]
@@ -234,9 +234,9 @@ public class DashboardCacheServiceTests
 
         _cacheService.EvictStaleEntries();
 
-        Assert.AreEqual(1, _cacheService.GetCacheableWorkspaceIds().Count);
-        Assert.AreEqual(1, _cacheService.GetCacheableTimelineKeys().Count);
-        Assert.AreEqual(1, _cacheService.GetCacheableTrendsKeys().Count);
+        Assert.AreEqual(1, _cacheService.GetCachedWorkspaceIds().Count);
+        Assert.AreEqual(1, _cacheService.GetCachedTimelineKeys().Count);
+        Assert.AreEqual(1, _cacheService.GetCachedTrendsKeys().Count);
     }
 
     [TestMethod]
@@ -249,7 +249,7 @@ public class DashboardCacheServiceTests
         _cacheService.SetWorkspaceData(workspaceId, CreateWorkspaceData());
         _cacheService.EvictStaleEntries();
 
-        Assert.AreEqual(0, _cacheService.GetCacheableWorkspaceIds().Count);
+        Assert.AreEqual(0, _cacheService.GetCachedWorkspaceIds().Count);
     }
 
     [TestMethod]
@@ -262,7 +262,7 @@ public class DashboardCacheServiceTests
         _cacheService.SetTimeline(workspaceId, 24, CreateTimeline());
         _cacheService.EvictStaleEntries();
 
-        Assert.AreEqual(0, _cacheService.GetCacheableTimelineKeys().Count);
+        Assert.AreEqual(0, _cacheService.GetCachedTimelineKeys().Count);
     }
 
     [TestMethod]
@@ -275,18 +275,18 @@ public class DashboardCacheServiceTests
         _cacheService.SetTrends(workspaceId, 24, CreateTrends());
         _cacheService.EvictStaleEntries();
 
-        Assert.AreEqual(0, _cacheService.GetCacheableTrendsKeys().Count);
+        Assert.AreEqual(0, _cacheService.GetCachedTrendsKeys().Count);
     }
 
     [TestMethod]
-    public void GetCacheableWorkspaceIdsShouldReturnOnlyRecentlyAccessedEntries()
+    public void GetCachedWorkspaceIdsShouldReturnOnlyRecentlyAccessedEntries()
     {
         var workspaceId1 = Guid.NewGuid();
         var workspaceId2 = Guid.NewGuid();
         _cacheService.SetWorkspaceData(workspaceId1, CreateWorkspaceData());
         _cacheService.SetWorkspaceData(workspaceId2, CreateWorkspaceData());
 
-        var activeIds = _cacheService.GetCacheableWorkspaceIds();
+        var activeIds = _cacheService.GetCachedWorkspaceIds();
 
         Assert.AreEqual(2, activeIds.Count);
         CollectionAssert.Contains(activeIds, workspaceId1);

@@ -9,11 +9,12 @@ public class DashboardCacheRefreshJob(
 {
     public async Task Execute(IJobExecutionContext context)
     {
+        var cancellationToken = context.CancellationToken;
         _cacheService.EvictStaleEntries();
 
-        var workspaceIds = _cacheService.GetCacheableWorkspaceIds();
-        var timelineKeys = _cacheService.GetCacheableTimelineKeys();
-        var trendsKeys = _cacheService.GetCacheableTrendsKeys();
+        var workspaceIds = _cacheService.GetCachedWorkspaceIds();
+        var timelineKeys = _cacheService.GetCachedTimelineKeys();
+        var trendsKeys = _cacheService.GetCachedTrendsKeys();
 
         if (workspaceIds.Count == 0 && timelineKeys.Count == 0 && trendsKeys.Count == 0)
         {
@@ -28,9 +29,14 @@ public class DashboardCacheRefreshJob(
 
         foreach (var workspaceId in workspaceIds)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await _cacheService.RefreshWorkspaceDataAsync(workspaceId);
+                await _cacheService.RefreshWorkspaceDataAsync(workspaceId, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -40,9 +46,14 @@ public class DashboardCacheRefreshJob(
 
         foreach (var (workspaceId, hours) in timelineKeys)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await _cacheService.RefreshTimelineAsync(workspaceId, hours);
+                await _cacheService.RefreshTimelineAsync(workspaceId, hours, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -52,9 +63,14 @@ public class DashboardCacheRefreshJob(
 
         foreach (var (workspaceId, hours) in trendsKeys)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await _cacheService.RefreshTrendsAsync(workspaceId, hours);
+                await _cacheService.RefreshTrendsAsync(workspaceId, hours, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

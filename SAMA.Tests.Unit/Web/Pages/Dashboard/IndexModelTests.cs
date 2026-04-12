@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
@@ -26,7 +27,7 @@ public class IndexModelTests
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _markdownService = new MarkdownService();
-        _cacheService = new DashboardCacheService(null!);
+        _cacheService = new DashboardCacheService(new ServiceCollection().BuildServiceProvider());
 
         _pageModel = new IndexModel(_mockWorkspaceQuery, _mockGlobalSettings, _markdownService, _cacheService);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
