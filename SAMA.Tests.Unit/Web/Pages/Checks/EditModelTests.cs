@@ -27,7 +27,7 @@ public class EditModelTests
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockConfigService = Substitute.For<CheckConfigurationService>();
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
-        _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!);
+        _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!, null!);
 
         _pageModel = new EditModel(_mockWorkspaceQuery, _mockCheckQuery, _mockConfigService, _mockCheckCommand);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);

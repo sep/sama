@@ -29,13 +29,12 @@ public class AlertCommandServiceTests : IntegrationTestBase
         _mockScheduler = Substitute.For<CheckSchedulerService>(null, null, null);
         _mockEventService = Substitute.For<EventSubscriptionService>(null, null, null);
 
-        var alertChangeDetectionService = new AlertChangeDetectionService();
-
         _service = new AlertCommandService(
             DbContext,
             _mockScheduler,
             _mockEventService,
-            alertChangeDetectionService,
+            new AlertChangeDetectionService(),
+            new DashboardCacheService(ServiceProvider),
             Substitute.For<ILogger<AlertCommandService>>());
     }
 

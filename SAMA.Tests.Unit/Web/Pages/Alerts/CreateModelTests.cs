@@ -24,7 +24,7 @@ public class CreateModelTests
     {
         _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
         _mockChannelQuery = Substitute.For<ChannelQueryService>(null!, null!);
-        _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!);
+        _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!, null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
 
         _pageModel = new CreateModel(_mockWorkspaceQuery, _mockChannelQuery, _mockCheckQuery, _mockAlertCommand);

@@ -26,13 +26,12 @@ public class CheckCommandServiceTests : IntegrationTestBase
         _mockScheduler = Substitute.For<CheckSchedulerService>(null, null, null);
         _mockEventService = Substitute.For<EventSubscriptionService>(null, null, null);
 
-        var changeDetectionService = new CheckChangeDetectionService();
-
         _service = new CheckCommandService(
             DbContext,
             _mockScheduler,
             _mockEventService,
-            changeDetectionService,
+            new CheckChangeDetectionService(),
+            new DashboardCacheService(ServiceProvider),
             Substitute.For<ILogger<CheckCommandService>>());
     }
 

@@ -22,7 +22,7 @@ public class EditModelTests
     public void Setup()
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
-        _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!);
+        _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!, null!);
         _markdownService = new MarkdownService();
 
         _pageModel = new EditModel(_mockWorkspaceQuery, _mockWorkspaceCommand, _markdownService);

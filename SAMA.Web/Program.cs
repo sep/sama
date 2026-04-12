@@ -41,15 +41,7 @@ builder.Services.AddSerilog((services, lc) => lc
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}\n               {Message:lj}{NewLine}{Exception}")
         .WriteTo.Sink(inMemoryLogSink));
 
-if (builder.Environment.IsDevelopment())
-{
-    // NOTE: this prevents modern hot reload functionality from working reliably
-    builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
-}
-else
-{
-    builder.Services.AddRazorPages();
-}
+builder.Services.AddRazorPages();
 builder.Services.AddControllers(config =>
 {
     // Require authenticated admin users by default
@@ -203,6 +195,7 @@ builder.Services.AddSingleton<ApplicationStateService>();
 builder.Services.AddSingleton<AesEncryptionService>();
 builder.Services.AddSingleton<GlobalSettingsService>();
 builder.Services.AddSingleton<MarkdownService>();
+builder.Services.AddSingleton<DashboardCacheService>();
 builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<SetupService>();
 builder.Services.AddScoped<NotificationChannelConfigurationService>();
@@ -265,6 +258,19 @@ builder.Services.AddQuartz(q =>
         .WithIdentity("data-cleanup-trigger")
         .WithCronSchedule("0 0 5 * * ?")
         .StartAt(DateBuilder.FutureDate(1, IntervalUnit.Minute)));
+
+    // Register dashboard cache refresh job (runs every 30 seconds)
+    q.AddJob<DashboardCacheRefreshJob>(opts => opts
+        .WithIdentity("dashboard-cache-refresh-job")
+        .StoreDurably());
+
+    q.AddTrigger(opts => opts
+        .ForJob("dashboard-cache-refresh-job")
+        .WithIdentity("dashboard-cache-refresh-trigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInSeconds(30)
+            .RepeatForever())
+        .StartAt(DateBuilder.FutureDate(15, IntervalUnit.Second)));
 });
 
 builder.Services.AddQuartzHostedService(options =>

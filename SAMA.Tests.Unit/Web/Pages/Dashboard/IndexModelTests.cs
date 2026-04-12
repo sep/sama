@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
-using SAMA.Data;
 using SAMA.Data.Entities;
 using SAMA.Tests.Unit.TestUtilities;
 using SAMA.Web.Models;
 using SAMA.Web.Pages.Dashboard;
 using SAMA.Web.Services;
 using SAMA.Web.Services.Queries;
+using static SAMA.Web.Services.DashboardCacheService;
 
 namespace SAMA.Tests.Unit.Web.Pages.Dashboard;
 
@@ -15,23 +15,34 @@ namespace SAMA.Tests.Unit.Web.Pages.Dashboard;
 public class IndexModelTests
 {
     private WorkspaceQueryService _mockWorkspaceQuery = null!;
-    private CheckQueryService _mockCheckQuery = null!;
-    private AlertQueryService _mockAlertQuery = null!;
     private GlobalSettingsService _mockGlobalSettings = null!;
     private MarkdownService _markdownService = null!;
+    private DashboardCacheService _cacheService = null!;
     private IndexModel _pageModel = null!;
 
     [TestInitialize]
     public void Setup()
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
-        _mockCheckQuery = Substitute.For<CheckQueryService>(null!, null!, null!, null!);
-        _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null, null, null, null);
         _markdownService = new MarkdownService();
+        _cacheService = new DashboardCacheService(null!);
 
-        _pageModel = new IndexModel(_mockWorkspaceQuery, _mockCheckQuery, _mockAlertQuery, _mockGlobalSettings, _markdownService);
+        _pageModel = new IndexModel(_mockWorkspaceQuery, _mockGlobalSettings, _markdownService, _cacheService);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
+
+        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new WorkspaceDetailsViewModel());
+    }
+
+    private void PrePopulateCache(Guid workspaceId, List<CheckListItemViewModel>? checks = null, List<RecentAlertViewModel>? alerts = null)
+    {
+        _cacheService.SetWorkspaceData(workspaceId, new WorkspaceDashboardData(
+            checks ?? [],
+            alerts ?? []
+        ));
+        _cacheService.SetTimeline(workspaceId, 24, new WorkspaceIncidentTimelineViewModel());
+        _cacheService.SetTrends(workspaceId, 24, new WorkspaceResponseTimeTrendsViewModel());
     }
 
     [TestMethod]
@@ -50,16 +61,9 @@ public class IndexModelTests
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checks = new List<CheckListItemViewModel>();
-        var alerts = new List<RecentAlertViewModel>();
-
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
         _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
+        PrePopulateCache(workspaceId);
 
         var result = await _pageModel.OnGetAsync(workspaceId, null, null);
 
@@ -71,16 +75,9 @@ public class IndexModelTests
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checks = new List<CheckListItemViewModel>();
-        var alerts = new List<RecentAlertViewModel>();
-
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
         _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(10);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
+        PrePopulateCache(workspaceId);
 
         await _pageModel.OnGetAsync(workspaceId, null, null);
 
@@ -121,15 +118,9 @@ public class IndexModelTests
                 AlertCount = 0
             }
         };
-        var alerts = new List<RecentAlertViewModel>();
-
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
         _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
+        PrePopulateCache(workspaceId, checks: checks);
 
         await _pageModel.OnGetAsync(workspaceId, null, null);
 
@@ -143,7 +134,6 @@ public class IndexModelTests
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checks = new List<CheckListItemViewModel>();
         var alerts = new List<RecentAlertViewModel>
         {
             new()
@@ -165,14 +155,9 @@ public class IndexModelTests
                 SentAt = DateTimeOffset.UtcNow.AddMinutes(-10)
             }
         };
-
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
         _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
+        PrePopulateCache(workspaceId, alerts: alerts);
 
         await _pageModel.OnGetAsync(workspaceId, null, null);
 
@@ -186,16 +171,9 @@ public class IndexModelTests
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checks = new List<CheckListItemViewModel>();
-        var alerts = new List<RecentAlertViewModel>();
-
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
         _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
+        PrePopulateCache(workspaceId);
 
         await _pageModel.OnGetAsync(workspaceId, null, null);
 
@@ -204,74 +182,13 @@ public class IndexModelTests
     }
 
     [TestMethod]
-    public async Task OnGetAsyncShouldCallGetChecksForWorkspaceAsyncWithCorrectId()
-    {
-        var workspaceId = Guid.NewGuid();
-        var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checks = new List<CheckListItemViewModel>();
-        var alerts = new List<RecentAlertViewModel>();
-
-        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
-        _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
-
-        await _pageModel.OnGetAsync(workspaceId, null, null);
-
-        await _mockCheckQuery.Received(1).GetChecksForWorkspaceAsync(workspaceId);
-    }
-
-    [TestMethod]
-    public async Task OnGetAsyncShouldCallGetRecentAlertsForWorkspaceAsyncWithCorrectParameters()
-    {
-        var workspaceId = Guid.NewGuid();
-        var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checks = new List<CheckListItemViewModel>();
-        var alerts = new List<RecentAlertViewModel>();
-
-        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, 50).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
-        _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(50);
-
-        await _pageModel.OnGetAsync(workspaceId, null, null);
-
-        await _mockAlertQuery.Received(1).GetRecentAlertsForWorkspaceAsync(workspaceId, 50);
-    }
-
-    [TestMethod]
-    public async Task OnGetAsyncShouldNotCallQueryServicesWhenWorkspaceDoesNotExist()
-    {
-        var workspaceId = Guid.NewGuid();
-        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(null));
-
-        await _pageModel.OnGetAsync(workspaceId, null, null);
-
-        await _mockCheckQuery.DidNotReceive().GetChecksForWorkspaceAsync(Arg.Any<Guid>());
-        await _mockAlertQuery.DidNotReceive().GetRecentAlertsForWorkspaceAsync(Arg.Any<Guid>(), Arg.Any<int>());
-    }
-
-    [TestMethod]
     public async Task OnGetAsyncShouldLoadWorkspaceContextWithCorrectParameters()
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "My Workspace" };
-        var checks = new List<CheckListItemViewModel>();
-        var alerts = new List<RecentAlertViewModel>();
-
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
-        _mockCheckQuery.GetChecksForWorkspaceAsync(workspaceId).Returns(Task.FromResult(checks));
-        _mockAlertQuery.GetRecentAlertsForWorkspaceAsync(workspaceId, Arg.Any<int>()).Returns(Task.FromResult(alerts));
-        _mockCheckQuery.GetWorkspaceIncidentTimelineAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceIncidentTimelineViewModel()));
-        _mockCheckQuery.GetWorkspaceResponseTimeTrendsAsync(workspaceId, Arg.Any<int>(), Arg.Any<int>()).Returns(Task.FromResult(new WorkspaceResponseTimeTrendsViewModel()));
         _mockGlobalSettings.DashboardRefreshIntervalSeconds.Returns(5);
-        _mockGlobalSettings.MaxRecentAlerts.Returns(20);
+        PrePopulateCache(workspaceId);
 
         await _pageModel.OnGetAsync(workspaceId, null, null);
 

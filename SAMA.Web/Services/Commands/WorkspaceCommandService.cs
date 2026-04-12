@@ -4,7 +4,7 @@ using SAMA.Data.Entities;
 
 namespace SAMA.Web.Services.Commands;
 
-public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<WorkspaceCommandService> _logger)
+public class WorkspaceCommandService(SamaDbContext _dbContext, DashboardCacheService _dashboardCacheService, ILogger<WorkspaceCommandService> _logger)
 {
     public virtual async Task<Guid> CreateWorkspaceAsync(
         string name,
@@ -59,6 +59,8 @@ public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<Workspace
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        _dashboardCacheService.InvalidateWorkspace(workspaceId);
+
         _logger.LogInformation(
             "User {User} updated workspace {WorkspaceName} (Id: {WorkspaceId})",
             performedBy,
@@ -85,6 +87,8 @@ public class WorkspaceCommandService(SamaDbContext _dbContext, ILogger<Workspace
 
         _dbContext.Workspaces.Remove(workspace);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _dashboardCacheService.InvalidateAllForWorkspace(workspaceId);
 
         _logger.LogInformation(
             "User {User} deleted workspace {WorkspaceName} (Id: {WorkspaceId})",

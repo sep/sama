@@ -18,7 +18,7 @@ public class CreateModelTests
     [TestInitialize]
     public void Setup()
     {
-        _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!);
+        _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!, null!);
         _mockMarkdownService = Substitute.For<MarkdownService>();
 
         _pageModel = new CreateModel(_mockWorkspaceCommand, _mockMarkdownService);

@@ -21,7 +21,7 @@ public class DeleteModelTests
     public void Setup()
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
-        _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!);
+        _mockWorkspaceCommand = Substitute.For<WorkspaceCommandService>(null!, null!, null!);
 
         _pageModel = new DeleteModel(_mockWorkspaceQuery, _mockWorkspaceCommand);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);

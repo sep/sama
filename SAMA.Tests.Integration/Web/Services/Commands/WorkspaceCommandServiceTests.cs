@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SAMA.Data.Entities;
+using SAMA.Web.Services;
 using SAMA.Web.Services.Commands;
 
 namespace SAMA.Tests.Integration.Web.Services.Commands;
@@ -16,7 +17,7 @@ public class WorkspaceCommandServiceTests : IntegrationTestBase
     {
         await base.InitializeTestAsync();
 
-        _service = new WorkspaceCommandService(DbContext, Substitute.For<ILogger<WorkspaceCommandService>>());
+        _service = new WorkspaceCommandService(DbContext, new DashboardCacheService(ServiceProvider), Substitute.For<ILogger<WorkspaceCommandService>>());
     }
 
     [TestMethod]

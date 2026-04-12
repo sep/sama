@@ -10,10 +10,9 @@ namespace SAMA.Web.Pages.Dashboard;
 [RequireWorkspaceViewAccess]
 public class IndexModel(
     WorkspaceQueryService _workspaceQueryService,
-    CheckQueryService _checkQueryService,
-    AlertQueryService _alertQueryService,
     GlobalSettingsService _globalSettings,
-    MarkdownService _markdownService)
+    MarkdownService _markdownService,
+    DashboardCacheService _cacheService)
     : WorkspacePageModel(_workspaceQueryService)
 {
     public IList<CheckListItemViewModel> Checks { get; set; } = [];
@@ -45,20 +44,18 @@ public class IndexModel(
         TimelineHours = timelineHours ?? 24;
         TrendsHours = trendsHours ?? 24;
 
+        var workspaceData = await _cacheService.GetWorkspaceDataAsync(WorkspaceId);
+        Checks = workspaceData.Checks;
+        RecentAlerts = workspaceData.RecentAlerts;
+
         var workspace = await _workspaceQueryService.GetWorkspaceDetailsAsync(WorkspaceId);
         if (workspace != null)
         {
             DashboardMessageHtml = _markdownService.RenderToHtml(workspace.DashboardMessage);
         }
 
-        Checks = await _checkQueryService.GetChecksForWorkspaceAsync(WorkspaceId);
-        RecentAlerts = await _alertQueryService.GetRecentAlertsForWorkspaceAsync(
-            WorkspaceId,
-            _globalSettings.MaxRecentAlerts);
-
-        IncidentTimeline = await _checkQueryService.GetWorkspaceIncidentTimelineAsync(WorkspaceId, TimelineHours);
-
-        ResponseTimeTrends = await _checkQueryService.GetWorkspaceResponseTimeTrendsAsync(WorkspaceId, TrendsHours);
+        IncidentTimeline = await _cacheService.GetTimelineAsync(WorkspaceId, TimelineHours);
+        ResponseTimeTrends = await _cacheService.GetTrendsAsync(WorkspaceId, TrendsHours);
 
         return Page();
     }

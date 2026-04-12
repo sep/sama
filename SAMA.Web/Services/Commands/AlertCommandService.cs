@@ -11,6 +11,7 @@ public class AlertCommandService(
     CheckSchedulerService _schedulerService,
     EventSubscriptionService _eventSubscriptionService,
     AlertChangeDetectionService _alertChangeDetectionService,
+    DashboardCacheService _dashboardCacheService,
     ILogger<AlertCommandService> _logger)
 {
     public virtual async Task<CreateUpdateAlertResultViewModel> CreateAlertAsync(
@@ -56,6 +57,8 @@ public class AlertCommandService(
 
         _dbContext.Alerts.Add(alert);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _dashboardCacheService.InvalidateWorkspace(check.WorkspaceId);
 
         _logger.LogInformation(
             "User {User} created alert {AlertName} for check {CheckId} with {ChannelCount} channels",
@@ -174,6 +177,8 @@ public class AlertCommandService(
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        _dashboardCacheService.InvalidateWorkspace(alertToUpdate.Check.WorkspaceId);
+
         _logger.LogInformation(
             "User {User} updated alert {AlertName} (Id: {AlertId}) with {ChannelCount} channels",
             performedBy,
@@ -242,6 +247,8 @@ public class AlertCommandService(
 
         _dbContext.Alerts.Remove(alert);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _dashboardCacheService.InvalidateWorkspace(alert.Check.WorkspaceId);
 
         _logger.LogInformation(
             "User {User} deleted alert {AlertName} (Id: {AlertId})",

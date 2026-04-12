@@ -1,0 +1,320 @@
+using System.Collections.Concurrent;
+using SAMA.Web.Models;
+using SAMA.Web.Services.Queries;
+
+namespace SAMA.Web.Services;
+
+public class DashboardCacheService(IServiceProvider _serviceProvider)
+{
+    private const int MaxWorkspaceEntries = 200;
+    private const int MaxTimelineEntries = 200;
+    private const int MaxTrendsEntries = 200;
+    private static readonly TimeSpan EvictionThreshold = TimeSpan.FromMinutes(10);
+
+    private readonly ConcurrentDictionary<Guid, CacheEntry<WorkspaceDashboardData>> _workspaceCache = new();
+    private readonly ConcurrentDictionary<(Guid WorkspaceId, int Hours), CacheEntry<WorkspaceIncidentTimelineViewModel>> _timelineCache = new();
+    private readonly ConcurrentDictionary<(Guid WorkspaceId, int Hours), CacheEntry<WorkspaceResponseTimeTrendsViewModel>> _trendsCache = new();
+
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _workspaceLocks = new();
+    private readonly ConcurrentDictionary<(Guid, int), SemaphoreSlim> _timelineLocks = new();
+    private readonly ConcurrentDictionary<(Guid, int), SemaphoreSlim> _trendsLocks = new();
+
+    public async Task<WorkspaceDashboardData> GetWorkspaceDataAsync(Guid workspaceId)
+    {
+        if (_workspaceCache.TryGetValue(workspaceId, out var entry))
+        {
+            entry.LastAccessedAt = DateTimeOffset.UtcNow;
+            return entry.Data;
+        }
+
+        var semaphore = _workspaceLocks.GetOrAdd(workspaceId, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
+        {
+            if (_workspaceCache.TryGetValue(workspaceId, out entry))
+            {
+                entry.LastAccessedAt = DateTimeOffset.UtcNow;
+                return entry.Data;
+            }
+
+            var data = await PopulateWorkspaceDataAsync(workspaceId);
+            SetWorkspaceData(workspaceId, data);
+            return data;
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public async Task<WorkspaceIncidentTimelineViewModel> GetTimelineAsync(Guid workspaceId, int hours)
+    {
+        var key = (workspaceId, hours);
+        if (_timelineCache.TryGetValue(key, out var entry))
+        {
+            entry.LastAccessedAt = DateTimeOffset.UtcNow;
+            return entry.Data;
+        }
+
+        var semaphore = _timelineLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
+        {
+            if (_timelineCache.TryGetValue(key, out entry))
+            {
+                entry.LastAccessedAt = DateTimeOffset.UtcNow;
+                return entry.Data;
+            }
+
+            var data = await PopulateTimelineAsync(workspaceId, hours);
+            SetTimeline(workspaceId, hours, data);
+            return data;
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public async Task<WorkspaceResponseTimeTrendsViewModel> GetTrendsAsync(Guid workspaceId, int hours)
+    {
+        var key = (workspaceId, hours);
+        if (_trendsCache.TryGetValue(key, out var entry))
+        {
+            entry.LastAccessedAt = DateTimeOffset.UtcNow;
+            return entry.Data;
+        }
+
+        var semaphore = _trendsLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync();
+        try
+        {
+            if (_trendsCache.TryGetValue(key, out entry))
+            {
+                entry.LastAccessedAt = DateTimeOffset.UtcNow;
+                return entry.Data;
+            }
+
+            var data = await PopulateTrendsAsync(workspaceId, hours);
+            SetTrends(workspaceId, hours, data);
+            return data;
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public async Task RefreshWorkspaceDataAsync(Guid workspaceId)
+    {
+        var data = await PopulateWorkspaceDataAsync(workspaceId);
+        SetWorkspaceData(workspaceId, data);
+    }
+
+    public async Task RefreshTimelineAsync(Guid workspaceId, int hours)
+    {
+        var data = await PopulateTimelineAsync(workspaceId, hours);
+        SetTimeline(workspaceId, hours, data);
+    }
+
+    public async Task RefreshTrendsAsync(Guid workspaceId, int hours)
+    {
+        var data = await PopulateTrendsAsync(workspaceId, hours);
+        SetTrends(workspaceId, hours, data);
+    }
+
+    internal void SetWorkspaceData(Guid workspaceId, WorkspaceDashboardData data)
+    {
+        _workspaceCache.AddOrUpdate(
+            workspaceId,
+            _ => new CacheEntry<WorkspaceDashboardData>(data),
+            (_, existing) =>
+            {
+                existing.Data = data;
+                existing.LastRefreshedAt = DateTimeOffset.UtcNow;
+                existing.LastAccessedAt = DateTimeOffset.UtcNow;
+                return existing;
+            });
+
+        EnforceSizeLimit(_workspaceCache, MaxWorkspaceEntries);
+    }
+
+    internal void SetTimeline(Guid workspaceId, int hours, WorkspaceIncidentTimelineViewModel data)
+    {
+        var key = (workspaceId, hours);
+        _timelineCache.AddOrUpdate(
+            key,
+            _ => new CacheEntry<WorkspaceIncidentTimelineViewModel>(data),
+            (_, existing) =>
+            {
+                existing.Data = data;
+                existing.LastRefreshedAt = DateTimeOffset.UtcNow;
+                existing.LastAccessedAt = DateTimeOffset.UtcNow;
+                return existing;
+            });
+
+        EnforceSizeLimit(_timelineCache, MaxTimelineEntries);
+    }
+
+    internal void SetTrends(Guid workspaceId, int hours, WorkspaceResponseTimeTrendsViewModel data)
+    {
+        var key = (workspaceId, hours);
+        _trendsCache.AddOrUpdate(
+            key,
+            _ => new CacheEntry<WorkspaceResponseTimeTrendsViewModel>(data),
+            (_, existing) =>
+            {
+                existing.Data = data;
+                existing.LastRefreshedAt = DateTimeOffset.UtcNow;
+                existing.LastAccessedAt = DateTimeOffset.UtcNow;
+                return existing;
+            });
+
+        EnforceSizeLimit(_trendsCache, MaxTrendsEntries);
+    }
+
+    public void InvalidateWorkspace(Guid workspaceId)
+    {
+        _workspaceCache.TryRemove(workspaceId, out _);
+    }
+
+    public void InvalidateAllForWorkspace(Guid workspaceId)
+    {
+        _workspaceCache.TryRemove(workspaceId, out _);
+
+        foreach (var key in _timelineCache.Keys)
+        {
+            if (key.WorkspaceId == workspaceId)
+            {
+                _timelineCache.TryRemove(key, out _);
+            }
+        }
+
+        foreach (var key in _trendsCache.Keys)
+        {
+            if (key.WorkspaceId == workspaceId)
+            {
+                _trendsCache.TryRemove(key, out _);
+            }
+        }
+    }
+
+    public List<Guid> GetCacheableWorkspaceIds()
+    {
+        return _workspaceCache.Keys.ToList();
+    }
+
+    public List<(Guid WorkspaceId, int Hours)> GetCacheableTimelineKeys()
+    {
+        return _timelineCache.Keys.ToList();
+    }
+
+    public List<(Guid WorkspaceId, int Hours)> GetCacheableTrendsKeys()
+    {
+        return _trendsCache.Keys.ToList();
+    }
+
+    public void EvictStaleEntries()
+    {
+        var cutoff = DateTimeOffset.UtcNow - EvictionThreshold;
+
+        foreach (var kvp in _workspaceCache)
+        {
+            if (kvp.Value.LastAccessedAt < cutoff)
+            {
+                _workspaceCache.TryRemove(kvp.Key, out _);
+                _workspaceLocks.TryRemove(kvp.Key, out _);
+            }
+        }
+
+        foreach (var kvp in _timelineCache)
+        {
+            if (kvp.Value.LastAccessedAt < cutoff)
+            {
+                _timelineCache.TryRemove(kvp.Key, out _);
+                _timelineLocks.TryRemove(kvp.Key, out _);
+            }
+        }
+
+        foreach (var kvp in _trendsCache)
+        {
+            if (kvp.Value.LastAccessedAt < cutoff)
+            {
+                _trendsCache.TryRemove(kvp.Key, out _);
+                _trendsLocks.TryRemove(kvp.Key, out _);
+            }
+        }
+    }
+
+    private static void EnforceSizeLimit<TKey, TValue>(ConcurrentDictionary<TKey, CacheEntry<TValue>> cache, int maxEntries)
+        where TKey : notnull
+        where TValue : class
+    {
+        if (cache.Count <= maxEntries)
+        {
+            return;
+        }
+
+        var toRemove = cache
+            .OrderBy(kvp => kvp.Value.LastAccessedAt)
+            .Take(cache.Count - maxEntries)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var key in toRemove)
+        {
+            cache.TryRemove(key, out _);
+        }
+    }
+
+    private async Task<WorkspaceDashboardData> PopulateWorkspaceDataAsync(Guid workspaceId)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var checkQueryService = scope.ServiceProvider.GetRequiredService<CheckQueryService>();
+        var alertQueryService = scope.ServiceProvider.GetRequiredService<AlertQueryService>();
+        var globalSettings = scope.ServiceProvider.GetRequiredService<GlobalSettingsService>();
+
+        var checks = await checkQueryService.GetChecksForWorkspaceAsync(workspaceId);
+        var recentAlerts = await alertQueryService.GetRecentAlertsForWorkspaceAsync(
+            workspaceId, globalSettings.MaxRecentAlerts);
+
+        return new WorkspaceDashboardData(
+            Checks: checks,
+            RecentAlerts: recentAlerts
+        );
+    }
+
+    private async Task<WorkspaceIncidentTimelineViewModel> PopulateTimelineAsync(Guid workspaceId, int hours)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var checkQueryService = scope.ServiceProvider.GetRequiredService<CheckQueryService>();
+        return await checkQueryService.GetWorkspaceIncidentTimelineAsync(workspaceId, hours);
+    }
+
+    private async Task<WorkspaceResponseTimeTrendsViewModel> PopulateTrendsAsync(Guid workspaceId, int hours)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var checkQueryService = scope.ServiceProvider.GetRequiredService<CheckQueryService>();
+        return await checkQueryService.GetWorkspaceResponseTimeTrendsAsync(workspaceId, hours);
+    }
+
+    public record WorkspaceDashboardData(
+        IList<CheckListItemViewModel> Checks,
+        IList<RecentAlertViewModel> RecentAlerts);
+
+    internal class CacheEntry<TValue> where TValue : class
+    {
+        public TValue Data { get; set; }
+
+        public DateTimeOffset LastRefreshedAt { get; set; }
+
+        public DateTimeOffset LastAccessedAt { get; set; }
+
+        public CacheEntry(TValue data)
+        {
+            Data = data;
+            LastRefreshedAt = DateTimeOffset.UtcNow;
+            LastAccessedAt = DateTimeOffset.UtcNow;
+        }
+    }
+}

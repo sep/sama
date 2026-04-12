@@ -12,6 +12,7 @@ public class CheckCommandService(
     CheckSchedulerService _checkSchedulerService,
     EventSubscriptionService _eventSubscriptionService,
     CheckChangeDetectionService _changeDetectionService,
+    DashboardCacheService _dashboardCacheService,
     ILogger<CheckCommandService> _logger)
 {
     public virtual async Task<Guid> CreateCheckAsync(
@@ -73,6 +74,8 @@ public class CheckCommandService(
             await _checkSchedulerService.ScheduleCheckAsync(check.Id, check.Schedule);
             _logger.LogInformation("Scheduled check {CheckId} for execution", check.Id);
         }
+
+        _dashboardCacheService.InvalidateAllForWorkspace(workspaceId);
 
         // Trigger lifecycle event for check creation
         var workspace = await _samaDbContext.Workspaces.FindAsync([workspaceId], cancellationToken);
@@ -161,6 +164,8 @@ public class CheckCommandService(
             lifecycleContext,
             cancellationToken);
 
+        _dashboardCacheService.InvalidateAllForWorkspace(checkToUpdate.WorkspaceId);
+
         if (enabled)
         {
             await _checkSchedulerService.ScheduleCheckAsync(checkToUpdate.Id, checkToUpdate.Schedule);
@@ -205,6 +210,8 @@ public class CheckCommandService(
 
         _samaDbContext.Checks.Remove(check);
         await _samaDbContext.SaveChangesAsync(cancellationToken);
+
+        _dashboardCacheService.InvalidateAllForWorkspace(workspaceId);
 
         _logger.LogInformation(
             "User {User} deleted check {CheckName} (Id: {CheckId})",

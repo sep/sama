@@ -25,7 +25,7 @@ public class CreateModelTests
     {
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
         _mockCheckConfigService = Substitute.For<CheckConfigurationService>();
-        _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!);
+        _mockCheckCommand = Substitute.For<CheckCommandService>(null!, null!, null!, null!, null!, null!);
         _mockGlobalSettings = Substitute.For<GlobalSettingsService>(null!, null!, null!, null!);
 
         _pageModel = new CreateModel(_mockWorkspaceQuery, _mockCheckConfigService, _mockCheckCommand, _mockGlobalSettings);

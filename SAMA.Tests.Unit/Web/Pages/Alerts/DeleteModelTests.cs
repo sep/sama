@@ -23,7 +23,7 @@ public class DeleteModelTests
     public void Setup()
     {
         _mockAlertQuery = Substitute.For<AlertQueryService>((SamaDbContext)null!);
-        _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!);
+        _mockAlertCommand = Substitute.For<AlertCommandService>(null!, null!, null!, null!, null!, null!);
         _mockWorkspaceQuery = Substitute.For<WorkspaceQueryService>(null!, null!);
 
         _pageModel = new DeleteModel(_mockWorkspaceQuery, _mockAlertQuery, _mockAlertCommand);
