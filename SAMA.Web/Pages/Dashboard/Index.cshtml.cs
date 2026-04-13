@@ -19,10 +19,6 @@ public class IndexModel(
 
     public IList<RecentAlertViewModel> RecentAlerts { get; set; } = [];
 
-    public WorkspaceIncidentTimelineViewModel IncidentTimeline { get; set; } = new();
-
-    public WorkspaceResponseTimeTrendsViewModel ResponseTimeTrends { get; set; } = new();
-
     public string DashboardMessageHtml { get; set; } = string.Empty;
 
     public int RefreshIntervalSeconds { get; set; }
@@ -51,9 +47,32 @@ public class IndexModel(
         var dashboardMessage = await _workspaceQueryService.GetDashboardMessageAsync(WorkspaceId);
         DashboardMessageHtml = _markdownService.RenderToHtml(dashboardMessage);
 
-        IncidentTimeline = await _cacheService.GetTimelineAsync(WorkspaceId, TimelineHours);
-        ResponseTimeTrends = await _cacheService.GetTrendsAsync(WorkspaceId, TrendsHours);
-
         return Page();
+    }
+
+    public async Task<IActionResult> OnGetTimelineAsync(Guid workspaceId, int? timelineHours)
+    {
+        var result = await LoadWorkspaceContextAsync(workspaceId, "Dashboard");
+        if (result != null)
+        {
+            return result;
+        }
+
+        var hours = timelineHours ?? 24;
+        var timeline = await _cacheService.GetTimelineAsync(WorkspaceId, hours);
+        return Partial("_IncidentTimelineChart", timeline);
+    }
+
+    public async Task<IActionResult> OnGetTrendsAsync(Guid workspaceId, int? trendsHours)
+    {
+        var result = await LoadWorkspaceContextAsync(workspaceId, "Dashboard");
+        if (result != null)
+        {
+            return result;
+        }
+
+        var hours = trendsHours ?? 24;
+        var trends = await _cacheService.GetTrendsAsync(WorkspaceId, hours);
+        return Partial("_ResponseTimeTrendsChart", trends);
     }
 }

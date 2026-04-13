@@ -13,21 +13,30 @@
     <div class="card-body">
         <div style="position: relative; min-height: 300px; height: 300px;">
             <canvas id="responseTimeTrendsChartCanvas"></canvas>
-            <div id="trendsChartLoading" class="text-center py-5 d-none" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div id="trendsChartLoading" class="text-center py-5 @(Model.Series.Count == 0 ? "" : "d-none")" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
-            <div id="trendsChartNoData" class="text-center py-5 text-muted @(Model.Series.Count == 0 ? "" : "d-none")" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div id="trendsChartNoData" class="text-center py-5 text-muted d-none" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                 No response time data available for the selected time period.
             </div>
         </div>
     </div>
 </div>
 
-<script id="responseTimeTrendsChartData" type="application/json" hx-swap-oob="true">
-@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
-</script>
+@if (Model.Series.Count > 0)
+{
+    <script id="responseTimeTrendsChartData" type="application/json" hx-swap-oob="true">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+    </script>
+}
+else
+{
+    <script id="responseTimeTrendsChartData" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+    </script>
+}
 
 <script>
     (function() {
@@ -47,11 +56,14 @@
         function initializeResponseTimeTrendsChart() {
             const canvas = document.getElementById('responseTimeTrendsChartCanvas');
             const noDataDiv = document.getElementById('trendsChartNoData');
+            const loadingDiv = document.getElementById('trendsChartLoading');
             const dataScript = document.getElementById('responseTimeTrendsChartData');
 
             if (!canvas || !dataScript) {
                 return;
             }
+
+            loadingDiv.classList.add('d-none');
 
             const trendsData = JSON.parse(dataScript.textContent);
 
@@ -88,12 +100,12 @@
             if (window.responseTimeTrendsChart) {
                 // Update existing datasets in place to preserve metadata (including hidden state)
                 const existingDatasets = window.responseTimeTrendsChart.data.datasets;
-                
+
                 // Remove extra datasets if we have fewer series now
                 while (existingDatasets.length > datasets.length) {
                     existingDatasets.pop();
                 }
-                
+
                 // Update or add datasets
                 datasets.forEach((newDataset, index) => {
                     if (index < existingDatasets.length) {
@@ -114,7 +126,7 @@
                 window.responseTimeTrendsChart.options.plugins.tooltip.callbacks.label = function(context) {
                     const checkName = trendsData.series[context.datasetIndex].checkName;
                     const responseTime = context.parsed.y;
-                    return responseTime !== null 
+                    return responseTime !== null
                         ? `${checkName}: ${responseTime} ms`
                         : `${checkName}: No data`;
                 };
@@ -160,7 +172,7 @@
                                         const trendsData = JSON.parse(dataScript.textContent);
                                         const checkName = trendsData.series[context.datasetIndex].checkName;
                                         const responseTime = context.parsed.y;
-                                        return responseTime !== null 
+                                        return responseTime !== null
                                             ? `${checkName}: ${responseTime} ms`
                                             : `${checkName}: No data`;
                                     }
@@ -218,12 +230,10 @@
         }
 
         if (typeof Chart !== 'undefined') {
-            initializeResponseTimeTrendsChart();
             setupResponseTimeTrendsButtonHandlers();
             setupHtmxListener();
         } else {
             document.addEventListener('DOMContentLoaded', function() {
-                initializeResponseTimeTrendsChart();
                 setupResponseTimeTrendsButtonHandlers();
                 setupHtmxListener();
             });

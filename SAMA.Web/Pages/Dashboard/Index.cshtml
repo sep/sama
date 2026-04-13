@@ -1,6 +1,7 @@
 @page
 @using SAMA.Shared.Constants
 @using SAMA.Web.Extensions
+@using SAMA.Web.Models
 @model SAMA.Web.Pages.Dashboard.IndexModel
 @{
     ViewData["Title"] = "Dashboard";
@@ -150,12 +151,20 @@ else
         </div>
 
         <div class="mb-4">
-            <partial name="_IncidentTimelineChart" model="Model.IncidentTimeline" />
+            <partial name="_IncidentTimelineChart" model="new WorkspaceIncidentTimelineViewModel { Hours = Model.TimelineHours }" />
         </div>
+        <div class="d-none"
+             hx-get="/Dashboard/Index?handler=Timeline&workspaceId=@Model.WorkspaceId&timelineHours=@Model.TimelineHours"
+             hx-trigger="load, every @(Model.RefreshIntervalSeconds)s"
+             hx-swap="none"></div>
 
         <div class="mb-4">
-            <partial name="_ResponseTimeTrendsChart" model="Model.ResponseTimeTrends" />
+            <partial name="_ResponseTimeTrendsChart" model="new WorkspaceResponseTimeTrendsViewModel { Hours = Model.TrendsHours }" />
         </div>
+        <div class="d-none"
+             hx-get="/Dashboard/Index?handler=Trends&workspaceId=@Model.WorkspaceId&trendsHours=@Model.TrendsHours"
+             hx-trigger="load, every @(Model.RefreshIntervalSeconds)s"
+             hx-swap="none"></div>
 
         <div class="row">
             <div class="col-lg-8">

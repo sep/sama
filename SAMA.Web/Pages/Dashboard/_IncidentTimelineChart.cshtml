@@ -13,50 +13,62 @@
     <div class="card-body">
         <div style="position: relative; min-height: 120px;">
             <canvas id="incidentTimelineChartCanvas" style="max-height: 120px;"></canvas>
-            <div id="timelineChartLoading" class="text-center py-5 d-none" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div id="timelineChartLoading" class="text-center py-5 @(Model.Increments.Count == 0 ? "" : "d-none")" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
-            <div id="timelineChartNoData" class="text-center py-5 text-muted @(Model.Increments.Count == 0 ? "" : "d-none")" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div id="timelineChartNoData" class="text-center py-5 text-muted d-none" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                 No timeline data available for the selected time period.
             </div>
         </div>
     </div>
 </div>
 
-<script id="incidentTimelineChartData" type="application/json" hx-swap-oob="true">
-@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
-</script>
+@if (Model.Increments.Count > 0)
+{
+    <script id="incidentTimelineChartData" type="application/json" hx-swap-oob="true">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+    </script>
+}
+else
+{
+    <script id="incidentTimelineChartData" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+    </script>
+}
 
 <script>
     (function() {
         function getStatusColor(increment) {
             const total = increment.upCount + increment.warnCount + increment.downCount;
-            
+
             if (total === 0) {
                 return 'rgb(108, 117, 125)'; // Gray for no data
             }
-            
+
             if (increment.downCount > 0) {
                 return 'rgb(220, 53, 69)'; // Red for any down
             }
-            
+
             if (increment.warnCount > 0) {
                 return 'rgb(255, 193, 7)'; // Amber for any warning
             }
-            
+
             return 'rgb(25, 135, 84)'; // Green for all up
         }
 
         function initializeIncidentTimelineChart() {
             const canvas = document.getElementById('incidentTimelineChartCanvas');
             const noDataDiv = document.getElementById('timelineChartNoData');
+            const loadingDiv = document.getElementById('timelineChartLoading');
             const dataScript = document.getElementById('incidentTimelineChartData');
 
             if (!canvas || !dataScript) {
                 return;
             }
+
+            loadingDiv.classList.add('d-none');
 
             const timelineData = JSON.parse(dataScript.textContent);
 
@@ -75,7 +87,7 @@
 
             const datasets = timelineData.increments.map((increment) => {
                 const incrementDuration = new Date(increment.endTime).getTime() - new Date(increment.startTime).getTime();
-                
+
                 return {
                     label: '',
                     data: [incrementDuration],
@@ -97,7 +109,7 @@
                     const startMs = new Date(timelineData.startTime).getTime();
                     const timeMs = startMs + value;
                     const date = new Date(timeMs);
-                    
+
                     if (timelineData.hours <= 24) {
                         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     } else {
@@ -178,15 +190,15 @@
                                     label: function(context) {
                                         const increment = context.dataset.incrementData;
                                         const total = increment.upCount + increment.warnCount + increment.downCount;
-                                        
+
                                         const lines = [];
-                                        
+
                                         if (total > 0) {
                                             lines.push(`${increment.upCount} Up, ${increment.warnCount} Degraded, ${increment.downCount} Down`);
                                         } else {
                                             lines.push('No data');
                                         }
-                                        
+
                                         return lines;
                                     },
                                     afterLabel: function(context) {
@@ -222,7 +234,7 @@
                                         const startMs = new Date(timelineData.startTime).getTime();
                                         const timeMs = startMs + value;
                                         const date = new Date(timeMs);
-                                        
+
                                         if (timelineData.hours <= 24) {
                                             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                         } else {
@@ -265,12 +277,10 @@
         }
 
         if (typeof Chart !== 'undefined') {
-            initializeIncidentTimelineChart();
             setupIncidentTimelineButtonHandlers();
             setupHtmxListener();
         } else {
             document.addEventListener('DOMContentLoaded', function() {
-                initializeIncidentTimelineChart();
                 setupIncidentTimelineButtonHandlers();
                 setupHtmxListener();
             });

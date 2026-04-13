@@ -197,4 +197,90 @@ public class IndexModelTests
         Assert.AreEqual(workspaceId, _pageModel.WorkspaceId);
         Assert.AreEqual("My Workspace", _pageModel.WorkspaceName);
     }
+
+    [TestMethod]
+    public async Task OnGetTimelineAsyncShouldReturnNotFoundWhenWorkspaceDoesNotExist()
+    {
+        var workspaceId = Guid.NewGuid();
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(null));
+
+        var result = await _pageModel.OnGetTimelineAsync(workspaceId, null);
+
+        Assert.IsInstanceOfType<NotFoundResult>(result);
+    }
+
+    [TestMethod]
+    public async Task OnGetTimelineAsyncShouldReturnPartialWithTimelineData()
+    {
+        var workspaceId = Guid.NewGuid();
+        var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
+        _cacheService.SetTimeline(workspaceId, 6, new WorkspaceIncidentTimelineViewModel { Hours = 6 });
+
+        var result = await _pageModel.OnGetTimelineAsync(workspaceId, 6);
+
+        Assert.IsInstanceOfType<PartialViewResult>(result);
+        var partial = (PartialViewResult)result;
+        var model = (WorkspaceIncidentTimelineViewModel)partial.Model!;
+        Assert.AreEqual(6, model.Hours);
+    }
+
+    [TestMethod]
+    public async Task OnGetTimelineAsyncShouldDefaultTo24Hours()
+    {
+        var workspaceId = Guid.NewGuid();
+        var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
+        _cacheService.SetTimeline(workspaceId, 24, new WorkspaceIncidentTimelineViewModel { Hours = 24 });
+
+        var result = await _pageModel.OnGetTimelineAsync(workspaceId, null);
+
+        Assert.IsInstanceOfType<PartialViewResult>(result);
+        var partial = (PartialViewResult)result;
+        var model = (WorkspaceIncidentTimelineViewModel)partial.Model!;
+        Assert.AreEqual(24, model.Hours);
+    }
+
+    [TestMethod]
+    public async Task OnGetTrendsAsyncShouldReturnNotFoundWhenWorkspaceDoesNotExist()
+    {
+        var workspaceId = Guid.NewGuid();
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(null));
+
+        var result = await _pageModel.OnGetTrendsAsync(workspaceId, null);
+
+        Assert.IsInstanceOfType<NotFoundResult>(result);
+    }
+
+    [TestMethod]
+    public async Task OnGetTrendsAsyncShouldReturnPartialWithTrendsData()
+    {
+        var workspaceId = Guid.NewGuid();
+        var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
+        _cacheService.SetTrends(workspaceId, 3, new WorkspaceResponseTimeTrendsViewModel { Hours = 3 });
+
+        var result = await _pageModel.OnGetTrendsAsync(workspaceId, 3);
+
+        Assert.IsInstanceOfType<PartialViewResult>(result);
+        var partial = (PartialViewResult)result;
+        var model = (WorkspaceResponseTimeTrendsViewModel)partial.Model!;
+        Assert.AreEqual(3, model.Hours);
+    }
+
+    [TestMethod]
+    public async Task OnGetTrendsAsyncShouldDefaultTo24Hours()
+    {
+        var workspaceId = Guid.NewGuid();
+        var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
+        _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
+        _cacheService.SetTrends(workspaceId, 24, new WorkspaceResponseTimeTrendsViewModel { Hours = 24 });
+
+        var result = await _pageModel.OnGetTrendsAsync(workspaceId, null);
+
+        Assert.IsInstanceOfType<PartialViewResult>(result);
+        var partial = (PartialViewResult)result;
+        var model = (WorkspaceResponseTimeTrendsViewModel)partial.Model!;
+        Assert.AreEqual(24, model.Hours);
+    }
 }
