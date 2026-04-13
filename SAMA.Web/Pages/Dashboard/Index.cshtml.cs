@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using SAMA.Web.Authorization;
 using SAMA.Web.Models;
@@ -15,6 +16,11 @@ public class IndexModel(
     DashboardCacheService _cacheService)
     : WorkspacePageModel(_workspaceQueryService)
 {
+    private static readonly JsonSerializerOptions CamelCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public IList<CheckListItemViewModel> Checks { get; set; } = [];
 
     public IList<RecentAlertViewModel> RecentAlerts { get; set; } = [];
@@ -60,7 +66,10 @@ public class IndexModel(
 
         var hours = timelineHours ?? 24;
         var timeline = await _cacheService.GetTimelineAsync(WorkspaceId, hours);
-        return Partial("_IncidentTimelineChart", timeline);
+        var json = JsonSerializer.Serialize(timeline, CamelCaseOptions);
+        return Content(
+            $"""<script id="incidentTimelineChartData" type="application/json" hx-swap-oob="true">{json}</script>""",
+            "text/html");
     }
 
     public async Task<IActionResult> OnGetTrendsAsync(Guid workspaceId, int? trendsHours)
@@ -73,6 +82,9 @@ public class IndexModel(
 
         var hours = trendsHours ?? 24;
         var trends = await _cacheService.GetTrendsAsync(WorkspaceId, hours);
-        return Partial("_ResponseTimeTrendsChart", trends);
+        var json = JsonSerializer.Serialize(trends, CamelCaseOptions);
+        return Content(
+            $"""<script id="responseTimeTrendsChartData" type="application/json" hx-swap-oob="true">{json}</script>""",
+            "text/html");
     }
 }

@@ -210,7 +210,7 @@ public class IndexModelTests
     }
 
     [TestMethod]
-    public async Task OnGetTimelineAsyncShouldReturnPartialWithTimelineData()
+    public async Task OnGetTimelineAsyncShouldReturnOobContentWithTimelineData()
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
@@ -219,10 +219,12 @@ public class IndexModelTests
 
         var result = await _pageModel.OnGetTimelineAsync(workspaceId, 6);
 
-        Assert.IsInstanceOfType<PartialViewResult>(result);
-        var partial = (PartialViewResult)result;
-        var model = (WorkspaceIncidentTimelineViewModel)partial.Model!;
-        Assert.AreEqual(6, model.Hours);
+        Assert.IsInstanceOfType<ContentResult>(result);
+        var content = (ContentResult)result;
+        Assert.AreEqual("text/html", content.ContentType);
+        Assert.IsTrue(content.Content!.Contains("incidentTimelineChartData"));
+        Assert.IsTrue(content.Content!.Contains("hx-swap-oob"));
+        Assert.IsTrue(content.Content!.Contains("\"hours\":6"));
     }
 
     [TestMethod]
@@ -235,10 +237,9 @@ public class IndexModelTests
 
         var result = await _pageModel.OnGetTimelineAsync(workspaceId, null);
 
-        Assert.IsInstanceOfType<PartialViewResult>(result);
-        var partial = (PartialViewResult)result;
-        var model = (WorkspaceIncidentTimelineViewModel)partial.Model!;
-        Assert.AreEqual(24, model.Hours);
+        Assert.IsInstanceOfType<ContentResult>(result);
+        var content = (ContentResult)result;
+        Assert.IsTrue(content.Content!.Contains("\"hours\":24"));
     }
 
     [TestMethod]
@@ -253,7 +254,7 @@ public class IndexModelTests
     }
 
     [TestMethod]
-    public async Task OnGetTrendsAsyncShouldReturnPartialWithTrendsData()
+    public async Task OnGetTrendsAsyncShouldReturnOobContentWithTrendsData()
     {
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
@@ -262,10 +263,12 @@ public class IndexModelTests
 
         var result = await _pageModel.OnGetTrendsAsync(workspaceId, 3);
 
-        Assert.IsInstanceOfType<PartialViewResult>(result);
-        var partial = (PartialViewResult)result;
-        var model = (WorkspaceResponseTimeTrendsViewModel)partial.Model!;
-        Assert.AreEqual(3, model.Hours);
+        Assert.IsInstanceOfType<ContentResult>(result);
+        var content = (ContentResult)result;
+        Assert.AreEqual("text/html", content.ContentType);
+        Assert.IsTrue(content.Content!.Contains("responseTimeTrendsChartData"));
+        Assert.IsTrue(content.Content!.Contains("hx-swap-oob"));
+        Assert.IsTrue(content.Content!.Contains("\"hours\":3"));
     }
 
     [TestMethod]
@@ -278,9 +281,8 @@ public class IndexModelTests
 
         var result = await _pageModel.OnGetTrendsAsync(workspaceId, null);
 
-        Assert.IsInstanceOfType<PartialViewResult>(result);
-        var partial = (PartialViewResult)result;
-        var model = (WorkspaceResponseTimeTrendsViewModel)partial.Model!;
-        Assert.AreEqual(24, model.Hours);
+        Assert.IsInstanceOfType<ContentResult>(result);
+        var content = (ContentResult)result;
+        Assert.IsTrue(content.Content!.Contains("\"hours\":24"));
     }
 }
