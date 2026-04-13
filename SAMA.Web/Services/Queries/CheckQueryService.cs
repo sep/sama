@@ -359,7 +359,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var disabledCheckCutoffs = new Dictionary<Guid, DateTimeOffset>();
         foreach (var check in checks.Where(c => !c.Enabled))
         {
-            var lastResult = resultsByCheckId[check.Id].MaxBy(r => r.CheckedAt);
+            var lastResult = resultsByCheckId[check.Id].OrderByDescending(r => r.CheckedAt).FirstOrDefault();
             disabledCheckCutoffs[check.Id] = lastResult != null
                 ? AlignToIncrementBoundary(lastResult.CheckedAt, incrementMinutes, roundDown: true)
                 : DateTimeOffset.MinValue;

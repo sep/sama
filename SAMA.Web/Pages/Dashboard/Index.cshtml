@@ -150,17 +150,23 @@ else
             </div>
         </div>
 
-        <div class="mb-4">
-            <partial name="_IncidentTimelineChart" model="new WorkspaceIncidentTimelineViewModel { Hours = Model.TimelineHours }" />
-        </div>
+        @if (!Request.Headers.ContainsKey("HX-Request")) @* Prevents clobbering the chart on HTMX requests *@
+        {
+            <div class="mb-4">
+                <partial name="_IncidentTimelineChart" model="new WorkspaceIncidentTimelineViewModel { Hours = Model.TimelineHours }" />
+            </div>
+        }
         <div class="d-none"
              hx-get="/Dashboard/Index?handler=Timeline&workspaceId=@Model.WorkspaceId&timelineHours=@Model.TimelineHours"
              hx-trigger="load, every @(Model.RefreshIntervalSeconds)s"
              hx-swap="none"></div>
 
-        <div class="mb-4">
-            <partial name="_ResponseTimeTrendsChart" model="new WorkspaceResponseTimeTrendsViewModel { Hours = Model.TrendsHours }" />
-        </div>
+        @if (!Request.Headers.ContainsKey("HX-Request")) @* Prevents clobbering the chart on HTMX requests *@
+        {
+            <div class="mb-4">
+                <partial name="_ResponseTimeTrendsChart" model="new WorkspaceResponseTimeTrendsViewModel { Hours = Model.TrendsHours }" />
+            </div>
+        }
         <div class="d-none"
              hx-get="/Dashboard/Index?handler=Trends&workspaceId=@Model.WorkspaceId&trendsHours=@Model.TrendsHours"
              hx-trigger="load, every @(Model.RefreshIntervalSeconds)s"

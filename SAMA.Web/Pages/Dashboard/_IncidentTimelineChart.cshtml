@@ -25,18 +25,9 @@
     </div>
 </div>
 
-@if (Model.Increments.Count > 0)
-{
-    <script id="incidentTimelineChartData" type="application/json" hx-swap-oob="true">
-    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
-    </script>
-}
-else
-{
-    <script id="incidentTimelineChartData" type="application/json">
-    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
-    </script>
-}
+<script id="incidentTimelineChartData" type="application/json" hx-swap-oob="true">
+@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+</script>
 
 <script>
     (function() {

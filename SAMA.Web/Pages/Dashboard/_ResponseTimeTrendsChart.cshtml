@@ -25,18 +25,9 @@
     </div>
 </div>
 
-@if (Model.Series.Count > 0)
-{
-    <script id="responseTimeTrendsChartData" type="application/json" hx-swap-oob="true">
-    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
-    </script>
-}
-else
-{
-    <script id="responseTimeTrendsChartData" type="application/json">
-    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
-    </script>
-}
+<script id="responseTimeTrendsChartData" type="application/json" hx-swap-oob="true">
+@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+</script>
 
 <script>
     (function() {
