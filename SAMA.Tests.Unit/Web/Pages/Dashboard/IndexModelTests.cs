@@ -32,8 +32,8 @@ public class IndexModelTests
         _pageModel = new IndexModel(_mockWorkspaceQuery, _mockGlobalSettings, _markdownService, _cacheService);
         PageModelTestHelpers.ConfigurePageModel(_pageModel);
 
-        _mockWorkspaceQuery.GetWorkspaceDetailsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(new WorkspaceDetailsViewModel());
+        _mockWorkspaceQuery.GetDashboardMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((string?)null);
     }
 
     private void PrePopulateCache(Guid workspaceId, List<CheckListItemViewModel>? checks = null, List<RecentAlertViewModel>? alerts = null)

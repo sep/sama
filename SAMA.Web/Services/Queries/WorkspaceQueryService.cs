@@ -48,6 +48,17 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
         return workspaces;
     }
 
+    public virtual async Task<string?> GetDashboardMessageAsync(
+        Guid workspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Workspaces
+            .AsNoTracking()
+            .Where(w => w.Id == workspaceId)
+            .Select(w => w.DashboardMessage)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public virtual async Task<WorkspaceDetailsViewModel?> GetWorkspaceDetailsAsync(
         Guid workspaceId,
         CancellationToken cancellationToken = default)

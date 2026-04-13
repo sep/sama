@@ -351,13 +351,15 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             .Select(cr => new { cr.CheckId, cr.Status, cr.CheckedAt, cr.ErrorMessage })
             .ToListAsync(cancellationToken);
 
+        var resultsByCheckId = allResults.ToLookup(r => r.CheckId);
+
         // For disabled checks, compute cutoff: the start of the increment containing their last result.
         // Data in that increment and beyond is excluded since we don't know exactly when the check was disabled.
         // Disabled checks with no results use MinValue so they are excluded from all increments.
         var disabledCheckCutoffs = new Dictionary<Guid, DateTimeOffset>();
         foreach (var check in checks.Where(c => !c.Enabled))
         {
-            var lastResult = allResults.Where(r => r.CheckId == check.Id).MaxBy(r => r.CheckedAt);
+            var lastResult = resultsByCheckId[check.Id].MaxBy(r => r.CheckedAt);
             disabledCheckCutoffs[check.Id] = lastResult != null
                 ? AlignToIncrementBoundary(lastResult.CheckedAt, incrementMinutes, roundDown: true)
                 : DateTimeOffset.MinValue;
@@ -393,8 +395,8 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             foreach (var checkId in activeCheckIds)
             {
                 // Get all results for this check within this increment's time range
-                var resultsInIncrement = allResults
-                    .Where(r => r.CheckId == checkId && r.CheckedAt >= currentTime && r.CheckedAt < incrementEnd)
+                var resultsInIncrement = resultsByCheckId[checkId]
+                    .Where(r => r.CheckedAt >= currentTime && r.CheckedAt < incrementEnd)
                     .ToList();
 
                 if (resultsInIncrement.Count > 0)
@@ -497,11 +499,12 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             .Select(cr => new { cr.CheckId, cr.CheckedAt, cr.ResponseTimeMs })
             .ToListAsync(cancellationToken);
 
+        var resultsByCheckId = allResults.ToLookup(r => r.CheckId);
         var series = new List<WorkspaceResponseTimeTrendsViewModel.CheckResponseTimeSeries>();
 
         foreach (var check in checks)
         {
-            var checkResults = allResults.Where(r => r.CheckId == check.Id).ToList();
+            var checkResults = resultsByCheckId[check.Id].ToList();
 
             if (!check.Enabled && checkResults.Count == 0)
             {

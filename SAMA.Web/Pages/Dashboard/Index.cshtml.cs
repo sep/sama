@@ -48,11 +48,8 @@ public class IndexModel(
         Checks = workspaceData.Checks;
         RecentAlerts = workspaceData.RecentAlerts;
 
-        var workspace = await _workspaceQueryService.GetWorkspaceDetailsAsync(WorkspaceId);
-        if (workspace != null)
-        {
-            DashboardMessageHtml = _markdownService.RenderToHtml(workspace.DashboardMessage);
-        }
+        var dashboardMessage = await _workspaceQueryService.GetDashboardMessageAsync(WorkspaceId);
+        DashboardMessageHtml = _markdownService.RenderToHtml(dashboardMessage);
 
         IncidentTimeline = await _cacheService.GetTimelineAsync(WorkspaceId, TimelineHours);
         ResponseTimeTrends = await _cacheService.GetTrendsAsync(WorkspaceId, TrendsHours);
