@@ -107,10 +107,8 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
             {
                 c.WorkspaceId,
                 c.UpdatedAt,
-                LatestResult = c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => new { cr.Status, CheckedAt = (DateTimeOffset?)cr.CheckedAt })
-                    .FirstOrDefault()
+                c.LatestStatus,
+                c.LatestCheckedAt
             })
             .ToListAsync(cancellationToken);
 
@@ -118,11 +116,10 @@ public class WorkspaceQueryService(SamaDbContext _dbContext, ApplicationStateSer
         {
             foreach (var check in checkStatuses.Where(c => c.WorkspaceId == ws.Id))
             {
-                var status = check.LatestResult?.Status;
-                var lastCheckedAt = check.LatestResult?.CheckedAt;
-                if (!lastCheckedAt.HasValue ||
-                    lastCheckedAt.Value < startupTime ||
-                    check.UpdatedAt > lastCheckedAt.Value)
+                var status = check.LatestStatus;
+                if (!check.LatestCheckedAt.HasValue ||
+                    check.LatestCheckedAt.Value < startupTime ||
+                    check.UpdatedAt > check.LatestCheckedAt.Value)
                 {
                     status = null;
                 }

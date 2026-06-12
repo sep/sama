@@ -127,6 +127,37 @@ public class CheckExecutorJobIntegrationTests : IntegrationTestBase
         Assert.AreEqual(150, results[0].ResponseTimeMs);
     }
 
+    [TestMethod]
+    public async Task ExecuteShouldUpdateDenormalizedColumnsOnCheck()
+    {
+        var workspace = await CreateWorkspaceAsync();
+        var check = await CreateCheckAsync(workspace.Id, enabled: true);
+
+        var jobKey = new JobKey($"check-{check.Id:N}", "checks");
+        var jobDetail = CreateJobDetail(check.Id, jobKey);
+        var checkedAt = DateTimeOffset.UtcNow;
+
+        _mockContext.JobDetail.Returns(jobDetail);
+        _sharedMockExecutor.ExecuteAsync(Arg.Any<Dictionary<string, JsonElement>>(), Arg.Any<CancellationToken>())
+            .Returns(new CheckExecutionResult
+            {
+                Status = CheckStatuses.Down,
+                ResponseTimeMs = 5000,
+                ErrorMessage = "Connection refused",
+                CheckedAt = checkedAt
+            });
+
+        await _job.Execute(_mockContext);
+
+        var updatedCheck = await DbContext.Checks.FindAsync(check.Id);
+        Assert.IsNotNull(updatedCheck);
+        Assert.AreEqual(CheckStatuses.Down, updatedCheck.LatestStatus);
+        Assert.IsNotNull(updatedCheck.LatestCheckedAt);
+        Assert.AreEqual(checkedAt, updatedCheck.LatestCheckedAt.Value);
+        Assert.AreEqual(5000, updatedCheck.LatestResponseTimeMs);
+        Assert.AreEqual("Connection refused", updatedCheck.LatestErrorMessage);
+    }
+
     private static IJobDetail CreateJobDetail(Guid checkId, JobKey jobKey)
     {
         var jobDetail = Substitute.For<IJobDetail>();

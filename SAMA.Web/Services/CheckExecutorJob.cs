@@ -65,6 +65,12 @@ public class CheckExecutorJob(
             };
 
             dbContext.CheckResults.Add(checkResult);
+
+            check.LatestStatus = result.Status;
+            check.LatestCheckedAt = result.CheckedAt;
+            check.LatestResponseTimeMs = result.ResponseTimeMs;
+            check.LatestErrorMessage = result.ErrorMessage;
+
             await dbContext.SaveChangesAsync(context.CancellationToken);
 
             // Buffer script output for UI display (also logs to Serilog)

@@ -28,43 +28,13 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
                 Schedule = c.Schedule,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
-                AlertCount = c.Alerts.Count
+                AlertCount = c.Alerts.Count,
+                LastStatus = c.LatestStatus,
+                LastCheckedAt = c.LatestCheckedAt,
+                LastResponseTimeMs = c.LatestResponseTimeMs,
+                LastErrorMessage = c.LatestErrorMessage
             })
             .ToListAsync(cancellationToken);
-
-        if (checks.Count > 0)
-        {
-            var checkIds = checks.Select(c => c.Id).ToList();
-            var latestResults = await _samaDbContext.Checks
-                .AsNoTracking()
-                .Where(c => checkIds.Contains(c.Id))
-                .Select(c => c.CheckResults
-                    .OrderByDescending(cr => cr.CheckedAt)
-                    .Select(cr => new
-                    {
-                        cr.CheckId,
-                        cr.Status,
-                        cr.CheckedAt,
-                        cr.ResponseTimeMs,
-                        cr.ErrorMessage,
-                    })
-                    .FirstOrDefault())
-                .Where(r => r != null)
-                .Select(r => r!)
-                .ToListAsync(cancellationToken);
-
-            var resultsByCheckId = latestResults.ToDictionary(r => r.CheckId);
-            foreach (var check in checks)
-            {
-                if (resultsByCheckId.TryGetValue(check.Id, out var result))
-                {
-                    check.LastStatus = result.Status;
-                    check.LastCheckedAt = result.CheckedAt;
-                    check.LastResponseTimeMs = result.ResponseTimeMs;
-                    check.LastErrorMessage = result.ErrorMessage;
-                }
-            }
-        }
 
         foreach (var check in checks)
         {

@@ -47,6 +47,12 @@ public class CheckConfiguration : IEntityTypeConfiguration<Check>
             .IsRequired()
             .HasDefaultValueSql("NOW()");
 
+        builder.Property(c => c.LatestStatus)
+            .HasMaxLength(20);
+
+        builder.Property(c => c.LatestErrorMessage)
+            .HasMaxLength(2000);
+
         // Relationships
         builder.HasOne(c => c.Workspace)
             .WithMany(w => w.Checks)

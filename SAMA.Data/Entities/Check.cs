@@ -26,6 +26,14 @@ public class Check
 
     public DateTimeOffset UpdatedAt { get; set; }
 
+    public string? LatestStatus { get; set; }
+
+    public DateTimeOffset? LatestCheckedAt { get; set; }
+
+    public int? LatestResponseTimeMs { get; set; }
+
+    public string? LatestErrorMessage { get; set; }
+
 
     // Navigation properties
     public Workspace Workspace { get; set; } = null!;

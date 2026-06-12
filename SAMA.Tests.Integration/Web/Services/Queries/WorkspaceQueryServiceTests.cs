@@ -395,6 +395,16 @@ public class WorkspaceQueryServiceTests : IntegrationTestBase
         };
 
         DbContext.CheckResults.Add(result);
+
+        var check = await DbContext.Checks.FindAsync(checkId);
+        if (check != null && (!check.LatestCheckedAt.HasValue || checkedAt >= check.LatestCheckedAt.Value))
+        {
+            check.LatestStatus = status;
+            check.LatestCheckedAt = checkedAt;
+            check.LatestResponseTimeMs = null;
+            check.LatestErrorMessage = null;
+        }
+
         await DbContext.SaveChangesAsync();
         DbContext.ChangeTracker.Clear();
 

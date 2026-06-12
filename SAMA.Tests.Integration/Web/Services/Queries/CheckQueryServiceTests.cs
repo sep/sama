@@ -893,6 +893,16 @@ public class CheckQueryServiceTests : IntegrationTestBase
         };
 
         DbContext.CheckResults.Add(result);
+
+        var check = await DbContext.Checks.FindAsync(checkId);
+        if (check != null && (!check.LatestCheckedAt.HasValue || checkedAt >= check.LatestCheckedAt.Value))
+        {
+            check.LatestStatus = status;
+            check.LatestCheckedAt = checkedAt;
+            check.LatestResponseTimeMs = responseTimeMs;
+            check.LatestErrorMessage = errorMessage;
+        }
+
         await DbContext.SaveChangesAsync();
         DbContext.ChangeTracker.Clear();
 
