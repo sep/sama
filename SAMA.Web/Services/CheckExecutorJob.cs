@@ -66,10 +66,13 @@ public class CheckExecutorJob(
 
             dbContext.CheckResults.Add(checkResult);
 
-            check.LatestStatus = result.Status;
-            check.LatestCheckedAt = result.CheckedAt;
-            check.LatestResponseTimeMs = result.ResponseTimeMs;
-            check.LatestErrorMessage = result.ErrorMessage;
+            if (!check.LatestCheckedAt.HasValue || result.CheckedAt >= check.LatestCheckedAt.Value)
+            {
+                check.LatestStatus = result.Status;
+                check.LatestCheckedAt = result.CheckedAt;
+                check.LatestResponseTimeMs = result.ResponseTimeMs;
+                check.LatestErrorMessage = result.ErrorMessage;
+            }
 
             await dbContext.SaveChangesAsync(context.CancellationToken);
 

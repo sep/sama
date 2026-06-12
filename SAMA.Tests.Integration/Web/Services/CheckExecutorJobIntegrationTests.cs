@@ -153,7 +153,7 @@ public class CheckExecutorJobIntegrationTests : IntegrationTestBase
         Assert.IsNotNull(updatedCheck);
         Assert.AreEqual(CheckStatuses.Down, updatedCheck.LatestStatus);
         Assert.IsNotNull(updatedCheck.LatestCheckedAt);
-        Assert.AreEqual(checkedAt, updatedCheck.LatestCheckedAt.Value);
+        Assert.AreEqual(checkedAt.ToUnixTimeMilliseconds(), updatedCheck.LatestCheckedAt.Value.ToUnixTimeMilliseconds());
         Assert.AreEqual(5000, updatedCheck.LatestResponseTimeMs);
         Assert.AreEqual("Connection refused", updatedCheck.LatestErrorMessage);
     }

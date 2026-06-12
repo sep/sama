@@ -80,6 +80,16 @@ public class DataCleanupJob(
 
             if (deletedCount > 0)
             {
+                await dbContext.Checks
+                    .Where(c => c.LatestCheckedAt != null && c.LatestCheckedAt < cutoffDate)
+                    .ExecuteUpdateAsync(
+                        s => s
+                        .SetProperty(c => c.LatestStatus, (string?)null)
+                        .SetProperty(c => c.LatestCheckedAt, (DateTimeOffset?)null)
+                        .SetProperty(c => c.LatestResponseTimeMs, (int?)null)
+                        .SetProperty(c => c.LatestErrorMessage, (string?)null),
+                        cancellationToken);
+
                 _logger.LogInformation(
                     "Deleted {Count} check result(s) older than {CutoffDate}",
                     deletedCount,

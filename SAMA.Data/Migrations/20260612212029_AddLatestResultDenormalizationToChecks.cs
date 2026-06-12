@@ -11,7 +11,7 @@ namespace SAMA.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTimeOffset>(
+            migrationBuilder.AddColumn<DateTimeOffset?>(
                 name: "LatestCheckedAt",
                 table: "Checks",
                 type: "timestamp with time zone",
