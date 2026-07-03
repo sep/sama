@@ -1,0 +1,34 @@
+@page
+@model SAMA.Web.Pages.Dev.LoadTestModel
+@{
+    ViewData["Title"] = "Load Test Setup";
+}
+
+<h2>Load Test Setup</h2>
+
+<p class="text-warning">
+    This page is only available in Development and requires Admin access.
+    It will create a new workspace with a large number of checks and historical data.
+</p>
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Input.CheckCount" class="form-label"></label>
+        <input asp-for="Input.CheckCount" class="form-control" />
+        <span asp-validation-for="Input.CheckCount" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.DaysOfHistory" class="form-label"></label>
+        <input asp-for="Input.DaysOfHistory" class="form-control" />
+        <span asp-validation-for="Input.DaysOfHistory" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Input.WorkspaceNamePrefix" class="form-label"></label>
+        <input asp-for="Input.WorkspaceNamePrefix" class="form-control" />
+        <span asp-validation-for="Input.WorkspaceNamePrefix" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Load Test Workspace</button>
+</form>
