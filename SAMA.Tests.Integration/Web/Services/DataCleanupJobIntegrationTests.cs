@@ -261,12 +261,7 @@ public class DataCleanupJobIntegrationTests : IntegrationTestBase
         await _job.Execute(_mockContext);
 
         // A "Failed to vacuum" warning would mean VACUUM ran inside an active transaction or against the wrong table name
-        _mockLogger.DidNotReceive().Log(
-            LogLevel.Warning,
-            Arg.Any<EventId>(),
-            Arg.Any<object>(),
-            Arg.Any<Exception?>(),
-            Arg.Any<Func<object, Exception?, string>>());
+        Assert.IsFalse(LoggerReceivedWarningOrAbove(), "Expected no warning/error logs, which would indicate a vacuum failure.");
     }
 
     [TestMethod]
@@ -283,12 +278,14 @@ public class DataCleanupJobIntegrationTests : IntegrationTestBase
 
         await _job.Execute(_mockContext);
 
-        _mockLogger.DidNotReceive().Log(
-            LogLevel.Warning,
-            Arg.Any<EventId>(),
-            Arg.Any<object>(),
-            Arg.Any<Exception?>(),
-            Arg.Any<Func<object, Exception?, string>>());
+        Assert.IsFalse(LoggerReceivedWarningOrAbove(), "Expected no warning/error logs, which would indicate a vacuum failure.");
+    }
+
+    private bool LoggerReceivedWarningOrAbove()
+    {
+        return _mockLogger.ReceivedCalls().Any(call =>
+            call.GetMethodInfo().Name == nameof(ILogger.Log) &&
+            (LogLevel)call.GetArguments()[0]! >= LogLevel.Warning);
     }
 
     private async Task SetGlobalSettingAsync(string key, string value)
