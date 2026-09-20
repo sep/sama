@@ -61,7 +61,7 @@ public class DetailsModel(
             return NotFound();
         }
 
-        var check = await _checkQueryService.GetCheckDetailsAsync(id.Value);
+        var check = await _checkQueryService.GetCheckBasicInfoAsync(id.Value);
         if (check == null)
         {
             return NotFound();
@@ -85,7 +85,7 @@ public class DetailsModel(
             return NotFound();
         }
 
-        var check = await _checkQueryService.GetCheckDetailsAsync(id.Value);
+        var check = await _checkQueryService.GetCheckBasicInfoAsync(id.Value);
         if (check == null)
         {
             return NotFound();

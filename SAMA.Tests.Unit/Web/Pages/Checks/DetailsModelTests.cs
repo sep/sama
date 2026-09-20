@@ -142,7 +142,7 @@ public class DetailsModelTests
     public async Task OnGetHistoryAsyncShouldReturnNotFoundWhenCheckDoesNotExist()
     {
         var checkId = Guid.NewGuid();
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(null));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(null));
 
         var result = await _pageModel.OnGetHistoryAsync(checkId);
 
@@ -155,7 +155,7 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
@@ -167,7 +167,7 @@ public class DetailsModelTests
             new() { Status = "down", Timestamp = DateTimeOffset.UtcNow.AddMinutes(-5), ErrorMessage = "Connection failed" }
         };
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckHistoryAsync(checkId, 24).Returns(Task.FromResult(history));
 
@@ -184,7 +184,7 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
@@ -192,7 +192,7 @@ public class DetailsModelTests
         };
         var history = new List<CheckHistoryItemViewModel>();
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckHistoryAsync(checkId, 24).Returns(Task.FromResult(history));
 
@@ -207,7 +207,7 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
@@ -215,7 +215,7 @@ public class DetailsModelTests
         };
         var history = new List<CheckHistoryItemViewModel>();
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckHistoryAsync(checkId, 48).Returns(Task.FromResult(history));
 
@@ -229,14 +229,14 @@ public class DetailsModelTests
     {
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
             Name = "Test Check"
         };
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(null));
 
         var result = await _pageModel.OnGetHistoryAsync(checkId);
@@ -256,7 +256,7 @@ public class DetailsModelTests
     public async Task OnGetUptimeAsyncShouldReturnNotFoundWhenCheckDoesNotExist()
     {
         var checkId = Guid.NewGuid();
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(null));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(null));
 
         var result = await _pageModel.OnGetUptimeAsync(checkId);
 
@@ -269,7 +269,7 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
@@ -284,7 +284,7 @@ public class DetailsModelTests
             DownCount = 2
         };
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckUptimeAsync(checkId, 24).Returns(Task.FromResult<CheckUptimeViewModel?>(uptime));
 
@@ -301,14 +301,14 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
             Name = "Test Check"
         };
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckUptimeAsync(checkId, 24).Returns(Task.FromResult<CheckUptimeViewModel?>(null));
 
@@ -338,7 +338,7 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
@@ -346,7 +346,7 @@ public class DetailsModelTests
         };
         var uptime = new CheckUptimeViewModel();
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckUptimeAsync(checkId, 24).Returns(Task.FromResult<CheckUptimeViewModel?>(uptime));
 
@@ -361,7 +361,7 @@ public class DetailsModelTests
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
         var workspace = new Workspace { Id = workspaceId, Name = "Test Workspace" };
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
@@ -369,7 +369,7 @@ public class DetailsModelTests
         };
         var uptime = new CheckUptimeViewModel();
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(workspace));
         _mockCheckQuery.GetCheckUptimeAsync(checkId, 72).Returns(Task.FromResult<CheckUptimeViewModel?>(uptime));
 
@@ -383,14 +383,14 @@ public class DetailsModelTests
     {
         var checkId = Guid.NewGuid();
         var workspaceId = Guid.NewGuid();
-        var checkDetails = new CheckDetailsViewModel
+        var checkBasicInfo = new CheckBasicInfoViewModel
         {
             Id = checkId,
             WorkspaceId = workspaceId,
             Name = "Test Check"
         };
 
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(checkDetails));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(checkBasicInfo));
         _mockWorkspaceQuery.GetWorkspaceByIdAsync(workspaceId).Returns(Task.FromResult<Workspace?>(null));
 
         var result = await _pageModel.OnGetUptimeAsync(checkId);
@@ -423,7 +423,7 @@ public class DetailsModelTests
     public async Task OnGetHistoryAsyncShouldNotCallGetCheckHistoryWhenCheckNotFound()
     {
         var checkId = Guid.NewGuid();
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(null));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(null));
 
         await _pageModel.OnGetHistoryAsync(checkId);
 
@@ -434,7 +434,7 @@ public class DetailsModelTests
     public async Task OnGetUptimeAsyncShouldNotCallGetCheckUptimeWhenCheckNotFound()
     {
         var checkId = Guid.NewGuid();
-        _mockCheckQuery.GetCheckDetailsAsync(checkId).Returns(Task.FromResult<CheckDetailsViewModel?>(null));
+        _mockCheckQuery.GetCheckBasicInfoAsync(checkId).Returns(Task.FromResult<CheckBasicInfoViewModel?>(null));
 
         await _pageModel.OnGetUptimeAsync(checkId);
 

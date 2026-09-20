@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 using SAMA.Data;
+using SAMA.Data.Entities;
 
 namespace SAMA.Web.Services;
 
@@ -51,11 +52,26 @@ public class DataCleanupJob(
         }
 
         var startTime = DateTimeOffset.UtcNow;
-        var totalDeleted = 0;
 
-        totalDeleted += await CleanupCheckResultsAsync(dbContext, checkResultsRetentionDays, context.CancellationToken);
-        totalDeleted += await CleanupAlertHistoryAsync(dbContext, alertHistoryRetentionDays, context.CancellationToken);
-        totalDeleted += await CleanupAuditLogsAsync(dbContext, auditLogRetentionDays, context.CancellationToken);
+        var checkResultsDeleted = await CleanupCheckResultsAsync(dbContext, checkResultsRetentionDays, context.CancellationToken);
+        var alertHistoryDeleted = await CleanupAlertHistoryAsync(dbContext, alertHistoryRetentionDays, context.CancellationToken);
+        var auditLogsDeleted = await CleanupAuditLogsAsync(dbContext, auditLogRetentionDays, context.CancellationToken);
+
+        var totalDeleted = checkResultsDeleted + alertHistoryDeleted + auditLogsDeleted;
+
+        // Bulk deletes leave dead tuples that bloat tables/indexes until vacuumed, so reclaim space right away
+        if (checkResultsDeleted > 0)
+        {
+            await VacuumAsync<CheckResult>(dbContext, context.CancellationToken);
+        }
+        if (alertHistoryDeleted > 0)
+        {
+            await VacuumAsync<AlertHistory>(dbContext, context.CancellationToken);
+        }
+        if (auditLogsDeleted > 0)
+        {
+            await VacuumAsync<AuditLog>(dbContext, context.CancellationToken);
+        }
 
         var duration = DateTimeOffset.UtcNow - startTime;
 
@@ -63,6 +79,22 @@ public class DataCleanupJob(
             "Data cleanup job completed. Total records deleted: {TotalDeleted}, Duration: {Duration}ms",
             totalDeleted,
             duration.TotalMilliseconds);
+    }
+
+    private async Task VacuumAsync<TEntity>(SamaDbContext dbContext, CancellationToken cancellationToken)
+        where TEntity : class
+    {
+        // Table name comes from EF's own mapping metadata, never from user input, so this is not injectable
+        var tableName = dbContext.Model.FindEntityType(typeof(TEntity))!.GetTableName();
+        var sql = "VACUUM (ANALYZE) \"" + tableName + "\"";
+        try
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to vacuum table {TableName} after cleanup", tableName);
+        }
     }
 
     private async Task<int> CleanupCheckResultsAsync(

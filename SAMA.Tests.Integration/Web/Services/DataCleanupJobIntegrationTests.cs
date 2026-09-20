@@ -11,13 +11,15 @@ public class DataCleanupJobIntegrationTests : IntegrationTestBase
 {
     private DataCleanupJob _job = null!;
     private IJobExecutionContext _mockContext = null!;
+    private ILogger<DataCleanupJob> _mockLogger = null!;
 
     [TestInitialize]
     public override async Task InitializeTestAsync()
     {
         await base.InitializeTestAsync();
 
-        _job = new DataCleanupJob(ServiceProvider, Substitute.For<ILogger<DataCleanupJob>>());
+        _mockLogger = Substitute.For<ILogger<DataCleanupJob>>();
+        _job = new DataCleanupJob(ServiceProvider, _mockLogger);
         _mockContext = Substitute.For<IJobExecutionContext>();
         _mockContext.CancellationToken.Returns(CancellationToken.None);
     }
@@ -238,6 +240,55 @@ public class DataCleanupJobIntegrationTests : IntegrationTestBase
         Assert.IsTrue(checkStillExists);
         Assert.IsTrue(alertStillExists);
         Assert.IsTrue(channelStillExists);
+    }
+
+    [TestMethod]
+    public async Task ExecuteShouldVacuumTablesAfterDeletingRecordsWithoutError()
+    {
+        var workspace = await CreateWorkspaceAsync();
+        var check = await CreateCheckAsync(workspace.Id);
+        var channel = await CreateNotificationChannelAsync(workspace.Id);
+        var alert = await CreateAlertAsync(check.Id);
+
+        await CreateCheckResultAsync(check.Id, DateTimeOffset.UtcNow.AddDays(-400));
+        await CreateAlertHistoryAsync(alert.Id, channel.Id, DateTimeOffset.UtcNow.AddDays(-400));
+        await CreateAuditLogAsync(DateTimeOffset.UtcNow.AddDays(-400));
+
+        await SetGlobalSettingAsync("CheckResultsRetentionDays", "365");
+        await SetGlobalSettingAsync("AlertHistoryRetentionDays", "365");
+        await SetGlobalSettingAsync("AuditLogRetentionDays", "365");
+
+        await _job.Execute(_mockContext);
+
+        // A "Failed to vacuum" warning would mean VACUUM ran inside an active transaction or against the wrong table name
+        _mockLogger.DidNotReceive().Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<Exception?>(),
+            Arg.Any<Func<object, Exception?, string>>());
+    }
+
+    [TestMethod]
+    public async Task ExecuteShouldNotVacuumTableWhenNothingWasDeletedFromIt()
+    {
+        var workspace = await CreateWorkspaceAsync();
+        var check = await CreateCheckAsync(workspace.Id);
+
+        await CreateCheckResultAsync(check.Id, DateTimeOffset.UtcNow.AddDays(-400));
+
+        await SetGlobalSettingAsync("CheckResultsRetentionDays", "365");
+        await SetGlobalSettingAsync("AlertHistoryRetentionDays", "365");
+        await SetGlobalSettingAsync("AuditLogRetentionDays", "365");
+
+        await _job.Execute(_mockContext);
+
+        _mockLogger.DidNotReceive().Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<Exception?>(),
+            Arg.Any<Func<object, Exception?, string>>());
     }
 
     private async Task SetGlobalSettingAsync(string key, string value)
