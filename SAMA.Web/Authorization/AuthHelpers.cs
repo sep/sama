@@ -56,7 +56,7 @@ public static class AuthHelpers
         {
             var checkQuery = context.HttpContext.RequestServices
                 .GetRequiredService<Services.Queries.CheckQueryService>();
-            var check = await checkQuery.GetCheckDetailsAsync((id != Guid.Empty) ? id : checkId);
+            var check = await checkQuery.GetCheckBasicInfoAsync((id != Guid.Empty) ? id : checkId);
             return check?.WorkspaceId;
         }
 

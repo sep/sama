@@ -68,7 +68,6 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
         var check = await _samaDbContext.Checks
             .AsSplitQuery()
             .Include(c => c.Workspace)
-            .Include(c => c.CheckResults.OrderByDescending(cr => cr.CheckedAt).Take(1))
             .Include(c => c.Alerts)
                 .ThenInclude(a => a.NotificationChannels)
             .FirstOrDefaultAsync(c => c.Id == checkId, cancellationToken);
@@ -78,7 +77,7 @@ public class CheckQueryService(SamaDbContext _samaDbContext, ApplicationStateSer
             return null;
         }
 
-        var lastResult = check.CheckResults.FirstOrDefault();
+        var lastResult = await _samaDbContext.CheckResults.Where(cr => cr.CheckId == check.Id).OrderByDescending(cr => cr.CheckedAt).FirstOrDefaultAsync(cancellationToken);
         var resultCount = await _samaDbContext.CheckResults.CountAsync(cr => cr.CheckId == check.Id, cancellationToken);
 
         var viewModel = new CheckDetailsViewModel
