@@ -139,6 +139,7 @@ public class LoadTestModel(
             var lastStatus = CheckStatuses.Up;
             var lastResponseTime = random.Next(20, 500);
             var lastCheckedAt = current;
+            var resultsCache = new List<CheckResult>();
 
             while (current <= now)
             {
@@ -175,7 +176,7 @@ public class LoadTestModel(
                     _ => (0, null)
                 };
 
-                await dbContext.CheckResults.AddAsync(new CheckResult
+                resultsCache.Add(new CheckResult
                 {
                     CheckId = check.Id,
                     Status = status,
@@ -186,10 +187,27 @@ public class LoadTestModel(
                 });
                 totalResults++;
 
+                if (resultsCache.Count >= 10000)
+                {
+                    dbContext.CheckResults.AddRange(resultsCache);
+                    await dbContext.SaveChangesAsync();
+                    dbContext.ChangeTracker.Clear();
+                    resultsCache.Clear();
+                    System.Diagnostics.Debug.WriteLine($"Inserted bulk results for check {check.Id} at {current}");
+                }
+
                 lastStatus = status;
                 lastResponseTime = responseTime;
                 lastCheckedAt = current;
                 current = current.AddSeconds(intervalSeconds);
+            }
+
+            if (resultsCache.Count > 0)
+            {
+                dbContext.CheckResults.AddRange(resultsCache);
+                await dbContext.SaveChangesAsync();
+                dbContext.ChangeTracker.Clear();
+                resultsCache.Clear();
             }
 
             var trackedCheck = await dbContext.Checks.FindAsync(check.Id);
