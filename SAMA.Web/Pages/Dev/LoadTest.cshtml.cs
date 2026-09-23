@@ -191,6 +191,7 @@ public class LoadTestModel(
                 {
                     dbContext.CheckResults.AddRange(resultsCache);
                     await dbContext.SaveChangesAsync();
+                    dbContext.ChangeTracker.Clear();
                     resultsCache.Clear();
                     System.Diagnostics.Debug.WriteLine($"Inserted bulk results for check {check.Id} at {current}");
                 }
@@ -205,6 +206,7 @@ public class LoadTestModel(
             {
                 dbContext.CheckResults.AddRange(resultsCache);
                 await dbContext.SaveChangesAsync();
+                dbContext.ChangeTracker.Clear();
                 resultsCache.Clear();
             }
 
